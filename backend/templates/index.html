@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<title>தக்காளி நோய் கண்டறிதல் | Tomato Disease Diagnosis</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Noto Sans Tamil', 'Segoe UI', sans-serif;
+    background: #f4f7f2;
+    margin: 0;
+    padding: 0;
+    color: #1f2a1f;
+  }
+  header {
+    background: #2e7d32;
+    color: white;
+    padding: 20px 24px;
+  }
+  header h1 { margin: 0; font-size: 22px; }
+  header p { margin: 4px 0 0; font-size: 14px; opacity: 0.9; }
+  .container {
+    max-width: 640px;
+    margin: 24px auto;
+    padding: 0 16px;
+  }
+  .card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    margin-bottom: 16px;
+  }
+  textarea {
+    width: 100%;
+    min-height: 90px;
+    padding: 12px;
+    font-size: 16px;
+    border: 1px solid #cdd7cc;
+    border-radius: 8px;
+    resize: vertical;
+    font-family: inherit;
+  }
+  button {
+    background: #2e7d32;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 15px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  button:hover { background: #276029; }
+  button.secondary {
+    background: #eceeea;
+    color: #1f2a1f;
+    margin-left: 8px;
+  }
+  .disease-name { font-size: 19px; font-weight: 600; margin-bottom: 4px; }
+  .disease-name-ta { font-size: 15px; color: #4c5a4b; margin-bottom: 12px; }
+  .treatment-item {
+    border-left: 3px solid #2e7d32;
+    padding: 8px 12px;
+    margin: 8px 0;
+    background: #f4f7f2;
+    border-radius: 4px;
+  }
+  .score-tag {
+    display: inline-block;
+    background: #e3efe2;
+    color: #2e7d32;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+  .candidate-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+  }
+  #confirmImg { max-width: 100%; border-radius: 8px; margin: 12px 0; display:none; }
+  .muted { color: #6b7a6a; font-size: 13px; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>தக்காளி நோய் கண்டறிதல் KG Demo</h1>
+  <p>Tomato Disease Diagnosis - Knowledge Graph Checkpoint (30%)</p>
+</header>
+
+<div class="container">
+  <div class="card">
+    <label class="muted">உங்கள் தக்காளி செடியின் பிரச்சனையை தமிழில் தட்டச்சு செய்யவும் (Type your tomato plant's problem in Tamil):</label>
+    <textarea id="farmerInput" placeholder="எ.கா. இலையில் வெள்ளை தூள் போல இருக்கு..."></textarea>
+    <br>
+    <button onclick="diagnose()">சமர்ப்பிக்க (Submit)</button>
+    <button class="secondary" onclick="fillExample()">Example: "வெள்ளை தூள்"</button>
+  </div>
+
+  <div class="card hidden" id="clarifyCard">
+    <div class="score-tag">தெளிவுபடுத்த வேண்டும் (Needs clarification)</div>
+    <p id="clarifyQuestion"></p>
+    <div id="candidateList"></div>
+    <button onclick="answerYes()">ஆம் (Yes)</button>
+    <button class="secondary" onclick="answerNo()">இல்லை (No)</button>
+  </div>
+
+  <div class="card hidden" id="resultCard">
+    <div class="score-tag" id="scoreTag"></div>
+    <div class="disease-name" id="diseaseNameEn"></div>
+    <div class="disease-name-ta" id="diseaseNameTa"></div>
+    <img id="confirmImg" src="">
+    <p class="muted">Sample image shown for visual confirmation. Does this match what you see?</p>
+    <button onclick="submitConfirmation(true)">ஆம், இது தான் (Yes, this is it)</button>
+    <button class="secondary" onclick="submitConfirmation(false)">இல்லை (No)</button>
+    <h4>பரிந்துரைக்கப்படும் சிகிச்சை (Recommended Treatment)</h4>
+    <div id="treatmentList"></div>
+  </div>
+
+  <div class="card hidden" id="feedbackCard">
+    <p id="feedbackMsg"></p>
+  </div>
+</div>
+
+<script>
+let lastMatchedSymptoms = [];
+let lastDiseaseId = null;
+let askedSymptoms = [];
+
+function fillExample() {
+  document.getElementById('farmerInput').value = "இலையில் வெள்ளை தூள் போல இருக்கு";
+}
+
+async function diagnose() {
+  const text = document.getElementById('farmerInput').value;
+  hide('clarifyCard'); hide('resultCard'); hide('feedbackCard');
+
+  const res = await fetch('/api/diagnose', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({text: text, already_asked_symptoms: askedSymptoms})
+  });
+  const data = await res.json();
+
+  if (data.status === 'no_match') {
+    alert(data.message);
+  } else if (data.status === 'clarify') {
+    show('clarifyCard');
+    document.getElementById('clarifyQuestion').innerText =
+      "Candidates are close. Follow-up: " + (data.next_question ? data.next_question.description_en : "N/A");
+    const list = document.getElementById('candidateList');
+    list.innerHTML = data.candidates.map(c =>
+      `<div class="candidate-row"><span>${c.name_en} (${c.name_ta})</span><span>${c.score}</span></div>`
+    ).join('');
+    if (data.next_question) askedSymptoms.push(data.next_question.symptom_id);
+  } else if (data.status === 'confirm') {
+    lastMatchedSymptoms = data.matched_symptoms;
+    lastDiseaseId = data.disease_id;
+    show('resultCard');
+    document.getElementById('scoreTag').innerText = "Confidence score: " + data.score;
+    document.getElementById('diseaseNameEn').innerText = data.detail.name_en;
+    document.getElementById('diseaseNameTa').innerText = data.detail.name_ta;
+    const img = document.getElementById('confirmImg');
+    img.src = data.detail.image_url;
+    img.style.display = 'block';
+    document.getElementById('treatmentList').innerHTML = data.detail.treatments.map(t =>
+      `<div class="treatment-item"><strong>${t.name}</strong> (${t.type})<br>${t.dosage}</div>`
+    ).join('');
+  }
+}
+
+function answerYes() { document.getElementById('farmerInput').value += " (confirmed additional symptom)"; diagnose(); }
+function answerNo() { diagnose(); }
+
+async function submitConfirmation(confirmed) {
+  await fetch('/api/confirm', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      disease_id: lastDiseaseId,
+      matched_symptoms: lastMatchedSymptoms,
+      confirmed: confirmed
+    })
+  });
+  show('feedbackCard');
+  document.getElementById('feedbackMsg').innerText = confirmed
+    ? "நன்றி! KG எடைகள் புதுப்பிக்கப்பட்டது. (Thanks! KG weights updated.)"
+    : "பதிவு செய்யப்பட்டது, மாற்று நோயை பரிசீலிக்கிறோம். (Noted, considering alternate diagnosis.)";
+}
+
+function show(id) { document.getElementById(id).classList.remove('hidden'); }
+function hide(id) { document.getElementById(id).classList.add('hidden'); }
+</script>
+
+</body>
+</html>
