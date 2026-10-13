@@ -1,0 +1,4069 @@
+{
+  "meta": {
+    "version": "2.0.0",
+    "crop": {
+      "id": "tomato",
+      "name_en": "Tomato",
+      "name_ta": "தக்காளி"
+    },
+    "sources": {
+      "jagtap2025": "Jagtap, Shinde, Marade, Sawant, Sable, Mahalle (2025). A Comprehensive Dataset of Tomato Plant Diseases for National Predictive Analytics and Crop Health Management. Mendeley Data. DOI:10.17632/ztncd79yhk.1",
+      "general": "General agricultural extension guidance (TNAU / standard plant-pathology practice). Verify locally with your agricultural officer or KVK.",
+      "spray_wind": "Agriculture Victoria / GRDC spray-drift guidance: ideal wind ~3-15 km/h, do not spray at 20 km/h or more. https://agriculture.vic.gov.au/farm-management/chemicals/spraying-agricultural-chemicals/managing-spray-drift/a-guide-to-estimating-wind-speed",
+      "rainfast": "Fungicide rainfastness: protectants such as mancozeb need ~1.5-2 h drying (labels up to 6 h) and are partly washed off by >5 mm rain. https://ext.grapepathology.org/rains-and-fungicide-sprays",
+      "sulfur_heat": "Sulfur phytotoxicity risk above 32°C (AWRI Agrochemical update, Oct 2021; US product labels: do not apply above 90°F). https://www.awri.com.au/information_services/ebulletin/2021/10/13/agrochemical-update-october-2021-using-sulfur-to-protect-vines-particularly-under-cool-conditions/",
+      "hutton": "Hutton Criteria for late blight: two consecutive days with minimum temperature ≥10°C and ≥6 h of relative humidity ≥90% (AHDB, 2017; Smith Period uses ≥11 h). https://potatoes.ahdb.org.uk/development-and-implementation-of-a-new-national-warning-system-for-potato-late-blight-in-great-britain-hutton-criteria",
+      "tomcast": "TOM-CAST daily disease severity values from leaf-wetness hours and temperature (Madden et al. 1978; table from Proc. 2015 Wisconsin Crop Management Conference). https://extension.soils.wisc.edu/wp-content/uploads/sites/68/2015/06/Frost-2015-WCMC-Proceedings.pdf",
+      "frac_irac": "FRAC (fungicide) and IRAC (insecticide) mode-of-action classification - rotate groups to delay resistance. https://www.frac.info / https://irac-online.org",
+      "phi": "Pre-harvest interval (days from the last spray to picking): conservative default values chosen for decision support, set at or above typical tomato label intervals for each product type (India CIB&RC registrations, US EPA labels). Intervals differ between brands and formulations — the label on the pack is final. Botanicals: wash fruit before sale."
+    },
+    "notes": "Single source of truth for the knowledge graph. Loaded into Neo4j by scripts/seed_neo4j.py or used directly by the embedded graph store. HAS_SYMPTOM weights approximate P(symptom observed | disease); LAYTERM weights approximate P(phrase refers to symptom)."
+  },
+  "seasons": [
+    {
+      "id": "humid_monsoon",
+      "name_en": "Humid / Monsoon",
+      "name_ta": "ஈரப்பதமான மழைக்காலம்",
+      "temp_range": "22-30°C",
+      "humidity_range": "80-100%",
+      "months": [
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "id": "cool_moist",
+      "name_en": "Cool & Misty",
+      "name_ta": "குளிர் / பனிக்காலம்",
+      "temp_range": "15-23°C",
+      "humidity_range": "60-80%",
+      "months": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "hot_dry",
+      "name_en": "Hot & Dry",
+      "name_ta": "வெப்பமான வறண்ட காலம்",
+      "temp_range": "30-40°C",
+      "humidity_range": "20-50%",
+      "months": [
+        3,
+        4,
+        5,
+        6
+      ]
+    }
+  ],
+  "diseases": [
+    {
+      "id": "early_blight",
+      "name_en": "Early Blight",
+      "name_ta": "ஆரம்பகால இலைக் கருகல் நோய்",
+      "type": "fungal",
+      "severity": 3,
+      "contagious": true,
+      "source": "jagtap2025",
+      "summary_en": "Fungal disease (Alternaria) that starts on older leaves as brown spots with target-like rings, then moves upward in warm, humid weather.",
+      "summary_ta": "வெப்பமான, ஈரப்பதமான காலத்தில் வரும் பூஞ்சை நோய். கீழ் இலைகளில் வளையங்களுடன் கூடிய பழுப்புப் புள்ளிகளாகத் தொடங்கி மேல்நோக்கிப் பரவும்.",
+      "prevention_en": [
+        "Use certified, disease-free seed and healthy seedlings.",
+        "Remove and destroy crop debris after harvest; rotate with non-solanaceous crops (beans, cabbage, cereals).",
+        "Avoid overhead irrigation; space plants for good air flow."
+      ],
+      "prevention_ta": [
+        "சான்றளிக்கப்பட்ட, நோயற்ற விதைகள் மற்றும் ஆரோக்கியமான நாற்றுகளைப் பயன்படுத்தவும்.",
+        "அறுவடைக்குப் பின் செடிக் கழிவுகளை அழிக்கவும்; பீன்ஸ், முட்டைக்கோஸ், தானியங்கள் போன்ற பயிர்களுடன் பயிர் சுழற்சி செய்யவும்.",
+        "மேலிருந்து தண்ணீர் தெளிப்பதைத் தவிர்க்கவும்; காற்றோட்டத்திற்கு இடைவெளி விட்டு நடவும்."
+      ],
+      "images": [
+        "early_blight_1.jpg",
+        "early_blight_2.jpg",
+        "early_blight_3.jpg"
+      ],
+      "favored_by": {
+        "humid_monsoon": 0.7
+      }
+    },
+    {
+      "id": "late_blight",
+      "name_en": "Late Blight",
+      "name_ta": "பின்பருவ இலைக் கருகல் நோய்",
+      "type": "fungal",
+      "severity": 5,
+      "contagious": true,
+      "source": "jagtap2025",
+      "summary_en": "Very destructive water-mould disease. Large dark, water-soaked patches with white growth underneath; can destroy a field within days in cool, wet weather.",
+      "summary_ta": "மிக வேகமாக அழிக்கும் நோய். இலையில் நனைந்தது போன்ற பெரிய கருமையான திட்டுகள், அடியில் வெள்ளை பூஞ்சை. குளிர்ந்த, ஈரமான காலத்தில் சில நாட்களில் வயல் முழுவதும் பரவும்.",
+      "prevention_en": [
+        "Do not grow tomato next to potato.",
+        "Rotate crops for 2–3 years with non-host plants.",
+        "Irrigate at ground level and not late in the day; disinfect field tools."
+      ],
+      "prevention_ta": [
+        "உருளைக்கிழங்கு அருகே தக்காளி பயிரிட வேண்டாம்.",
+        "2–3 ஆண்டுகள் வேறு பயிர்களுடன் பயிர் சுழற்சி செய்யவும்.",
+        "மாலை நேரத்தில் நீர் பாய்ச்ச வேண்டாம்; வேர்ப்பகுதியில் மட்டும் நீர் பாய்ச்சவும்; கருவிகளைச் சுத்தம் செய்யவும்."
+      ],
+      "images": [
+        "late_blight_1.jpg",
+        "late_blight_2.jpg",
+        "late_blight_3.jpg"
+      ],
+      "favored_by": {
+        "humid_monsoon": 0.9,
+        "cool_moist": 0.8
+      }
+    },
+    {
+      "id": "powdery_mildew",
+      "name_en": "Powdery Mildew",
+      "name_ta": "சாம்பல் நோய் (வெள்ளைப் பூஞ்சை)",
+      "type": "fungal",
+      "severity": 2,
+      "contagious": true,
+      "source": "general",
+      "summary_en": "White powdery fungal growth on the leaf surface; leaves turn yellow and dry in severe cases. Common with dry days and cool nights.",
+      "summary_ta": "இலைகளில் வெள்ளைத் தூள் போன்ற பூஞ்சை வளர்ச்சி; தீவிரமானால் இலைகள் மஞ்சளாகி காய்ந்துவிடும்.",
+      "prevention_en": [
+        "Space plants well and remove badly affected leaves.",
+        "Avoid excess nitrogen fertilizer.",
+        "Start sulfur or neem sprays at the first sign."
+      ],
+      "prevention_ta": [
+        "செடிகளுக்கு இடையே போதுமான இடைவெளி விட்டு, அதிகம் பாதித்த இலைகளை அகற்றவும்.",
+        "அதிக தழைச்சத்து (யூரியா) உரம் இடுவதைத் தவிர்க்கவும்.",
+        "முதல் அறிகுறி தெரிந்தவுடனே கந்தகம் / வேப்ப எண்ணெய் தெளிக்கத் தொடங்கவும்."
+      ],
+      "images": [],
+      "favored_by": {
+        "cool_moist": 0.7,
+        "hot_dry": 0.5
+      }
+    },
+    {
+      "id": "whitefly",
+      "name_en": "Whitefly Infestation",
+      "name_ta": "வெள்ளை ஈ தாக்குதல்",
+      "type": "pest",
+      "severity": 3,
+      "contagious": false,
+      "source": "general",
+      "summary_en": "Tiny white sap-sucking insects under the leaves. They weaken plants, leave sticky honeydew and spread Leaf Curl Virus — control them early.",
+      "summary_ta": "இலையின் அடியில் சாறு உறிஞ்சும் சிறிய வெள்ளைப் பூச்சிகள். செடியை பலவீனமாக்கி, ஒட்டும் திரவத்தை விட்டு, இலைச் சுருள் வைரஸையும் பரப்பும் — ஆரம்பத்திலேயே கட்டுப்படுத்தவும்.",
+      "prevention_en": [
+        "Raise seedlings under insect-proof net.",
+        "Install yellow sticky traps from planting.",
+        "Remove weed hosts around the field."
+      ],
+      "prevention_ta": [
+        "பூச்சி புகா வலையின் கீழ் நாற்றுகளை வளர்க்கவும்.",
+        "நடவு முதலே மஞ்சள் ஒட்டும் பொறிகளை வைக்கவும்.",
+        "வயலைச் சுற்றியுள்ள களைச் செடிகளை அகற்றவும்."
+      ],
+      "images": [],
+      "favored_by": {
+        "hot_dry": 0.8
+      }
+    },
+    {
+      "id": "leaf_curl_virus",
+      "name_en": "Tomato Leaf Curl Virus",
+      "name_ta": "இலைச் சுருள் நோய் (வைரஸ்)",
+      "type": "viral",
+      "severity": 4,
+      "contagious": true,
+      "source": "jagtap2025",
+      "summary_en": "Virus spread by whiteflies. Young leaves curl upward, turn yellow and small; plants become stunted and bushy with few fruits. Infected plants cannot be cured.",
+      "summary_ta": "வெள்ளை ஈ மூலம் பரவும் வைரஸ். இளம் இலைகள் மேல்நோக்கிச் சுருண்டு, மஞ்சளாகி, சிறியதாகும்; செடி குட்டையாகி காய்ப்பு குறையும். பாதித்த செடியைக் குணப்படுத்த முடியாது.",
+      "prevention_en": [
+        "Use resistant varieties (Ty genes) and virus-free seedlings.",
+        "Control whiteflies early — nets in the nursery, sticky traps in the field.",
+        "Pull out and destroy infected plants early in the season."
+      ],
+      "prevention_ta": [
+        "நோய் எதிர்ப்பு ரகங்கள் மற்றும் வைரஸ் இல்லாத நாற்றுகளைப் பயன்படுத்தவும்.",
+        "வெள்ளை ஈயை ஆரம்பத்திலேயே கட்டுப்படுத்தவும் — நாற்றங்காலில் வலை, வயலில் ஒட்டும் பொறிகள்.",
+        "பாதிக்கப்பட்ட செடிகளை ஆரம்பத்திலேயே பிடுங்கி அழிக்கவும்."
+      ],
+      "images": [
+        "leaf_curl_virus_1.jpg",
+        "leaf_curl_virus_2.jpg",
+        "leaf_curl_virus_3.jpg"
+      ],
+      "favored_by": {
+        "hot_dry": 0.7
+      }
+    },
+    {
+      "id": "septoria_leaf_spot",
+      "name_en": "Septoria Leaf Spot",
+      "name_ta": "செப்டோரியா இலைப்புள்ளி நோய்",
+      "type": "fungal",
+      "severity": 3,
+      "contagious": true,
+      "source": "jagtap2025",
+      "summary_en": "Many small round spots with grey centres and dark borders on the lower leaves, often with tiny black dots inside. Leaves turn yellow and drop.",
+      "summary_ta": "கீழ் இலைகளில் சாம்பல் நடுப்பகுதி, கருப்பு ஓரம் கொண்ட பல சிறிய வட்டப் புள்ளிகள்; உள்ளே சிறிய கருப்புப் பொட்டுகள். இலைகள் மஞ்சளாகி உதிரும்.",
+      "prevention_en": [
+        "Remove infected lower leaves early; destroy debris at season end (do not compost).",
+        "Use drip irrigation and water early in the day.",
+        "Control nightshade weeds; sanitize stakes and tools."
+      ],
+      "prevention_ta": [
+        "பாதித்த கீழ் இலைகளை ஆரம்பத்திலேயே அகற்றவும்; பருவ இறுதியில் கழிவுகளை அழிக்கவும் (உரமாக்க வேண்டாம்).",
+        "சொட்டு நீர்ப் பாசனம் செய்து, காலையில் நீர் பாய்ச்சவும்.",
+        "மணத்தக்காளி போன்ற களைகளை அகற்றவும்; குச்சிகள், கருவிகளைச் சுத்தம் செய்யவும்."
+      ],
+      "images": [
+        "septoria_leaf_spot_1.jpg",
+        "septoria_leaf_spot_2.jpg",
+        "septoria_leaf_spot_3.jpg"
+      ],
+      "favored_by": {
+        "cool_moist": 0.8,
+        "humid_monsoon": 0.6
+      }
+    },
+    {
+      "id": "bacterial_spot",
+      "name_en": "Bacterial Spot",
+      "name_ta": "பாக்டீரியா இலைப்புள்ளி நோய்",
+      "type": "bacterial",
+      "severity": 3,
+      "contagious": true,
+      "source": "general",
+      "summary_en": "Small dark water-soaked leaf spots that turn scabby, often with yellow halos; raised scabby spots on fruit. Spreads by rain splash.",
+      "summary_ta": "இலைகளில் சிறிய கருமையான நனைந்த புள்ளிகள், சுற்றி மஞ்சள் வளையம்; பழத்தில் சொரசொரப்பான மேடான புள்ளிகள். மழைத் தெறிப்பால் பரவும்.",
+      "prevention_en": [
+        "Use disease-free seed and transplants.",
+        "Avoid working in the field when plants are wet.",
+        "Rotate crops and remove infected debris."
+      ],
+      "prevention_ta": [
+        "நோயற்ற விதை மற்றும் நாற்றுகளைப் பயன்படுத்தவும்.",
+        "செடிகள் ஈரமாக இருக்கும்போது வயலில் வேலை செய்ய வேண்டாம்.",
+        "பயிர் சுழற்சி செய்து, பாதித்த கழிவுகளை அகற்றவும்."
+      ],
+      "images": [
+        "bacterial_spot_1.jpg",
+        "bacterial_spot_2.jpg",
+        "bacterial_spot_3.jpg"
+      ],
+      "favored_by": {
+        "humid_monsoon": 0.7
+      }
+    },
+    {
+      "id": "fusarium_wilt",
+      "name_en": "Fusarium Wilt",
+      "name_ta": "ஃபியூசேரியம் வாடல் நோய்",
+      "type": "fungal",
+      "severity": 4,
+      "contagious": true,
+      "source": "general",
+      "summary_en": "Soil-borne fungus blocks the plant's water flow. Wilting starts on one side or one branch with yellow lower leaves; the stem shows brown streaks inside.",
+      "summary_ta": "மண்ணில் வாழும் பூஞ்சை நீர் ஓட்டத்தைத் தடுக்கும். ஒரு பக்கம் / ஒரு கிளையில் வாடல் தொடங்கி, கீழ் இலைகள் மஞ்சளாகும்; தண்டின் உள்ளே பழுப்புக் கோடுகள்.",
+      "prevention_en": [
+        "Grow resistant varieties.",
+        "Rotate with non-solanaceous crops for 2–3 seasons.",
+        "Solarize the soil in summer before planting."
+      ],
+      "prevention_ta": [
+        "நோய் எதிர்ப்பு ரகங்களைப் பயிரிடவும்.",
+        "2–3 பருவங்கள் கத்தரி, மிளகாய் அல்லாத பயிர்களுடன் சுழற்சி செய்யவும்.",
+        "நடவுக்கு முன் கோடையில் மண்ணை சூரிய வெப்பத்தால் சுத்திகரிக்கவும் (பிளாஸ்டிக் போர்த்துதல்)."
+      ],
+      "images": [],
+      "favored_by": {
+        "hot_dry": 0.6
+      }
+    },
+    {
+      "id": "bacterial_wilt",
+      "name_en": "Bacterial Wilt",
+      "name_ta": "பாக்டீரியா வாடல் நோய்",
+      "type": "bacterial",
+      "severity": 5,
+      "contagious": true,
+      "source": "general",
+      "summary_en": "The whole plant wilts suddenly while leaves are still green. A cut stem placed in water releases milky white ooze. There is no cure — remove plants quickly.",
+      "summary_ta": "இலைகள் பச்சையாக இருக்கும்போதே செடி முழுவதும் திடீரென வாடும். வெட்டிய தண்டை நீரில் வைத்தால் பால் போன்ற வெள்ளைக் கசிவு வரும். மருந்து இல்லை — செடியை உடனே அகற்றவும்.",
+      "prevention_en": [
+        "Remove wilted plants with their roots immediately and destroy them.",
+        "Rotate with non-host crops (cereals); avoid fields that had wilt before.",
+        "Avoid waterlogging and root injury; grow resistant varieties."
+      ],
+      "prevention_ta": [
+        "வாடிய செடிகளை வேருடன் உடனே பிடுங்கி அழிக்கவும்.",
+        "தானியப் பயிர்களுடன் சுழற்சி செய்யவும்; முன்பு வாடல் வந்த வயலைத் தவிர்க்கவும்.",
+        "நீர் தேங்குவதையும் வேர் காயத்தையும் தவிர்க்கவும்; எதிர்ப்பு ரகங்களைப் பயிரிடவும்."
+      ],
+      "images": [],
+      "favored_by": {
+        "humid_monsoon": 0.8
+      }
+    },
+    {
+      "id": "blossom_end_rot",
+      "name_en": "Blossom End Rot",
+      "name_ta": "பூ முனை அழுகல்",
+      "type": "physiological",
+      "severity": 3,
+      "contagious": false,
+      "source": "general",
+      "summary_en": "Not an infection — caused by calcium shortage in the fruit, usually from uneven watering. Dark, sunken, leathery patch at the bottom of the fruit.",
+      "summary_ta": "இது தொற்று நோய் அல்ல — சீரற்ற நீர்ப் பாசனத்தால் பழத்தில் கால்சியம் குறைவதால் வருவது. பழத்தின் அடியில் கருப்பான, குழிந்த, தோல் போன்ற திட்டு.",
+      "prevention_en": [
+        "Water evenly; mulch to keep soil moisture steady.",
+        "Avoid excess nitrogen; apply lime or gypsum if soil calcium is low (test the soil).",
+        "Remove affected fruits."
+      ],
+      "prevention_ta": [
+        "சீராக நீர் பாய்ச்சவும்; மண் ஈரப்பதம் நிலைக்க மூடாக்கு இடவும்.",
+        "அதிக தழைச்சத்தைத் தவிர்க்கவும்; மண்ணில் கால்சியம் குறைவாக இருந்தால் சுண்ணாம்பு / ஜிப்சம் இடவும் (மண் பரிசோதனை செய்யவும்).",
+        "பாதித்த பழங்களை அகற்றவும்."
+      ],
+      "images": [],
+      "favored_by": {
+        "hot_dry": 0.7
+      }
+    },
+    {
+      "id": "mosaic_virus",
+      "name_en": "Tomato Mosaic Virus",
+      "name_ta": "தேமல் நோய் (மொசைக் வைரஸ்)",
+      "type": "viral",
+      "severity": 3,
+      "contagious": true,
+      "source": "jagtap2025",
+      "summary_en": "Virus spread by touch, tools and seed. Leaves show light/dark green mottling and may be twisted; fruits ripen unevenly. Fungicides do not work on it.",
+      "summary_ta": "கை, கருவிகள், விதை மூலம் பரவும் வைரஸ். இலைகளில் வெளிர் / கரும்பச்சை தேமல், இலை முறுக்கம்; பழங்கள் சீராகப் பழுக்காது. பூஞ்சைக் கொல்லிகள் பயன் தராது.",
+      "prevention_en": [
+        "Wash hands and tools with soap while working; do not handle tobacco near plants.",
+        "Do not save seed from infected plants; treat seed with 1% sodium hypochlorite.",
+        "Remove volunteer tomato and nightshade weeds."
+      ],
+      "prevention_ta": [
+        "வேலை செய்யும்போது கைகள், கருவிகளை சோப்பால் கழுவவும்; செடிகள் அருகே புகையிலை பயன்படுத்த வேண்டாம்.",
+        "பாதித்த செடிகளிலிருந்து விதை சேமிக்க வேண்டாம்; 1% சோடியம் ஹைப்போகுளோரைட்டில் விதை நேர்த்தி செய்யவும்.",
+        "தானாக முளைத்த தக்காளி, மணத்தக்காளி களைகளை அகற்றவும்."
+      ],
+      "images": [
+        "mosaic_virus_1.jpg",
+        "mosaic_virus_2.jpg",
+        "mosaic_virus_3.jpg"
+      ],
+      "favored_by": {}
+    },
+    {
+      "id": "spider_mite",
+      "name_en": "Two-Spotted Spider Mite",
+      "name_ta": "சிலந்திப் பேன்",
+      "type": "pest",
+      "severity": 3,
+      "contagious": false,
+      "source": "jagtap2025",
+      "summary_en": "Tiny mites under the leaves suck sap, causing fine yellow speckles, bronzing and fine webbing. Worst in hot, dry, dusty weather.",
+      "summary_ta": "இலையின் அடியில் உள்ள மிகச் சிறிய பேன்கள் சாறு உறிஞ்சுவதால் மஞ்சள் பொட்டுகள், வெண்கல நிறம், மெல்லிய வலை ஏற்படும். வெப்பமான, வறண்ட காலத்தில் அதிகம்.",
+      "prevention_en": [
+        "Avoid water stress — water regularly.",
+        "Avoid excess nitrogen fertilizer.",
+        "Check leaf undersides weekly in hot, dry weather."
+      ],
+      "prevention_ta": [
+        "நீர்ப் பற்றாக்குறை வராமல் தொடர்ந்து நீர் பாய்ச்சவும்.",
+        "அதிக தழைச்சத்து உரத்தைத் தவிர்க்கவும்.",
+        "வெப்பமான காலத்தில் வாரந்தோறும் இலையின் அடிப்பகுதியைச் சோதிக்கவும்."
+      ],
+      "images": [
+        "spider_mite_1.jpg",
+        "spider_mite_2.jpg",
+        "spider_mite_3.jpg"
+      ],
+      "favored_by": {
+        "hot_dry": 0.9
+      }
+    },
+    {
+      "id": "fruit_borer",
+      "name_en": "Fruit Borer",
+      "name_ta": "காய்ப்புழு (காய்த் துளைப்பான்)",
+      "type": "pest",
+      "severity": 4,
+      "contagious": false,
+      "source": "general",
+      "summary_en": "Caterpillars (Helicoverpa) bore round holes into fruits and feed inside, making them unmarketable.",
+      "summary_ta": "புழுக்கள் (ஹெலிகோவெர்பா) காய்களில் வட்டத் துளையிட்டு உள்ளே தின்று, காய்களை விற்பனைக்குத் தகுதியற்றதாக்கும்.",
+      "prevention_en": [
+        "Install pheromone traps to monitor moths.",
+        "Collect and destroy bored fruits regularly.",
+        "Grow marigold as a trap crop along the borders."
+      ],
+      "prevention_ta": [
+        "அந்துப்பூச்சிகளைக் கண்காணிக்க இனக்கவர்ச்சிப் பொறிகளை வைக்கவும்.",
+        "துளையுள்ள காய்களைத் தொடர்ந்து சேகரித்து அழிக்கவும்.",
+        "வரப்பில் செண்டுமல்லியைக் கவர்ச்சிப் பயிராக வளர்க்கவும்."
+      ],
+      "images": [],
+      "favored_by": {}
+    },
+    {
+      "id": "root_knot_nematode",
+      "name_en": "Root-Knot Nematode",
+      "name_ta": "வேர் முடிச்சு நூற்புழு",
+      "type": "pest",
+      "severity": 3,
+      "contagious": false,
+      "source": "general",
+      "summary_en": "Microscopic worms in the soil form knots (galls) on the roots. Plants are stunted, yellow and wilt in the afternoon even with enough water.",
+      "summary_ta": "மண்ணில் உள்ள கண்ணுக்குத் தெரியாத புழுக்கள் வேரில் முடிச்சுகளை உண்டாக்கும். போதுமான நீர் இருந்தும் செடி குட்டையாகி, மஞ்சளாகி, மதியம் வாடும்.",
+      "prevention_en": [
+        "Solarize the soil before planting.",
+        "Rotate with non-host crops (e.g., cereals, marigold).",
+        "Use nematode-free nursery soil."
+      ],
+      "prevention_ta": [
+        "நடவுக்கு முன் மண்ணை சூரிய வெப்பத்தால் சுத்திகரிக்கவும்.",
+        "தானியங்கள், செண்டுமல்லி போன்ற பயிர்களுடன் சுழற்சி செய்யவும்.",
+        "நூற்புழு இல்லாத நாற்றங்கால் மண்ணைப் பயன்படுத்தவும்."
+      ],
+      "images": [],
+      "favored_by": {}
+    },
+    {
+      "id": "leaf_miner",
+      "name_en": "Leaf Miner",
+      "name_ta": "இலைச் சுரங்கப் புழு",
+      "type": "pest",
+      "severity": 3,
+      "contagious": false,
+      "source": "jagtap2025",
+      "summary_en": "Tiny larvae tunnel inside the leaves, leaving winding white/brown lines. Heavy attack dries the leaves and reduces yield.",
+      "summary_ta": "சிறிய புழுக்கள் இலைக்குள் சுரங்கம் அமைத்து, வளைந்த வெள்ளை / பழுப்புக் கோடுகளை உண்டாக்கும். அதிகமானால் இலைகள் காய்ந்து மகசூல் குறையும்.",
+      "prevention_en": [
+        "Collect and destroy mined leaves.",
+        "Use yellow sticky traps for early detection.",
+        "Spray neem oil; avoid overusing chemical pesticides (they kill natural enemies)."
+      ],
+      "prevention_ta": [
+        "சுரங்கம் உள்ள இலைகளைச் சேகரித்து அழிக்கவும்.",
+        "ஆரம்பத்திலேயே கண்டறிய மஞ்சள் ஒட்டும் பொறிகளை வைக்கவும்.",
+        "வேப்ப எண்ணெய் தெளிக்கவும்; ரசாயன மருந்துகளை அளவுக்கு மீறிப் பயன்படுத்த வேண்டாம்."
+      ],
+      "images": [],
+      "favored_by": {
+        "humid_monsoon": 0.75,
+        "hot_dry": 0.6
+      }
+    },
+    {
+      "id": "leaf_mold",
+      "name_en": "Leaf Mold",
+      "name_ta": "இலைப் பூசண நோய்",
+      "type": "fungal",
+      "severity": 3,
+      "contagious": true,
+      "source": "jagtap2025",
+      "summary_en": "Pale yellow patches on the upper leaf surface with olive-green velvety mould underneath. Thrives above 85% humidity, especially in poly-houses.",
+      "summary_ta": "இலையின் மேல்புறம் வெளிர் மஞ்சள் திட்டுகள், அடியில் ஆலிவ் பச்சை வெல்வெட் போன்ற பூசணம். 85%-க்கு மேல் ஈரப்பதத்தில், குறிப்பாக பசுமைக்குடில்களில் அதிகம்.",
+      "prevention_en": [
+        "Improve ventilation; avoid overhead watering.",
+        "Use certified or treated seed.",
+        "Remove crop debris and sanitize the poly-house between seasons."
+      ],
+      "prevention_ta": [
+        "காற்றோட்டத்தை அதிகரிக்கவும்; மேலிருந்து நீர் தெளிக்க வேண்டாம்.",
+        "சான்றளிக்கப்பட்ட / நேர்த்தி செய்த விதையைப் பயன்படுத்தவும்.",
+        "பருவங்களுக்கிடையே கழிவுகளை அகற்றி பசுமைக்குடிலைச் சுத்தம் செய்யவும்."
+      ],
+      "images": [
+        "leaf_mold_1.jpg",
+        "leaf_mold_2.jpg",
+        "leaf_mold_3.jpg"
+      ],
+      "favored_by": {
+        "humid_monsoon": 0.85
+      }
+    },
+    {
+      "id": "target_spot",
+      "name_en": "Target Spot",
+      "name_ta": "இலக்குப் புள்ளி நோய்",
+      "type": "fungal",
+      "severity": 4,
+      "contagious": true,
+      "source": "jagtap2025",
+      "summary_en": "Starts as pin-point water-soaked spots that grow into brown spots with target-like rings and yellow halos; causes heavy leaf drop in warm, humid weather.",
+      "summary_ta": "குண்டூசி அளவு நனைந்த புள்ளிகளாகத் தொடங்கி, இலக்கு போன்ற வளையங்களும் மஞ்சள் விளிம்பும் கொண்ட பழுப்புப் புள்ளிகளாக வளரும்; வெப்பமான ஈரக் காலத்தில் இலைகள் அதிகமாக உதிரும்.",
+      "prevention_en": [
+        "Remove old plant debris after harvest.",
+        "Do not plant tomato, chilli, brinjal or potato in the same spot for 3 years.",
+        "Rotate fungicide groups; no more than two consecutive azoxystrobin sprays."
+      ],
+      "prevention_ta": [
+        "அறுவடைக்குப் பின் பழைய செடிக் கழிவுகளை அகற்றவும்.",
+        "ஒரே இடத்தில் 3 ஆண்டுகளுக்கு தக்காளி, மிளகாய், கத்தரி, உருளைக்கிழங்கு பயிரிட வேண்டாம்.",
+        "பூஞ்சைக் கொல்லிகளை மாற்றி மாற்றிப் பயன்படுத்தவும்; அசாக்ஸிஸ்ட்ரோபினைத் தொடர்ந்து இரண்டு முறைக்கு மேல் தெளிக்க வேண்டாம்."
+      ],
+      "images": [
+        "target_spot_1.jpg",
+        "target_spot_2.jpg",
+        "target_spot_3.jpg"
+      ],
+      "favored_by": {
+        "humid_monsoon": 0.8
+      }
+    }
+  ],
+  "symptoms": [
+    {
+      "id": "leaf_spots",
+      "part": "leaf",
+      "group": "spots",
+      "cost": 0,
+      "label_en": "Spots on the leaves",
+      "label_ta": "இலைகளில் புள்ளிகள்",
+      "question_en": "Are there spots on the leaves?",
+      "question_ta": "இலைகளில் புள்ளிகள் உள்ளனவா?",
+      "lay": [
+        [
+          "ta",
+          "இலையில் கருப்பு புள்ளிகள்",
+          0.85,
+          "lt_black_spots"
+        ],
+        [
+          "ta",
+          "இலையில் புள்ளி புள்ளியா இருக்கு",
+          0.85
+        ],
+        [
+          "ta",
+          "இலையில் பழுப்பு புள்ளிகள்",
+          0.85
+        ],
+        [
+          "en",
+          "spots on leaves",
+          0.85
+        ],
+        [
+          "en",
+          "brown spots on leaves",
+          0.85
+        ],
+        [
+          "en",
+          "black spots on leaves",
+          0.85
+        ],
+        [
+          "tl",
+          "ilai la pulli",
+          0.85
+        ],
+        [
+          "tl",
+          "karuppu pulli ilai la",
+          0.85
+        ]
+      ]
+    },
+    {
+      "id": "ring_spots",
+      "part": "leaf",
+      "group": "spots",
+      "cost": 0,
+      "label_en": "Brown–black spots with rings inside (like a target)",
+      "label_ta": "வளையம் வளையமாக (இலக்கு போல) பழுப்பு-கருப்புப் புள்ளிகள்",
+      "question_en": "Do the spots on the leaves have rings inside them, like a target?",
+      "question_ta": "இலையில் உள்ள புள்ளிகளுக்குள் இலக்கு போல வளையங்கள் தெரிகிறதா?",
+      "lay": [
+        [
+          "ta",
+          "வளையம் போன்ற புள்ளி இலையில்",
+          0.95,
+          "lt_ring_spot"
+        ],
+        [
+          "ta",
+          "இலக்கு வளையம் போன்ற புள்ளிகள் இலையில்",
+          0.85,
+          "lt_target_ring"
+        ],
+        [
+          "ta",
+          "இலையில் வட்ட வட்டமா பழுப்பு புள்ளி",
+          0.85
+        ],
+        [
+          "ta",
+          "புள்ளிக்குள்ள வளையம் வளையமா இருக்கு",
+          0.9
+        ],
+        [
+          "en",
+          "brown spots with rings on leaves",
+          0.9
+        ],
+        [
+          "en",
+          "target like spots on leaf",
+          0.9
+        ],
+        [
+          "en",
+          "concentric ring bullseye spots",
+          0.9
+        ],
+        [
+          "tl",
+          "ilai la valayam pola pulli",
+          0.9
+        ],
+        [
+          "tl",
+          "vattam vattama karuppu pulli",
+          0.8
+        ]
+      ]
+    },
+    {
+      "id": "yellow_halo",
+      "part": "leaf",
+      "group": "spots",
+      "cost": 0,
+      "label_en": "Yellow ring (halo) around the spots",
+      "label_ta": "புள்ளிகளைச் சுற்றி மஞ்சள் வளையம்",
+      "question_en": "Is there a yellow ring around the spots?",
+      "question_ta": "புள்ளிகளைச் சுற்றி மஞ்சள் நிற வளையம் இருக்கிறதா?",
+      "lay": [
+        [
+          "ta",
+          "இலையில் மஞ்சள் வளையத்துடன் புள்ளி",
+          0.85,
+          "lt_scabby_spots"
+        ],
+        [
+          "ta",
+          "புள்ளியைச் சுற்றி மஞ்சள் நிறம்",
+          0.85
+        ],
+        [
+          "en",
+          "yellow ring around the spots",
+          0.9
+        ],
+        [
+          "en",
+          "spots with yellow halo",
+          0.9
+        ],
+        [
+          "tl",
+          "pulli suthi manjal",
+          0.85
+        ]
+      ]
+    },
+    {
+      "id": "starts_lower_leaves",
+      "part": "leaf",
+      "group": "pattern",
+      "cost": 0,
+      "label_en": "Problem started on the older, lower leaves",
+      "label_ta": "பிரச்சனை முதலில் கீழ் (பழைய) இலைகளில் தொடங்கியது",
+      "question_en": "Did the problem start on the lower, older leaves first?",
+      "question_ta": "முதலில் கீழே உள்ள பழைய இலைகளில்தான் தொடங்கியதா?",
+      "lay": [
+        [
+          "ta",
+          "கீழ் இலைகளில் முதலில் வந்தது",
+          0.85
+        ],
+        [
+          "ta",
+          "அடி இலைகள் தான் முதல்ல பாதிச்சது",
+          0.85
+        ],
+        [
+          "ta",
+          "பழைய இலைகளில் தான் அதிகம்",
+          0.75
+        ],
+        [
+          "en",
+          "started on lower leaves",
+          0.85
+        ],
+        [
+          "en",
+          "old bottom leaves affected first",
+          0.85
+        ],
+        [
+          "tl",
+          "keezh ilai la mudhalla vandhuchu",
+          0.8
+        ]
+      ]
+    },
+    {
+      "id": "small_grey_spots",
+      "part": "leaf",
+      "group": "spots",
+      "cost": 0,
+      "label_en": "Many small round spots with grey centre and dark border",
+      "label_ta": "சாம்பல் நடுப்பகுதியும் கருப்பு ஓரமும் கொண்ட பல சிறிய வட்டப் புள்ளிகள்",
+      "question_en": "Are there many small round spots with a grey centre and a dark edge?",
+      "question_ta": "நடுவில் சாம்பல் நிறமும் ஓரத்தில் கருப்பும் உள்ள பல சிறிய வட்டப் புள்ளிகள் உள்ளனவா?",
+      "lay": [
+        [
+          "ta",
+          "இலையில் சிறிய சாம்பல் நிற புள்ளிகள்",
+          0.85,
+          "lt_small_spots_grey"
+        ],
+        [
+          "ta",
+          "நடுவில் சாம்பல் ஓரத்தில் கருப்பு சின்ன புள்ளிகள் நிறைய",
+          0.9
+        ],
+        [
+          "en",
+          "many small grey spots with dark border",
+          0.9
+        ],
+        [
+          "en",
+          "tiny round spots with grey centre",
+          0.85
+        ],
+        [
+          "tl",
+          "chinna saambal pulli niraya",
+          0.85
+        ]
+      ]
+    },
+    {
+      "id": "black_dots_in_spots",
+      "part": "leaf",
+      "group": "spots",
+      "cost": 0,
+      "label_en": "Tiny black dots inside the spots",
+      "label_ta": "புள்ளிகளுக்குள் மிகச் சிறிய கருப்புப் பொட்டுகள்",
+      "question_en": "Looking closely, are there tiny black dots in the centre of the spots?",
+      "question_ta": "உற்றுப் பார்த்தால், புள்ளிகளின் நடுவில் மிகச் சிறிய கருப்புப் பொட்டுகள் தெரிகிறதா?",
+      "lay": [
+        [
+          "ta",
+          "புள்ளிக்குள்ள சின்ன கருப்பு பொட்டு",
+          0.85
+        ],
+        [
+          "en",
+          "tiny black dots inside the spots",
+          0.9
+        ],
+        [
+          "tl",
+          "pulli ulla karuppu pottu",
+          0.8
+        ]
+      ]
+    },
+    {
+      "id": "water_soaked_patches",
+      "part": "leaf",
+      "group": "spots",
+      "cost": 0,
+      "label_en": "Large dark, water-soaked (greasy-looking) patches on leaves",
+      "label_ta": "இலையில் நனைந்தது போன்ற பெரிய கருமையான திட்டுகள்",
+      "question_en": "Are there large dark patches on the leaves that look wet or greasy?",
+      "question_ta": "இலையில் நனைந்தது போல் தோன்றும் பெரிய கருமையான திட்டுகள் உள்ளனவா?",
+      "lay": [
+        [
+          "ta",
+          "இலை நனைந்து கருகுதல்",
+          0.85,
+          "lt_water_black"
+        ],
+        [
+          "ta",
+          "இலையில் தண்ணீர் பட்ட மாதிரி கருப்பு திட்டு",
+          0.85
+        ],
+        [
+          "ta",
+          "இலை எண்ணெய் தடவின மாதிரி கருத்து போகுது",
+          0.8
+        ],
+        [
+          "en",
+          "water soaked dark patches on leaves",
+          0.9
+        ],
+        [
+          "en",
+          "leaves look wet and turn black",
+          0.85
+        ],
+        [
+          "en",
+          "greasy black blotches on leaf",
+          0.85
+        ],
+        [
+          "tl",
+          "ilai nanainja maadhiri karuppa aagudhu",
+          0.85
+        ]
+      ]
+    },
+    {
+      "id": "fast_spread",
+      "part": "plant",
+      "group": "pattern",
+      "cost": 0,
+      "label_en": "Spreads very fast — many plants affected within days",
+      "label_ta": "சில நாட்களில் பல செடிகளுக்கு வேகமாகப் பரவுகிறது",
+      "question_en": "Has it spread to many plants within a few days?",
+      "question_ta": "சில நாட்களுக்குள் பல செடிகளுக்குப் பரவிவிட்டதா?",
+      "lay": [
+        [
+          "ta",
+          "ரெண்டு மூணு நாள்ல எல்லா செடிக்கும் பரவிடுச்சு",
+          0.85
+        ],
+        [
+          "ta",
+          "வேகமா பரவுது",
+          0.7
+        ],
+        [
+          "en",
+          "spreading very fast to many plants",
+          0.85
+        ],
+        [
+          "en",
+          "whole field affected in a few days",
+          0.85
+        ],
+        [
+          "tl",
+          "romba vegama paravudhu",
+          0.75
+        ]
+      ]
+    },
+    {
+      "id": "white_growth_underside",
+      "part": "leaf",
+      "group": "fungus",
+      "cost": 0,
+      "label_en": "White fuzzy growth under the leaf (morning / humid)",
+      "label_ta": "இலையின் அடியில் வெள்ளை பஞ்சு போன்ற பூஞ்சை வளர்ச்சி",
+      "question_en": "Is there white fuzzy growth on the underside of the leaves, especially in the morning?",
+      "question_ta": "இலையின் அடிப்பகுதியில், குறிப்பாகக் காலையில், வெள்ளை பஞ்சு போன்ற வளர்ச்சி தெரிகிறதா?",
+      "lay": [
+        [
+          "ta",
+          "இலையின் அடியில் வெள்ளை பூஞ்சை",
+          0.9,
+          "lt_white_fungus_under"
+        ],
+        [
+          "ta",
+          "இலைக்கு அடியில வெள்ளையா பஞ்சு மாதிரி",
+          0.85
+        ],
+        [
+          "en",
+          "white fuzzy mold under the leaf",
+          0.9
+        ],
+        [
+          "en",
+          "white fungus growth on underside of leaves",
+          0.9
+        ],
+        [
+          "tl",
+          "ilai adiyil vellai poonjai",
+          0.85
+        ]
+      ]
+    },
+    {
+      "id": "olive_mold_underside",
+      "part": "leaf",
+      "group": "fungus",
+      "cost": 0,
+      "label_en": "Olive-green / brown velvety mould under the leaf",
+      "label_ta": "இலையின் அடியில் ஆலிவ் பச்சை / பழுப்பு வெல்வெட் போன்ற பூசணம்",
+      "question_en": "Is there olive-green or brown velvety mould on the underside of the leaves?",
+      "question_ta": "இலையின் அடியில் பச்சை-பழுப்பு நிற வெல்வெட் போன்ற பூசணம் இருக்கிறதா?",
+      "lay": [
+        [
+          "ta",
+          "இலையின் அடியில் பச்சை பழுப்பு பூஞ்சை",
+          0.9,
+          "lt_velvety_mold_under"
+        ],
+        [
+          "ta",
+          "இலைக்கு அடியில வெல்வெட் மாதிரி பூசணம்",
+          0.85
+        ],
+        [
+          "en",
+          "olive green velvety mold under leaves",
+          0.9
+        ],
+        [
+          "en",
+          "brown velvet fungus on lower side of leaf",
+          0.85
+        ],
+        [
+          "tl",
+          "ilai adiyil pachai pazhuppu poosanam",
+          0.8
+        ]
+      ]
+    },
+    {
+      "id": "pale_yellow_patches",
+      "part": "leaf",
+      "group": "colour",
+      "cost": 0,
+      "label_en": "Pale yellow patches (no sharp edge) on the upper leaf surface",
+      "label_ta": "இலையின் மேல்புறத்தில் தெளிவான ஓரமில்லாத வெளிர் மஞ்சள் திட்டுகள்",
+      "question_en": "Are there pale yellow patches without sharp edges on the upper side of the leaves?",
+      "question_ta": "இலையின் மேல்புறத்தில் தெளிவான ஓரமில்லாத வெளிர் மஞ்சள் திட்டுகள் உள்ளனவா?",
+      "lay": [
+        [
+          "ta",
+          "இலை மேல் வெளிர் மஞ்சள் புள்ளிகள்",
+          0.55,
+          "lt_pale_yellow_spots"
+        ],
+        [
+          "ta",
+          "இலை மேல பக்கம் வெளிர் மஞ்சள் திட்டு",
+          0.7
+        ],
+        [
+          "en",
+          "pale yellow patches on top of leaves",
+          0.7
+        ],
+        [
+          "tl",
+          "ilai mela velir manjal thittu",
+          0.65
+        ]
+      ]
+    },
+    {
+      "id": "tiny_water_soaked_spots",
+      "part": "leaf",
+      "group": "spots",
+      "cost": 0,
+      "label_en": "Tiny dark water-soaked spots (pin-head size) that turn scabby",
+      "label_ta": "குண்டூசித் தலை அளவிலான சிறிய கருமையான நனைந்த புள்ளிகள்",
+      "question_en": "Did it start as tiny, pin-head sized dark spots that looked wet?",
+      "question_ta": "குண்டூசித் தலை அளவிலான, நனைந்தது போன்ற சிறிய கருப்புப் புள்ளிகளாகத் தொடங்கியதா?",
+      "lay": [
+        [
+          "ta",
+          "இலையில் சிறிய நீர் தேங்கிய புள்ளிகள்",
+          0.8,
+          "lt_pinpoint_water_spots"
+        ],
+        [
+          "ta",
+          "குண்டூசி அளவு கருப்பு புள்ளிகள் இலையில்",
+          0.8
+        ],
+        [
+          "ta",
+          "இலையில் சொரசொரப்பான சின்ன கருப்பு புள்ளிகள்",
+          0.75
+        ],
+        [
+          "en",
+          "tiny water soaked spots on leaves",
+          0.85
+        ],
+        [
+          "en",
+          "small dark scabby spots on leaves",
+          0.8
+        ],
+        [
+          "tl",
+          "chinna chinna karuppu pulli ilai la",
+          0.6
+        ]
+      ]
+    },
+    {
+      "id": "white_powder",
+      "part": "leaf",
+      "group": "fungus",
+      "cost": 0,
+      "label_en": "White powdery coating on the leaf surface (rubs off)",
+      "label_ta": "இலையின் மேல் தேய்த்தால் வரும் வெள்ளைத் தூள் படலம்",
+      "question_en": "Is there a white powder on the leaf surface that rubs off with your finger?",
+      "question_ta": "இலையின் மேல் விரலால் தேய்த்தால் வரும் வெள்ளைத் தூள் இருக்கிறதா?",
+      "lay": [
+        [
+          "ta",
+          "வெள்ளை தூள் போல இலையில்",
+          0.8,
+          "lt_white_dust"
+        ],
+        [
+          "ta",
+          "இலையில் வெள்ளை பொடி",
+          0.85,
+          "lt_white_powder"
+        ],
+        [
+          "ta",
+          "இலை மேல மாவு தூவின மாதிரி வெள்ளையா இருக்கு",
+          0.85
+        ],
+        [
+          "ta",
+          "இலையில் சாம்பல் பூத்த மாதிரி",
+          0.75
+        ],
+        [
+          "en",
+          "white powder on leaves",
+          0.9
+        ],
+        [
+          "en",
+          "white powdery coating on leaf surface",
+          0.9
+        ],
+        [
+          "en",
+          "leaves look dusted with flour",
+          0.85
+        ],
+        [
+          "tl",
+          "ilai la vellai thool",
+          0.85
+        ],
+        [
+          "tl",
+          "vellai podi ilai mela",
+          0.85
+        ]
+      ]
+    },
+    {
+      "id": "insects_fly_up",
+      "part": "pest",
+      "group": "pests",
+      "cost": 0,
+      "label_en": "Tiny white insects fly up when the plant is shaken",
+      "label_ta": "செடியை அசைத்தால் சிறிய வெள்ளைப் பூச்சிகள் பறக்கின்றன",
+      "question_en": "When you shake the plant, do tiny white insects fly up?",
+      "question_ta": "செடியை அசைத்தால் சிறிய வெள்ளைப் பூச்சிகள் பறக்கின்றனவா?",
+      "lay": [
+        [
+          "ta",
+          "வெள்ளை சிறு பூச்சிகள் பறக்கும்",
+          0.95,
+          "lt_white_flying_insects"
+        ],
+        [
+          "ta",
+          "இலையில் வெள்ளை புள்ளி பூச்சி",
+          0.6,
+          "lt_white_dot_insects"
+        ],
+        [
+          "ta",
+          "செடியை ஆட்டினா வெள்ளை ஈ பறக்குது",
+          0.95
+        ],
+        [
+          "ta",
+          "இலைக்கு அடியில வெள்ளை ஈ நிறைய இருக்கு",
+          0.9
+        ],
+        [
+          "en",
+          "tiny white flies fly up when plant is shaken",
+          0.95
+        ],
+        [
+          "en",
+          "whitefly on leaves",
+          0.95
+        ],
+        [
+          "en",
+          "small white insects under leaves",
+          0.85
+        ],
+        [
+          "tl",
+          "vellai ee parakkudhu",
+          0.95
+        ],
+        [
+          "tl",
+          "vellai poochi niraya",
+          0.8
+        ]
+      ]
+    },
+    {
+      "id": "sticky_sooty",
+      "part": "leaf",
+      "group": "pests",
+      "cost": 0,
+      "label_en": "Leaves sticky / shiny, with a black sooty coating",
+      "label_ta": "இலை ஒட்டும் தன்மை, கருப்புக் கரி போன்ற படலம்",
+      "question_en": "Are the leaves sticky, or covered with a black sooty layer?",
+      "question_ta": "இலைகள் ஒட்டும் தன்மையுடன் அல்லது கருப்புக் கரி போன்ற படலத்துடன் உள்ளனவா?",
+      "lay": [
+        [
+          "ta",
+          "இலை ஒட்டும் தன்மையுடன் இருக்கும்",
+          0.9,
+          "lt_sticky_leaf"
+        ],
+        [
+          "ta",
+          "இலை பிசுபிசுப்பா கருப்பா கரி பிடிச்ச மாதிரி",
+          0.85
+        ],
+        [
+          "en",
+          "sticky leaves",
+          0.85
+        ],
+        [
+          "en",
+          "black sooty coating on leaves",
+          0.8
+        ],
+        [
+          "en",
+          "leaves shiny and sticky with honeydew",
+          0.85
+        ],
+        [
+          "tl",
+          "ilai pisupisunu ottudhu",
+          0.85
+        ]
+      ]
+    },
+    {
+      "id": "leaf_curl_up",
+      "part": "leaf",
+      "group": "shape",
+      "cost": 0,
+      "label_en": "Leaves curl upward / cup-shaped and become small",
+      "label_ta": "இலைகள் மேல்நோக்கிச் சுருண்டு, சிறியதாகின்றன",
+      "question_en": "Are the leaves curling upward like a cup?",
+      "question_ta": "இலைகள் கிண்ணம் போல மேல்நோக்கிச் சுருள்கின்றனவா?",
+      "lay": [
+        [
+          "ta",
+          "இலை சுருண்டு போகுது",
+          0.9,
+          "lt_leaf_curl"
+        ],
+        [
+          "ta",
+          "இலைகள் மேல்நோக்கி சுருண்டு கிண்ணம் மாதிரி",
+          0.9
+        ],
+        [
+          "en",
+          "leaves curling upward",
+          0.9
+        ],
+        [
+          "en",
+          "leaf curl",
+          0.9
+        ],
+        [
+          "en",
+          "leaves cupped and rolled",
+          0.85
+        ],
+        [
+          "tl",
+          "ilai surundu pogudhu",
+          0.9
+        ],
+        [
+          "tl",
+          "ilai surul",
+          0.85
+        ]
+      ]
+    },
+    {
+      "id": "yellow_young_leaves",
+      "part": "leaf",
+      "group": "colour",
+      "cost": 0,
+      "label_en": "Young (top) leaves turning yellow at edges / between veins",
+      "label_ta": "இளம் (நுனி) இலைகள் ஓரங்களிலும் நரம்புகளுக்கு இடையிலும் மஞ்சளாகின்றன",
+      "question_en": "Are the young leaves at the top turning yellow, especially at the edges?",
+      "question_ta": "நுனியில் உள்ள இளம் இலைகள், குறிப்பாக ஓரங்களில், மஞ்சளாகின்றனவா?",
+      "lay": [
+        [
+          "ta",
+          "நுனி இலைகள் மஞ்சளா ஆகுது",
+          0.85
+        ],
+        [
+          "ta",
+          "இளம் இலை ஓரம் மஞ்சள்",
+          0.8
+        ],
+        [
+          "ta",
+          "கொழுந்து இலை மஞ்சள் நிறமா சின்னதா இருக்கு",
+          0.85
+        ],
+        [
+          "en",
+          "young top leaves turning yellow",
+          0.85
+        ],
+        [
+          "en",
+          "yellowing between veins on new leaves",
+          0.85
+        ],
+        [
+          "en",
+          "yellow leaf edges",
+          0.6
+        ],
+        [
+          "tl",
+          "kozhundhu ilai manjal aagudhu",
+          0.85
+        ]
+      ]
+    },
+    {
+      "id": "mosaic_mottling",
+      "part": "leaf",
+      "group": "colour",
+      "cost": 0,
+      "label_en": "Light and dark green mottled (mosaic) pattern",
+      "label_ta": "இலையில் வெளிர் பச்சை – கரும்பச்சை கலந்த தேமல்",
+      "question_en": "Do the leaves have a patchy light-green and dark-green (mosaic) pattern?",
+      "question_ta": "இலைகளில் வெளிர் பச்சையும் கரும்பச்சையும் கலந்த தேமல் போன்ற வடிவம் தெரிகிறதா?",
+      "lay": [
+        [
+          "ta",
+          "இலையில் வெளிர் பச்சை கரும்பச்சை கலவை மாதிரி",
+          0.85,
+          "lt_mottled_leaf"
+        ],
+        [
+          "ta",
+          "இலையில தேமல் மாதிரி திட்டு திட்டா",
+          0.85
+        ],
+        [
+          "en",
+          "mosaic pattern on leaves",
+          0.9
+        ],
+        [
+          "en",
+          "light and dark green mottled leaves",
+          0.9
+        ],
+        [
+          "tl",
+          "ilai la themal maadhiri",
+          0.85
+        ]
+      ]
+    },
+    {
+      "id": "leaf_deformed",
+      "part": "leaf",
+      "group": "shape",
+      "cost": 0,
+      "label_en": "Leaves twisted, narrow or deformed (fern-like)",
+      "label_ta": "இலைகள் முறுக்கி, குறுகி, உருமாறி உள்ளன",
+      "question_en": "Are the leaves twisted, narrow or oddly shaped?",
+      "question_ta": "இலைகள் முறுக்கியோ, குறுகியோ, உருமாறியோ உள்ளனவா?",
+      "lay": [
+        [
+          "ta",
+          "இலை சுருங்கி வளைந்து போகுது",
+          0.75,
+          "lt_leaf_shrivel"
+        ],
+        [
+          "ta",
+          "இலை முறுக்கி கோணலா இருக்கு",
+          0.85
+        ],
+        [
+          "ta",
+          "இலைகள் ஒடுங்கி நூல் மாதிரி ஆகுது",
+          0.8
+        ],
+        [
+          "en",
+          "leaves twisted and deformed",
+          0.85
+        ],
+        [
+          "en",
+          "narrow distorted leaves like fern",
+          0.85
+        ],
+        [
+          "tl",
+          "ilai murukki pogudhu",
+          0.8
+        ]
+      ]
+    },
+    {
+      "id": "leaf_yellowing",
+      "part": "leaf",
+      "group": "colour",
+      "cost": 0,
+      "label_en": "Leaves turning yellow (in general)",
+      "label_ta": "இலைகள் மஞ்சளாகின்றன",
+      "question_en": "Are many leaves turning yellow?",
+      "question_ta": "பல இலைகள் மஞ்சளாகின்றனவா?",
+      "lay": [
+        [
+          "ta",
+          "இலை மஞ்சளா ஆகுது",
+          0.7
+        ],
+        [
+          "ta",
+          "இலைகள் மஞ்சள் நிறமா மாறுது",
+          0.7
+        ],
+        [
+          "en",
+          "leaves turning yellow",
+          0.7
+        ],
+        [
+          "en",
+          "yellow leaves",
+          0.65
+        ],
+        [
+          "tl",
+          "ilai manjal aagudhu",
+          0.7
+        ]
+      ]
+    },
+    {
+      "id": "fine_speckles",
+      "part": "leaf",
+      "group": "colour",
+      "cost": 0,
+      "label_en": "Tiny yellow/white speckles all over the leaf (stippling)",
+      "label_ta": "இலை முழுவதும் மிகச் சிறிய மஞ்சள் / வெள்ளைப் பொட்டுகள்",
+      "question_en": "Are there tiny yellow or white speckles all over the leaves?",
+      "question_ta": "இலை முழுவதும் மிகச் சிறிய மஞ்சள் அல்லது வெள்ளைப் பொட்டுகள் உள்ளனவா?",
+      "lay": [
+        [
+          "ta",
+          "இலையில் சிறிய மஞ்சள் புள்ளிகள்",
+          0.75,
+          "lt_tiny_yellow_dots"
+        ],
+        [
+          "ta",
+          "இலை முழுக்க சின்ன சின்ன வெள்ளை பொட்டு",
+          0.8
+        ],
+        [
+          "en",
+          "tiny yellow speckles all over leaves",
+          0.85
+        ],
+        [
+          "en",
+          "stippling on leaves",
+          0.85
+        ],
+        [
+          "tl",
+          "ilai muzhukka chinna manjal pottu",
+          0.8
+        ]
+      ]
+    },
+    {
+      "id": "webbing",
+      "part": "pest",
+      "group": "pests",
+      "cost": 0,
+      "label_en": "Fine web under or between the leaves",
+      "label_ta": "இலையின் அடியில் / இலைகளுக்கு இடையில் மெல்லிய சிலந்தி வலை",
+      "question_en": "Is there fine web on the underside of the leaves or between them?",
+      "question_ta": "இலையின் அடியில் அல்லது இலைகளுக்கு இடையில் மெல்லிய வலை தெரிகிறதா?",
+      "lay": [
+        [
+          "ta",
+          "இலையின் அடியில் சிலந்தி வலை போல",
+          0.9,
+          "lt_web_under_leaf"
+        ],
+        [
+          "ta",
+          "இலைகளுக்கு நடுவில மெல்லிய வலை",
+          0.85
+        ],
+        [
+          "en",
+          "fine webbing under leaves",
+          0.9
+        ],
+        [
+          "en",
+          "spider web on plant",
+          0.85
+        ],
+        [
+          "en",
+          "red spider mites",
+          0.85
+        ],
+        [
+          "tl",
+          "ilai adiyil silandhi valai",
+          0.9
+        ]
+      ]
+    },
+    {
+      "id": "bronze_dry_leaves",
+      "part": "leaf",
+      "group": "colour",
+      "cost": 0,
+      "label_en": "Leaves turn bronze / silvery and dry up",
+      "label_ta": "இலைகள் வெண்கல / வெள்ளி நிறமாகிக் காய்ந்துவிடுகின்றன",
+      "question_en": "Do the leaves look bronze or silvery and dry?",
+      "question_ta": "இலைகள் வெண்கல அல்லது வெள்ளி நிறமாகிக் காய்ந்து காணப்படுகின்றனவா?",
+      "lay": [
+        [
+          "ta",
+          "இலை வெண்கலம் மாதிரி நிறம் மாறி காஞ்சு போகுது",
+          0.8
+        ],
+        [
+          "ta",
+          "இலை வெள்ளி நிறமா பளபளன்னு காயுது",
+          0.75
+        ],
+        [
+          "en",
+          "leaves bronze and drying",
+          0.8
+        ],
+        [
+          "en",
+          "silvery dry leaves",
+          0.75
+        ],
+        [
+          "tl",
+          "ilai kaanju bronze color",
+          0.6
+        ]
+      ]
+    },
+    {
+      "id": "leaf_tunnels",
+      "part": "leaf",
+      "group": "pests",
+      "cost": 0,
+      "label_en": "Winding white/brown tunnel lines inside the leaf",
+      "label_ta": "இலைக்குள் வளைந்து செல்லும் வெள்ளை / பழுப்புச் சுரங்கக் கோடுகள்",
+      "question_en": "Are there winding white or brown lines (tunnels) inside the leaves?",
+      "question_ta": "இலைக்குள் வளைந்து செல்லும் வெள்ளை அல்லது பழுப்புக் கோடுகள் (சுரங்கம்) உள்ளனவா?",
+      "lay": [
+        [
+          "ta",
+          "இலையில் சுரங்கம் போல வளைந்த கோடுகள்",
+          0.9,
+          "lt_leaf_tunnels"
+        ],
+        [
+          "ta",
+          "இலைக்குள்ள பாம்பு மாதிரி வெள்ளை கோடு",
+          0.9
+        ],
+        [
+          "ta",
+          "இலையில கிறுக்கின மாதிரி கோடுகள்",
+          0.85
+        ],
+        [
+          "en",
+          "winding white lines inside leaves",
+          0.9
+        ],
+        [
+          "en",
+          "zigzag tunnels in leaves",
+          0.9
+        ],
+        [
+          "en",
+          "leaf miner",
+          0.95
+        ],
+        [
+          "tl",
+          "ilai la valaindha vellai kodu",
+          0.85
+        ]
+      ]
+    },
+    {
+      "id": "leaves_drop",
+      "part": "leaf",
+      "group": "pattern",
+      "cost": 0,
+      "label_en": "Leaves dry and fall off",
+      "label_ta": "இலைகள் காய்ந்து உதிர்கின்றன",
+      "question_en": "Are leaves drying up and falling off?",
+      "question_ta": "இலைகள் காய்ந்து உதிர்கின்றனவா?",
+      "lay": [
+        [
+          "ta",
+          "இலைகள் காஞ்சு உதிருது",
+          0.8
+        ],
+        [
+          "ta",
+          "இலை எல்லாம் கொட்டிடுது",
+          0.8
+        ],
+        [
+          "en",
+          "leaves drying and falling off",
+          0.85
+        ],
+        [
+          "en",
+          "heavy leaf drop",
+          0.8
+        ],
+        [
+          "tl",
+          "ilai kaanju udhirudhu",
+          0.8
+        ]
+      ]
+    },
+    {
+      "id": "one_side_wilt",
+      "part": "plant",
+      "group": "wilt",
+      "cost": 0,
+      "label_en": "Wilting starts on one side / one branch, lower leaves yellow",
+      "label_ta": "செடியின் ஒரு பக்கம் / ஒரு கிளை மட்டும் வாடுகிறது",
+      "question_en": "Is only one side or one branch of the plant wilting?",
+      "question_ta": "செடியின் ஒரு பக்கம் அல்லது ஒரு கிளை மட்டும் வாடுகிறதா?",
+      "lay": [
+        [
+          "ta",
+          "செடியின் ஒரு பக்கம் மட்டும் வாடுது",
+          0.9,
+          "lt_one_side_wilt"
+        ],
+        [
+          "ta",
+          "ஒரு கிளை மட்டும் வாடி மஞ்சளா ஆகுது",
+          0.85
+        ],
+        [
+          "en",
+          "wilting on one side of the plant",
+          0.9
+        ],
+        [
+          "en",
+          "one branch wilting",
+          0.85
+        ],
+        [
+          "tl",
+          "oru pakkam mattum vaadudhu",
+          0.9
+        ]
+      ]
+    },
+    {
+      "id": "sudden_wilt_green",
+      "part": "plant",
+      "group": "wilt",
+      "cost": 0,
+      "label_en": "Whole plant suddenly wilts while leaves are still green",
+      "label_ta": "இலைகள் பச்சையாக இருக்கும்போதே செடி முழுவதும் திடீரென வாடுகிறது",
+      "question_en": "Did the whole plant wilt suddenly while the leaves were still green?",
+      "question_ta": "இலைகள் பச்சையாக இருக்கும்போதே செடி முழுவதும் திடீரென வாடியதா?",
+      "lay": [
+        [
+          "ta",
+          "செடி திடீரென்று முழுசா வாடுது",
+          0.85,
+          "lt_sudden_wilt"
+        ],
+        [
+          "ta",
+          "இலை பச்சையா இருக்கும்போதே செடி வாடி சாயுது",
+          0.9
+        ],
+        [
+          "en",
+          "plant suddenly wilts while leaves are green",
+          0.9
+        ],
+        [
+          "en",
+          "whole plant collapsed overnight",
+          0.85
+        ],
+        [
+          "tl",
+          "chedi thideernu vaadi pochu",
+          0.85
+        ]
+      ]
+    },
+    {
+      "id": "wilt_recovers_night",
+      "part": "plant",
+      "group": "wilt",
+      "cost": 0,
+      "label_en": "Wilts in afternoon heat, recovers at night",
+      "label_ta": "மதிய வெயிலில் வாடி, இரவில் மீண்டும் சரியாகிறது",
+      "question_en": "Does the plant wilt in the afternoon heat and recover by night?",
+      "question_ta": "செடி மதிய வெயிலில் வாடி, இரவில் மீண்டும் சரியாகிறதா?",
+      "lay": [
+        [
+          "ta",
+          "மதியம் வாடி ராத்திரி சரியாகுது",
+          0.9
+        ],
+        [
+          "ta",
+          "வெயில்ல வாடுது சாயங்காலம் தெளிஞ்சுடுது",
+          0.85
+        ],
+        [
+          "en",
+          "wilts in afternoon and recovers at night",
+          0.9
+        ],
+        [
+          "en",
+          "droops in heat and recovers in evening",
+          0.85
+        ],
+        [
+          "tl",
+          "madhiyam vaadi raathiri sariyaagudhu",
+          0.85
+        ]
+      ]
+    },
+    {
+      "id": "brown_inside_stem",
+      "part": "stem",
+      "group": "stem_root",
+      "cost": 0.1,
+      "label_en": "Brown streaks inside the stem when cut",
+      "label_ta": "தண்டை வெட்டினால் உள்ளே பழுப்பு நிறக் கோடுகள்",
+      "question_en": "If you cut a wilted stem lengthwise, is it brown inside?",
+      "question_ta": "வாடிய தண்டை நீளவாக்கில் வெட்டினால் உள்ளே பழுப்பு நிறமாக இருக்கிறதா?",
+      "lay": [
+        [
+          "ta",
+          "தண்டை வெட்டினா உள்ளே பழுப்பு நிறம்",
+          0.9,
+          "lt_stem_brown_inside"
+        ],
+        [
+          "ta",
+          "தண்டுக்குள்ள பழுப்பு கோடு",
+          0.85
+        ],
+        [
+          "en",
+          "brown inside the stem when cut",
+          0.9
+        ],
+        [
+          "en",
+          "brown streaks inside stem",
+          0.9
+        ],
+        [
+          "tl",
+          "thandu ulla pazhuppu",
+          0.85
+        ]
+      ]
+    },
+    {
+      "id": "white_ooze",
+      "part": "stem",
+      "group": "stem_root",
+      "cost": 0.15,
+      "label_en": "Milky white ooze when a cut stem is dipped in water",
+      "label_ta": "வெட்டிய தண்டை தண்ணீரில் வைத்தால் பால் போன்ற வெள்ளைக் கசிவு",
+      "question_en": "Cut a wilted stem and dip it in a glass of clear water. Does a milky white liquid stream out within a few minutes?",
+      "question_ta": "வாடிய தண்டை வெட்டி ஒரு டம்ளர் தெளிந்த நீரில் வையுங்கள். சில நிமிடங்களில் பால் போன்ற வெள்ளைத் திரவம் வருகிறதா?",
+      "lay": [
+        [
+          "ta",
+          "வெட்டின தண்டை தண்ணியில வெச்சா பால் மாதிரி வருது",
+          0.95
+        ],
+        [
+          "ta",
+          "தண்டிலிருந்து வெள்ளை கசிவு",
+          0.8
+        ],
+        [
+          "en",
+          "milky white ooze from cut stem in water",
+          0.95
+        ],
+        [
+          "en",
+          "white slime from stem",
+          0.8
+        ],
+        [
+          "tl",
+          "thandu thanni la vecha paal maadhiri varudhu",
+          0.9
+        ]
+      ]
+    },
+    {
+      "id": "stem_lesions",
+      "part": "stem",
+      "group": "stem_root",
+      "cost": 0,
+      "label_en": "Dark brown / black patches on the stem",
+      "label_ta": "தண்டில் கருமையான பழுப்பு / கருப்புத் திட்டுகள்",
+      "question_en": "Are there dark brown or black patches on the stem?",
+      "question_ta": "தண்டில் கருமையான பழுப்பு அல்லது கருப்புத் திட்டுகள் உள்ளனவா?",
+      "lay": [
+        [
+          "ta",
+          "தண்டில் கருப்பு திட்டு",
+          0.8
+        ],
+        [
+          "ta",
+          "தண்டு பழுப்பா கருகி இருக்கு",
+          0.8
+        ],
+        [
+          "en",
+          "dark patches on stem",
+          0.85
+        ],
+        [
+          "en",
+          "black lesions on stem",
+          0.85
+        ],
+        [
+          "tl",
+          "thandu la karuppu thittu",
+          0.8
+        ]
+      ]
+    },
+    {
+      "id": "stunted",
+      "part": "plant",
+      "group": "growth",
+      "cost": 0,
+      "label_en": "Plant stunted / bushy, not growing well",
+      "label_ta": "செடி குட்டையாக, புதர் போல, சரியாக வளரவில்லை",
+      "question_en": "Is the plant stunted or bushy and not growing well?",
+      "question_ta": "செடி குட்டையாக, புதர் போல, சரியாக வளராமல் உள்ளதா?",
+      "lay": [
+        [
+          "ta",
+          "செடி சரியா வளரலை குட்டையா இருக்கு",
+          0.85,
+          "lt_stunted"
+        ],
+        [
+          "ta",
+          "செடி காரணமே இல்லாம குட்டையா இருக்கு",
+          0.7,
+          "lt_stunted_no_reason"
+        ],
+        [
+          "ta",
+          "செடி புதர் மாதிரி குட்டையா நிக்குது",
+          0.85
+        ],
+        [
+          "en",
+          "plant stunted and not growing",
+          0.85
+        ],
+        [
+          "en",
+          "bushy dwarf plant",
+          0.8
+        ],
+        [
+          "tl",
+          "chedi valaradhu kuttaiya irukku",
+          0.85
+        ]
+      ]
+    },
+    {
+      "id": "root_galls",
+      "part": "root",
+      "group": "stem_root",
+      "cost": 0.25,
+      "label_en": "Knots / swellings on the roots",
+      "label_ta": "வேரில் முடிச்சுகள் / கட்டிகள்",
+      "question_en": "If you pull out one affected plant, are there knots or swellings on the roots?",
+      "question_ta": "பாதித்த ஒரு செடியைப் பிடுங்கிப் பார்த்தால், வேரில் முடிச்சுகள் அல்லது கட்டிகள் உள்ளனவா?",
+      "lay": [
+        [
+          "ta",
+          "வேரில் முடிச்சு முடிச்சா இருக்கு",
+          0.95
+        ],
+        [
+          "ta",
+          "செடியை பிடுங்கினா வேர்ல கட்டி",
+          0.9
+        ],
+        [
+          "en",
+          "knots on roots",
+          0.95
+        ],
+        [
+          "en",
+          "root galls swelling on roots",
+          0.95
+        ],
+        [
+          "tl",
+          "ver la mudichu",
+          0.9
+        ]
+      ]
+    },
+    {
+      "id": "flower_drop",
+      "part": "flower",
+      "group": "growth",
+      "cost": 0,
+      "label_en": "Flowers drop off, few fruits set",
+      "label_ta": "பூக்கள் உதிர்கின்றன, காய் பிடிப்பு குறைவு",
+      "question_en": "Are flowers falling off without setting fruit?",
+      "question_ta": "பூக்கள் காய் பிடிக்காமல் உதிர்கின்றனவா?",
+      "lay": [
+        [
+          "ta",
+          "பூ எல்லாம் உதிர்ந்து போகுது",
+          0.85
+        ],
+        [
+          "ta",
+          "காய் பிடிக்கலை",
+          0.7
+        ],
+        [
+          "en",
+          "flowers falling off",
+          0.85
+        ],
+        [
+          "en",
+          "poor fruit set",
+          0.8
+        ],
+        [
+          "tl",
+          "poo udhirudhu",
+          0.85
+        ]
+      ]
+    },
+    {
+      "id": "fruit_bottom_rot",
+      "part": "fruit",
+      "group": "fruit",
+      "cost": 0,
+      "label_en": "Dark, sunken, leathery patch at the bottom of the fruit",
+      "label_ta": "பழத்தின் அடிப்பகுதியில் கருப்பான, குழிந்த, தோல் போன்ற திட்டு",
+      "question_en": "Is there a dark, sunken, leathery patch at the bottom (flower end) of the fruit?",
+      "question_ta": "பழத்தின் அடிப்பகுதியில் (பூ இருந்த இடத்தில்) கருப்பான, குழிந்த, தோல் போன்ற திட்டு உள்ளதா?",
+      "lay": [
+        [
+          "ta",
+          "தக்காளி பழத்தின் அடிப்பகுதி கருப்பா கெட்டுப்போகுது",
+          0.9,
+          "lt_fruit_bottom_black"
+        ],
+        [
+          "ta",
+          "பழத்துக்கு அடியில கருப்பா குழி விழுந்திருக்கு",
+          0.9
+        ],
+        [
+          "en",
+          "black rotten bottom of tomato fruit",
+          0.9
+        ],
+        [
+          "en",
+          "blossom end rot",
+          0.95
+        ],
+        [
+          "en",
+          "dark sunken patch at bottom of fruit",
+          0.9
+        ],
+        [
+          "tl",
+          "pazham adiyil karuppa azhugudhu",
+          0.9
+        ]
+      ]
+    },
+    {
+      "id": "fruit_holes",
+      "part": "fruit",
+      "group": "fruit",
+      "cost": 0,
+      "label_en": "Round holes in the fruit, sometimes with a caterpillar inside",
+      "label_ta": "பழத்தில் வட்டமான துளைகள், உள்ளே புழு",
+      "question_en": "Are there round holes in the fruits?",
+      "question_ta": "காய்களில் வட்டமான துளைகள் உள்ளனவா?",
+      "lay": [
+        [
+          "ta",
+          "தக்காளி பழத்தில் துளைகள் புழு இருக்கு",
+          0.9,
+          "lt_fruit_holes"
+        ],
+        [
+          "ta",
+          "காயில ஓட்டை ஓட்டையா இருக்கு",
+          0.9
+        ],
+        [
+          "en",
+          "holes in tomato fruits",
+          0.9
+        ],
+        [
+          "en",
+          "worm inside fruit",
+          0.85
+        ],
+        [
+          "tl",
+          "kaai la ottai",
+          0.9
+        ],
+        [
+          "tl",
+          "pazhathula pulu",
+          0.85
+        ]
+      ]
+    },
+    {
+      "id": "caterpillar_seen",
+      "part": "pest",
+      "group": "pests",
+      "cost": 0,
+      "label_en": "Green / brown caterpillars on the plant or fruit",
+      "label_ta": "செடியில் / பழத்தில் பச்சை அல்லது பழுப்பு நிறப் புழுக்கள்",
+      "question_en": "Can you see green or brown caterpillars on the plant or fruits?",
+      "question_ta": "செடியிலோ காய்களிலோ பச்சை அல்லது பழுப்பு நிறப் புழுக்கள் தெரிகின்றனவா?",
+      "lay": [
+        [
+          "ta",
+          "செடியில பச்சை புழு இருக்கு",
+          0.85
+        ],
+        [
+          "ta",
+          "கம்பளிப் புழு இலையை தின்னுது",
+          0.8
+        ],
+        [
+          "en",
+          "green caterpillars on plant",
+          0.85
+        ],
+        [
+          "en",
+          "caterpillar eating leaves and fruit",
+          0.8
+        ],
+        [
+          "tl",
+          "pachai pulu chedi la",
+          0.8
+        ]
+      ]
+    },
+    {
+      "id": "greasy_fruit_patches",
+      "part": "fruit",
+      "group": "fruit",
+      "cost": 0,
+      "label_en": "Large firm greasy-brown patches on green fruit",
+      "label_ta": "பச்சைக் காயில் பெரிய, கெட்டியான, எண்ணெய் தடவியது போன்ற பழுப்புத் திட்டுகள்",
+      "question_en": "Are there large, firm, greasy-looking brown patches on the green fruits?",
+      "question_ta": "பச்சைக் காய்களில் எண்ணெய் தடவியது போன்ற பெரிய, கெட்டியான பழுப்புத் திட்டுகள் உள்ளனவா?",
+      "lay": [
+        [
+          "ta",
+          "பச்சை காயில எண்ணெய் தடவின மாதிரி பழுப்பு திட்டு",
+          0.85
+        ],
+        [
+          "en",
+          "greasy brown patches on green fruit",
+          0.9
+        ],
+        [
+          "tl",
+          "kaai la pazhuppu thittu",
+          0.65
+        ]
+      ]
+    },
+    {
+      "id": "scabby_fruit_spots",
+      "part": "fruit",
+      "group": "fruit",
+      "cost": 0,
+      "label_en": "Small raised scabby dark spots on the fruit",
+      "label_ta": "பழத்தில் சிறிய, மேடான, சொரசொரப்பான கருப்புப் புள்ளிகள்",
+      "question_en": "Are there small, raised, rough dark spots on the fruits?",
+      "question_ta": "காய்களில் சிறிய, மேடான, சொரசொரப்பான கருப்புப் புள்ளிகள் உள்ளனவா?",
+      "lay": [
+        [
+          "ta",
+          "பழத்தில சொரசொரப்பா சின்ன கருப்பு புள்ளி",
+          0.85
+        ],
+        [
+          "en",
+          "small raised scabby spots on fruit",
+          0.9
+        ],
+        [
+          "tl",
+          "pazham mela sorasorappa pulli",
+          0.8
+        ]
+      ]
+    },
+    {
+      "id": "fruit_stem_end_rot",
+      "part": "fruit",
+      "group": "fruit",
+      "cost": 0,
+      "label_en": "Dark sunken spots with rings near the fruit stalk",
+      "label_ta": "பழக் காம்பு அருகே வளையங்களுடன் கருமையான குழிந்த புள்ளிகள்",
+      "question_en": "Are there dark sunken spots with rings near the stalk end of the fruit?",
+      "question_ta": "பழக் காம்பு அருகே வளையங்களுடன் கருமையான குழிந்த புள்ளிகள் உள்ளனவா?",
+      "lay": [
+        [
+          "ta",
+          "பழக் காம்பு பக்கத்துல கருப்பா வளையத்தோட குழி",
+          0.8
+        ],
+        [
+          "en",
+          "dark sunken spot with rings near fruit stem",
+          0.85
+        ],
+        [
+          "tl",
+          "kaambu pakkathula karuppu valayam",
+          0.7
+        ]
+      ]
+    },
+    {
+      "id": "uneven_ripening",
+      "part": "fruit",
+      "group": "fruit",
+      "cost": 0,
+      "label_en": "Uneven, blotchy ripening of fruits",
+      "label_ta": "பழம் சீராகப் பழுக்காமல் திட்டுத் திட்டாக நிறம்",
+      "question_en": "Are the fruits ripening unevenly, in blotches?",
+      "question_ta": "பழங்கள் சீராகப் பழுக்காமல் திட்டுத் திட்டாக நிறம் மாறுகின்றனவா?",
+      "lay": [
+        [
+          "ta",
+          "பழம் சீரா பழுக்கலை திட்டு திட்டா இருக்கு",
+          0.85
+        ],
+        [
+          "en",
+          "fruits ripening unevenly",
+          0.85
+        ],
+        [
+          "en",
+          "blotchy colour on fruits",
+          0.8
+        ],
+        [
+          "tl",
+          "pazham seeraa pazhukkala",
+          0.8
+        ]
+      ]
+    },
+    {
+      "id": "small_fruits_low_yield",
+      "part": "fruit",
+      "group": "growth",
+      "cost": 0,
+      "label_en": "Fruits small and fewer than usual",
+      "label_ta": "காய்கள் சிறியதாகவும் குறைவாகவும் உள்ளன",
+      "question_en": "Are the fruits smaller and fewer than usual?",
+      "question_ta": "காய்கள் வழக்கத்தை விடச் சிறியதாகவும் குறைவாகவும் உள்ளனவா?",
+      "lay": [
+        [
+          "ta",
+          "காய் சின்னதா குறைவா இருக்கு",
+          0.8
+        ],
+        [
+          "ta",
+          "மகசூல் ரொம்ப குறைஞ்சிடுச்சு",
+          0.7
+        ],
+        [
+          "en",
+          "small and few fruits",
+          0.8
+        ],
+        [
+          "en",
+          "yield has dropped",
+          0.7
+        ],
+        [
+          "tl",
+          "kaai chinnadha kammiya irukku",
+          0.75
+        ]
+      ]
+    },
+    {
+      "id": "plant_wilting",
+      "part": "plant",
+      "group": "wilt",
+      "cost": 0,
+      "label_en": "Plant wilting / drooping",
+      "label_ta": "செடி வாடித் தொங்குகிறது",
+      "question_en": "Is the plant wilting or drooping?",
+      "question_ta": "செடி வாடித் தொங்குகிறதா?",
+      "lay": [
+        [
+          "ta",
+          "செடி வாடுது",
+          0.85
+        ],
+        [
+          "ta",
+          "செடி வாடி தொங்குது",
+          0.85
+        ],
+        [
+          "ta",
+          "இலைகள் வாடி போகுது",
+          0.8
+        ],
+        [
+          "en",
+          "plant is wilting",
+          0.85
+        ],
+        [
+          "en",
+          "leaves drooping",
+          0.8
+        ],
+        [
+          "tl",
+          "chedi vaadudhu",
+          0.85
+        ]
+      ]
+    },
+    {
+      "id": "fruit_rot",
+      "part": "fruit",
+      "group": "fruit",
+      "cost": 0,
+      "label_en": "Fruits rotting / spoiling",
+      "label_ta": "காய்கள் அழுகுகின்றன",
+      "question_en": "Are the fruits rotting or spoiling?",
+      "question_ta": "காய்கள் அழுகுகின்றனவா?",
+      "lay": [
+        [
+          "ta",
+          "தக்காளி பழம் அழுகுது",
+          0.85
+        ],
+        [
+          "ta",
+          "காய் கெட்டுப்போகுது",
+          0.8
+        ],
+        [
+          "en",
+          "fruits are rotting",
+          0.85
+        ],
+        [
+          "en",
+          "tomatoes going bad",
+          0.75
+        ],
+        [
+          "tl",
+          "pazham azhugudhu",
+          0.85
+        ]
+      ]
+    },
+    {
+      "id": "pests_seen",
+      "part": "pest",
+      "group": "pests",
+      "cost": 0,
+      "label_en": "Insects / pests seen on the plant",
+      "label_ta": "செடியில் பூச்சிகள் தென்படுகின்றன",
+      "question_en": "Do you see any insects, mites or caterpillars on the plant?",
+      "question_ta": "செடியில் ஏதாவது பூச்சி, பேன் அல்லது புழு தெரிகிறதா?",
+      "lay": [
+        [
+          "ta",
+          "செடியில் பூச்சி இருக்கு",
+          0.8
+        ],
+        [
+          "ta",
+          "பூச்சி தாக்குதல்",
+          0.8
+        ],
+        [
+          "en",
+          "insects on my plant",
+          0.8
+        ],
+        [
+          "en",
+          "pest attack",
+          0.75
+        ],
+        [
+          "tl",
+          "chedi la poochi",
+          0.8
+        ]
+      ]
+    }
+  ],
+  "has_symptom": [
+    [
+      "early_blight",
+      "ring_spots",
+      0.9
+    ],
+    [
+      "early_blight",
+      "yellow_halo",
+      0.6
+    ],
+    [
+      "early_blight",
+      "starts_lower_leaves",
+      0.8
+    ],
+    [
+      "early_blight",
+      "leaf_yellowing",
+      0.5
+    ],
+    [
+      "early_blight",
+      "leaves_drop",
+      0.6
+    ],
+    [
+      "early_blight",
+      "stem_lesions",
+      0.45
+    ],
+    [
+      "early_blight",
+      "fruit_stem_end_rot",
+      0.35
+    ],
+    [
+      "late_blight",
+      "water_soaked_patches",
+      0.9
+    ],
+    [
+      "late_blight",
+      "white_growth_underside",
+      0.75
+    ],
+    [
+      "late_blight",
+      "fast_spread",
+      0.8
+    ],
+    [
+      "late_blight",
+      "stem_lesions",
+      0.7
+    ],
+    [
+      "late_blight",
+      "greasy_fruit_patches",
+      0.65
+    ],
+    [
+      "late_blight",
+      "leaves_drop",
+      0.5
+    ],
+    [
+      "powdery_mildew",
+      "white_powder",
+      0.95
+    ],
+    [
+      "powdery_mildew",
+      "leaf_yellowing",
+      0.4
+    ],
+    [
+      "powdery_mildew",
+      "leaves_drop",
+      0.3
+    ],
+    [
+      "whitefly",
+      "insects_fly_up",
+      0.95
+    ],
+    [
+      "whitefly",
+      "sticky_sooty",
+      0.75
+    ],
+    [
+      "whitefly",
+      "white_powder",
+      0.3
+    ],
+    [
+      "whitefly",
+      "leaf_yellowing",
+      0.35
+    ],
+    [
+      "whitefly",
+      "fine_speckles",
+      0.2
+    ],
+    [
+      "whitefly",
+      "uneven_ripening",
+      0.3
+    ],
+    [
+      "leaf_curl_virus",
+      "leaf_curl_up",
+      0.9
+    ],
+    [
+      "leaf_curl_virus",
+      "yellow_young_leaves",
+      0.75
+    ],
+    [
+      "leaf_curl_virus",
+      "stunted",
+      0.8
+    ],
+    [
+      "leaf_curl_virus",
+      "flower_drop",
+      0.55
+    ],
+    [
+      "leaf_curl_virus",
+      "small_fruits_low_yield",
+      0.6
+    ],
+    [
+      "leaf_curl_virus",
+      "insects_fly_up",
+      0.55
+    ],
+    [
+      "leaf_curl_virus",
+      "leaf_deformed",
+      0.45
+    ],
+    [
+      "leaf_curl_virus",
+      "leaf_yellowing",
+      0.5
+    ],
+    [
+      "leaf_curl_virus",
+      "mosaic_mottling",
+      0.15
+    ],
+    [
+      "leaf_curl_virus",
+      "fast_spread",
+      0.3
+    ],
+    [
+      "septoria_leaf_spot",
+      "small_grey_spots",
+      0.9
+    ],
+    [
+      "septoria_leaf_spot",
+      "black_dots_in_spots",
+      0.7
+    ],
+    [
+      "septoria_leaf_spot",
+      "starts_lower_leaves",
+      0.85
+    ],
+    [
+      "septoria_leaf_spot",
+      "leaves_drop",
+      0.75
+    ],
+    [
+      "septoria_leaf_spot",
+      "leaf_yellowing",
+      0.45
+    ],
+    [
+      "septoria_leaf_spot",
+      "tiny_water_soaked_spots",
+      0.3
+    ],
+    [
+      "bacterial_spot",
+      "tiny_water_soaked_spots",
+      0.85
+    ],
+    [
+      "bacterial_spot",
+      "yellow_halo",
+      0.8
+    ],
+    [
+      "bacterial_spot",
+      "small_grey_spots",
+      0.35
+    ],
+    [
+      "bacterial_spot",
+      "scabby_fruit_spots",
+      0.6
+    ],
+    [
+      "bacterial_spot",
+      "leaves_drop",
+      0.4
+    ],
+    [
+      "bacterial_spot",
+      "leaf_yellowing",
+      0.3
+    ],
+    [
+      "bacterial_spot",
+      "stem_lesions",
+      0.2
+    ],
+    [
+      "fusarium_wilt",
+      "one_side_wilt",
+      0.9
+    ],
+    [
+      "fusarium_wilt",
+      "brown_inside_stem",
+      0.85
+    ],
+    [
+      "fusarium_wilt",
+      "leaf_yellowing",
+      0.75
+    ],
+    [
+      "fusarium_wilt",
+      "starts_lower_leaves",
+      0.6
+    ],
+    [
+      "fusarium_wilt",
+      "wilt_recovers_night",
+      0.55
+    ],
+    [
+      "fusarium_wilt",
+      "sudden_wilt_green",
+      0.2
+    ],
+    [
+      "fusarium_wilt",
+      "stunted",
+      0.3
+    ],
+    [
+      "bacterial_wilt",
+      "sudden_wilt_green",
+      0.9
+    ],
+    [
+      "bacterial_wilt",
+      "white_ooze",
+      0.85
+    ],
+    [
+      "bacterial_wilt",
+      "brown_inside_stem",
+      0.7
+    ],
+    [
+      "bacterial_wilt",
+      "wilt_recovers_night",
+      0.6
+    ],
+    [
+      "bacterial_wilt",
+      "fast_spread",
+      0.4
+    ],
+    [
+      "bacterial_wilt",
+      "one_side_wilt",
+      0.15
+    ],
+    [
+      "blossom_end_rot",
+      "fruit_bottom_rot",
+      0.95
+    ],
+    [
+      "mosaic_virus",
+      "mosaic_mottling",
+      0.9
+    ],
+    [
+      "mosaic_virus",
+      "leaf_deformed",
+      0.6
+    ],
+    [
+      "mosaic_virus",
+      "stunted",
+      0.5
+    ],
+    [
+      "mosaic_virus",
+      "uneven_ripening",
+      0.45
+    ],
+    [
+      "mosaic_virus",
+      "small_fruits_low_yield",
+      0.5
+    ],
+    [
+      "mosaic_virus",
+      "leaf_curl_up",
+      0.25
+    ],
+    [
+      "mosaic_virus",
+      "yellow_young_leaves",
+      0.3
+    ],
+    [
+      "mosaic_virus",
+      "leaf_yellowing",
+      0.4
+    ],
+    [
+      "mosaic_virus",
+      "flower_drop",
+      0.3
+    ],
+    [
+      "mosaic_virus",
+      "pale_yellow_patches",
+      0.2
+    ],
+    [
+      "spider_mite",
+      "fine_speckles",
+      0.85
+    ],
+    [
+      "spider_mite",
+      "webbing",
+      0.85
+    ],
+    [
+      "spider_mite",
+      "bronze_dry_leaves",
+      0.55
+    ],
+    [
+      "spider_mite",
+      "leaf_yellowing",
+      0.5
+    ],
+    [
+      "spider_mite",
+      "leaves_drop",
+      0.45
+    ],
+    [
+      "spider_mite",
+      "fast_spread",
+      0.3
+    ],
+    [
+      "spider_mite",
+      "stunted",
+      0.2
+    ],
+    [
+      "spider_mite",
+      "small_fruits_low_yield",
+      0.3
+    ],
+    [
+      "spider_mite",
+      "flower_drop",
+      0.25
+    ],
+    [
+      "spider_mite",
+      "pale_yellow_patches",
+      0.25
+    ],
+    [
+      "fruit_borer",
+      "fruit_holes",
+      0.95
+    ],
+    [
+      "fruit_borer",
+      "caterpillar_seen",
+      0.8
+    ],
+    [
+      "root_knot_nematode",
+      "root_galls",
+      0.95
+    ],
+    [
+      "root_knot_nematode",
+      "stunted",
+      0.75
+    ],
+    [
+      "root_knot_nematode",
+      "leaf_yellowing",
+      0.45
+    ],
+    [
+      "root_knot_nematode",
+      "wilt_recovers_night",
+      0.45
+    ],
+    [
+      "root_knot_nematode",
+      "small_fruits_low_yield",
+      0.5
+    ],
+    [
+      "leaf_miner",
+      "leaf_tunnels",
+      0.95
+    ],
+    [
+      "leaf_miner",
+      "leaf_deformed",
+      0.3
+    ],
+    [
+      "leaf_miner",
+      "leaf_yellowing",
+      0.35
+    ],
+    [
+      "leaf_miner",
+      "leaves_drop",
+      0.4
+    ],
+    [
+      "leaf_miner",
+      "fine_speckles",
+      0.2
+    ],
+    [
+      "leaf_miner",
+      "leaf_curl_up",
+      0.2
+    ],
+    [
+      "leaf_miner",
+      "caterpillar_seen",
+      0.15
+    ],
+    [
+      "leaf_mold",
+      "olive_mold_underside",
+      0.9
+    ],
+    [
+      "leaf_mold",
+      "pale_yellow_patches",
+      0.75
+    ],
+    [
+      "leaf_mold",
+      "starts_lower_leaves",
+      0.6
+    ],
+    [
+      "leaf_mold",
+      "leaf_yellowing",
+      0.45
+    ],
+    [
+      "leaf_mold",
+      "leaves_drop",
+      0.5
+    ],
+    [
+      "leaf_mold",
+      "flower_drop",
+      0.2
+    ],
+    [
+      "leaf_mold",
+      "fruit_stem_end_rot",
+      0.15
+    ],
+    [
+      "target_spot",
+      "ring_spots",
+      0.85
+    ],
+    [
+      "target_spot",
+      "tiny_water_soaked_spots",
+      0.6
+    ],
+    [
+      "target_spot",
+      "yellow_halo",
+      0.5
+    ],
+    [
+      "target_spot",
+      "leaves_drop",
+      0.65
+    ],
+    [
+      "target_spot",
+      "leaf_yellowing",
+      0.4
+    ],
+    [
+      "target_spot",
+      "fruit_stem_end_rot",
+      0.4
+    ],
+    [
+      "target_spot",
+      "stem_lesions",
+      0.3
+    ],
+    [
+      "target_spot",
+      "starts_lower_leaves",
+      0.5
+    ],
+    [
+      "early_blight",
+      "leaf_spots",
+      0.9
+    ],
+    [
+      "target_spot",
+      "leaf_spots",
+      0.9
+    ],
+    [
+      "septoria_leaf_spot",
+      "leaf_spots",
+      0.95
+    ],
+    [
+      "bacterial_spot",
+      "leaf_spots",
+      0.9
+    ],
+    [
+      "late_blight",
+      "leaf_spots",
+      0.5
+    ],
+    [
+      "leaf_mold",
+      "leaf_spots",
+      0.5
+    ],
+    [
+      "spider_mite",
+      "leaf_spots",
+      0.3
+    ],
+    [
+      "fusarium_wilt",
+      "plant_wilting",
+      0.95
+    ],
+    [
+      "bacterial_wilt",
+      "plant_wilting",
+      0.95
+    ],
+    [
+      "root_knot_nematode",
+      "plant_wilting",
+      0.5
+    ],
+    [
+      "late_blight",
+      "plant_wilting",
+      0.2
+    ],
+    [
+      "spider_mite",
+      "plant_wilting",
+      0.15
+    ],
+    [
+      "blossom_end_rot",
+      "fruit_rot",
+      0.8
+    ],
+    [
+      "late_blight",
+      "fruit_rot",
+      0.5
+    ],
+    [
+      "fruit_borer",
+      "fruit_rot",
+      0.45
+    ],
+    [
+      "bacterial_spot",
+      "fruit_rot",
+      0.25
+    ],
+    [
+      "early_blight",
+      "fruit_rot",
+      0.2
+    ],
+    [
+      "target_spot",
+      "fruit_rot",
+      0.25
+    ],
+    [
+      "whitefly",
+      "pests_seen",
+      0.95
+    ],
+    [
+      "fruit_borer",
+      "pests_seen",
+      0.7
+    ],
+    [
+      "spider_mite",
+      "pests_seen",
+      0.6
+    ],
+    [
+      "leaf_miner",
+      "pests_seen",
+      0.5
+    ],
+    [
+      "leaf_curl_virus",
+      "pests_seen",
+      0.45
+    ]
+  ],
+  "treatments": [
+    {
+      "id": "mancozeb_75wp",
+      "type": "chemical",
+      "source": "jagtap2025",
+      "name_en": "Mancozeb 75% WP",
+      "name_ta": "மேன்கோசெப் 75% WP",
+      "dosage_en": "3 g per litre of water",
+      "dosage_ta": "ஒரு லிட்டர் தண்ணீருக்கு 3 கிராம்",
+      "application": {
+        "mode": "contact",
+        "group": "FRAC M3",
+        "rainfast_h": 4,
+        "max_temp_c": 35,
+        "timing": "any",
+        "interval_days": 7,
+        "dose": {
+          "min": 3,
+          "max": 3,
+          "unit": "g",
+          "per": "litre"
+        },
+        "sources": [
+          "jagtap2025",
+          "rainfast",
+          "frac_irac",
+          "phi"
+        ],
+        "phi_days": 5
+      }
+    },
+    {
+      "id": "copper_hydroxide",
+      "type": "chemical",
+      "source": "jagtap2025",
+      "name_en": "Copper Hydroxide 53.8% DF",
+      "name_ta": "காப்பர் ஹைட்ராக்சைடு 53.8% DF",
+      "dosage_en": "2 g per litre; every 10 days from the first spots",
+      "dosage_ta": "லிட்டருக்கு 2 கிராம்; முதல் புள்ளிகள் தெரிந்தது முதல் 10 நாளுக்கு ஒருமுறை",
+      "application": {
+        "mode": "contact",
+        "group": "FRAC M1",
+        "rainfast_h": 4,
+        "max_temp_c": 35,
+        "timing": "any",
+        "interval_days": 10,
+        "dose": {
+          "min": 2,
+          "max": 2,
+          "unit": "g",
+          "per": "litre"
+        },
+        "sources": [
+          "jagtap2025",
+          "rainfast",
+          "frac_irac",
+          "phi"
+        ],
+        "phi_days": 3
+      }
+    },
+    {
+      "id": "copper_oxychloride",
+      "type": "chemical",
+      "source": "jagtap2025",
+      "name_en": "Copper Oxychloride 50% WP",
+      "name_ta": "காப்பர் ஆக்ஸிகுளோரைடு 50% WP",
+      "dosage_en": "1–2 g per litre; repeat every 7–10 days",
+      "dosage_ta": "லிட்டருக்கு 1–2 கிராம்; 7–10 நாளுக்கு ஒருமுறை",
+      "application": {
+        "mode": "contact",
+        "group": "FRAC M1",
+        "rainfast_h": 4,
+        "max_temp_c": 35,
+        "timing": "any",
+        "interval_days": 7,
+        "dose": {
+          "min": 1,
+          "max": 2,
+          "unit": "g",
+          "per": "litre"
+        },
+        "sources": [
+          "jagtap2025",
+          "rainfast",
+          "frac_irac",
+          "phi"
+        ],
+        "phi_days": 3
+      }
+    },
+    {
+      "id": "cyazofamid",
+      "type": "chemical",
+      "source": "jagtap2025",
+      "name_en": "Cyazofamid 34.5% SC",
+      "name_ta": "சயசோஃபாமிட் 34.5% SC",
+      "dosage_en": "80 ml per acre",
+      "dosage_ta": "ஏக்கருக்கு 80 மி.லி.",
+      "application": {
+        "mode": "contact",
+        "group": "FRAC 21",
+        "rainfast_h": 2,
+        "max_temp_c": 35,
+        "timing": "any",
+        "interval_days": 7,
+        "dose": {
+          "min": 80,
+          "max": 80,
+          "unit": "ml",
+          "per": "acre"
+        },
+        "sources": [
+          "jagtap2025",
+          "frac_irac",
+          "phi"
+        ],
+        "phi_days": 3
+      }
+    },
+    {
+      "id": "azoxy_difeno",
+      "type": "chemical",
+      "source": "jagtap2025",
+      "name_en": "Azoxystrobin 18.2% + Difenoconazole 11.4% SC",
+      "name_ta": "அசாக்ஸிஸ்ட்ரோபின் 18.2% + டைஃபெனோகோனசோல் 11.4% SC",
+      "dosage_en": "200 ml per acre",
+      "dosage_ta": "ஏக்கருக்கு 200 மி.லி.",
+      "application": {
+        "mode": "systemic",
+        "group": "FRAC 11 + 3",
+        "rainfast_h": 2,
+        "max_temp_c": 35,
+        "timing": "any",
+        "interval_days": 10,
+        "dose": {
+          "min": 200,
+          "max": 200,
+          "unit": "ml",
+          "per": "acre"
+        },
+        "sources": [
+          "jagtap2025",
+          "frac_irac",
+          "phi"
+        ],
+        "phi_days": 5
+      }
+    },
+    {
+      "id": "azoxystrobin_sc",
+      "type": "chemical",
+      "source": "jagtap2025",
+      "name_en": "Azoxystrobin 250 g/L SC",
+      "name_ta": "அசாக்ஸிஸ்ட்ரோபின் 250 SC",
+      "dosage_en": "10 ml per 10 litres; not more than 2 sprays in a row",
+      "dosage_ta": "10 லிட்டருக்கு 10 மி.லி.; தொடர்ந்து 2 முறைக்கு மேல் தெளிக்க வேண்டாம்",
+      "application": {
+        "mode": "systemic",
+        "group": "FRAC 11",
+        "rainfast_h": 2,
+        "max_temp_c": 35,
+        "timing": "any",
+        "interval_days": 10,
+        "dose": {
+          "min": 1,
+          "max": 1,
+          "unit": "ml",
+          "per": "litre"
+        },
+        "sources": [
+          "jagtap2025",
+          "frac_irac",
+          "phi"
+        ],
+        "phi_days": 5
+      }
+    },
+    {
+      "id": "neonicotinoid",
+      "type": "chemical",
+      "source": "jagtap2025",
+      "name_en": "Neonicotinoid insecticide (controls whitefly vector)",
+      "name_ta": "நியோனிகோட்டினாய்டு பூச்சிக்கொல்லி (வெள்ளை ஈ கட்டுப்பாடு)",
+      "dosage_en": "0.75–1 ml per litre, as per product label",
+      "dosage_ta": "லிட்டருக்கு 0.75–1 மி.லி. (பொருளின் லேபிள் படி)",
+      "application": {
+        "mode": "systemic",
+        "group": "IRAC 4A",
+        "rainfast_h": 2,
+        "max_temp_c": 35,
+        "timing": "morning_evening",
+        "interval_days": 10,
+        "dose": {
+          "min": 0.75,
+          "max": 1,
+          "unit": "ml",
+          "per": "litre"
+        },
+        "sources": [
+          "jagtap2025",
+          "frac_irac",
+          "phi"
+        ],
+        "phi_days": 7
+      }
+    },
+    {
+      "id": "diamide",
+      "type": "chemical",
+      "source": "jagtap2025",
+      "name_en": "Diamide insecticide",
+      "name_ta": "டயமைடு பூச்சிக்கொல்லி",
+      "dosage_en": "1.7–2.0 ml per litre",
+      "dosage_ta": "லிட்டருக்கு 1.7–2.0 மி.லி.",
+      "application": {
+        "mode": "systemic",
+        "group": "IRAC 28",
+        "rainfast_h": 2,
+        "max_temp_c": 35,
+        "timing": "morning_evening",
+        "interval_days": 10,
+        "dose": {
+          "min": 1.7,
+          "max": 2,
+          "unit": "ml",
+          "per": "litre"
+        },
+        "sources": [
+          "jagtap2025",
+          "frac_irac",
+          "phi"
+        ],
+        "phi_days": 5
+      }
+    },
+    {
+      "id": "calcium_spray",
+      "type": "chemical",
+      "source": "general",
+      "name_en": "Calcium chloride foliar spray",
+      "name_ta": "கால்சியம் குளோரைடு இலைத் தெளிப்பு",
+      "dosage_en": "5 g per litre, every 10 days during fruiting",
+      "dosage_ta": "லிட்டருக்கு 5 கிராம், காய்ப் பருவத்தில் 10 நாளுக்கு ஒருமுறை",
+      "application": {
+        "mode": "nutrient",
+        "group": null,
+        "rainfast_h": 2,
+        "max_temp_c": 30,
+        "timing": "morning_evening",
+        "interval_days": 10,
+        "dose": {
+          "min": 5,
+          "max": 5,
+          "unit": "g",
+          "per": "litre"
+        },
+        "sources": [
+          "general",
+          "phi"
+        ],
+        "phi_days": 0
+      }
+    },
+    {
+      "id": "seed_treatment_naocl",
+      "type": "chemical",
+      "source": "jagtap2025",
+      "name_en": "Seed treatment: 1% sodium hypochlorite",
+      "name_ta": "விதை நேர்த்தி: 1% சோடியம் ஹைப்போகுளோரைட்",
+      "dosage_en": "Soak seeds for 10 minutes before sowing (next crop)",
+      "dosage_ta": "விதைப்பதற்கு முன் 10 நிமிடம் ஊறவைக்கவும் (அடுத்த பயிருக்கு)",
+      "application": {
+        "mode": "pre_planting",
+        "group": null,
+        "rainfast_h": 0,
+        "max_temp_c": null,
+        "timing": "none",
+        "interval_days": null,
+        "dose": null,
+        "sources": [
+          "jagtap2025"
+        ]
+      }
+    },
+    {
+      "id": "trichoderma",
+      "type": "organic",
+      "source": "jagtap2025",
+      "name_en": "Trichoderma asperellum (soil application)",
+      "name_ta": "டிரைக்கோடெர்மா (மண்ணில் இடுதல்)",
+      "dosage_en": "1 kg per acre",
+      "dosage_ta": "ஏக்கருக்கு 1 கிலோ",
+      "application": {
+        "mode": "biological_soil",
+        "group": null,
+        "rainfast_h": 0,
+        "max_temp_c": null,
+        "timing": "morning_evening",
+        "interval_days": null,
+        "dose": {
+          "min": 1,
+          "max": 1,
+          "unit": "kg",
+          "per": "acre"
+        },
+        "sources": [
+          "jagtap2025"
+        ]
+      }
+    },
+    {
+      "id": "pseudomonas_bacillus",
+      "type": "organic",
+      "source": "jagtap2025",
+      "name_en": "Pseudomonas fluorescens + Bacillus subtilis",
+      "name_ta": "சூடோமோனாஸ் + பேசில்லஸ் சப்டிலிஸ்",
+      "dosage_en": "Spray 5–10 g per litre; soil: 5 kg mixed with 100 kg farmyard manure per acre",
+      "dosage_ta": "தெளிப்பு: லிட்டருக்கு 5–10 கிராம்; மண்: ஏக்கருக்கு 5 கிலோ + 100 கிலோ தொழு உரம்",
+      "application": {
+        "mode": "biological",
+        "group": null,
+        "rainfast_h": 2,
+        "max_temp_c": 35,
+        "timing": "evening",
+        "interval_days": 7,
+        "dose": {
+          "min": 5,
+          "max": 10,
+          "unit": "g",
+          "per": "litre"
+        },
+        "sources": [
+          "jagtap2025",
+          "phi"
+        ],
+        "phi_days": 0
+      }
+    },
+    {
+      "id": "bacillus_subtilis",
+      "type": "organic",
+      "source": "jagtap2025",
+      "name_en": "Bacillus subtilis (strain QST 713)",
+      "name_ta": "பேசில்லஸ் சப்டிலிஸ் (QST 713)",
+      "dosage_en": "4.5 kg per hectare",
+      "dosage_ta": "ஹெக்டேருக்கு 4.5 கிலோ",
+      "application": {
+        "mode": "biological",
+        "group": "FRAC BM02",
+        "rainfast_h": 2,
+        "max_temp_c": 35,
+        "timing": "evening",
+        "interval_days": 7,
+        "dose": {
+          "min": 4.5,
+          "max": 4.5,
+          "unit": "kg",
+          "per": "hectare"
+        },
+        "sources": [
+          "jagtap2025",
+          "frac_irac",
+          "phi"
+        ],
+        "phi_days": 0
+      }
+    },
+    {
+      "id": "wettable_sulfur",
+      "type": "organic",
+      "source": "general",
+      "name_en": "Wettable sulfur",
+      "name_ta": "நனையும் கந்தகம்",
+      "dosage_en": "2 g per litre, weekly (do not spray in heat above 32°C)",
+      "dosage_ta": "லிட்டருக்கு 2 கிராம், வாரம் ஒருமுறை (32°C-க்கு மேல் வெயிலில் தெளிக்க வேண்டாம்)",
+      "application": {
+        "mode": "contact",
+        "group": "FRAC M2",
+        "rainfast_h": 3,
+        "max_temp_c": 32,
+        "timing": "morning_evening",
+        "interval_days": 7,
+        "dose": {
+          "min": 2,
+          "max": 2,
+          "unit": "g",
+          "per": "litre"
+        },
+        "sources": [
+          "general",
+          "sulfur_heat",
+          "frac_irac",
+          "phi"
+        ],
+        "phi_days": 1
+      }
+    },
+    {
+      "id": "neem_oil",
+      "type": "organic",
+      "source": "general",
+      "name_en": "Neem oil",
+      "name_ta": "வேப்ப எண்ணெய்",
+      "dosage_en": "5 ml per litre with a little soap, every 5–7 days",
+      "dosage_ta": "லிட்டருக்கு 5 மி.லி. + சிறிது சோப்பு, 5–7 நாளுக்கு ஒருமுறை",
+      "application": {
+        "mode": "botanical",
+        "group": null,
+        "rainfast_h": 3,
+        "max_temp_c": 32,
+        "timing": "evening",
+        "interval_days": 6,
+        "dose": {
+          "min": 5,
+          "max": 5,
+          "unit": "ml",
+          "per": "litre"
+        },
+        "sources": [
+          "general",
+          "phi"
+        ],
+        "phi_days": 1
+      }
+    },
+    {
+      "id": "insecticidal_soap",
+      "type": "organic",
+      "source": "jagtap2025",
+      "name_en": "Insecticidal soap",
+      "name_ta": "பூச்சிக்கொல்லி சோப்புக் கரைசல்",
+      "dosage_en": "As per label; spray the leaf undersides",
+      "dosage_ta": "லேபிள் படி; இலையின் அடிப்பகுதியில் தெளிக்கவும்",
+      "application": {
+        "mode": "contact_insect",
+        "group": null,
+        "rainfast_h": 3,
+        "max_temp_c": 32,
+        "timing": "evening",
+        "interval_days": 6,
+        "dose": null,
+        "sources": [
+          "jagtap2025",
+          "phi"
+        ],
+        "phi_days": 0
+      }
+    },
+    {
+      "id": "chilli_extract",
+      "type": "organic",
+      "source": "jagtap2025",
+      "name_en": "Chilli extract spray",
+      "name_ta": "மிளகாய்க் கரைசல்",
+      "dosage_en": "Soak 20 g crushed chilli in 1 L water for a day, dilute in 5 L water; spray weekly",
+      "dosage_ta": "20 கிராம் இடித்த மிளகாயை 1 லிட்டர் நீரில் ஒரு நாள் ஊறவைத்து, 5 லிட்டர் நீரில் கலந்து வாரம் ஒருமுறை தெளிக்கவும்",
+      "application": {
+        "mode": "botanical",
+        "group": null,
+        "rainfast_h": 3,
+        "max_temp_c": 32,
+        "timing": "evening",
+        "interval_days": 7,
+        "dose": null,
+        "sources": [
+          "jagtap2025",
+          "phi"
+        ],
+        "phi_days": 1
+      }
+    },
+    {
+      "id": "bt_spray",
+      "type": "organic",
+      "source": "jagtap2025",
+      "name_en": "Bacillus thuringiensis (Bt)",
+      "name_ta": "பேசில்லஸ் துரிஞ்சியென்சிஸ் (Bt)",
+      "dosage_en": "2 g per litre in the evening, every 5–7 days; best on young larvae",
+      "dosage_ta": "லிட்டருக்கு 2 கிராம், மாலையில், 5–7 நாளுக்கு ஒருமுறை; இளம் புழுக்களுக்கு சிறந்தது",
+      "application": {
+        "mode": "biological",
+        "group": "IRAC 11A",
+        "rainfast_h": 2,
+        "max_temp_c": 35,
+        "timing": "evening",
+        "interval_days": 6,
+        "dose": {
+          "min": 2,
+          "max": 2,
+          "unit": "g",
+          "per": "litre"
+        },
+        "sources": [
+          "jagtap2025",
+          "frac_irac",
+          "phi"
+        ],
+        "phi_days": 0
+      }
+    },
+    {
+      "id": "yellow_sticky_traps",
+      "type": "cultural",
+      "source": "general",
+      "name_en": "Yellow sticky traps",
+      "name_ta": "மஞ்சள் ஒட்டும் பொறிகள்",
+      "dosage_en": "10–15 traps per acre",
+      "dosage_ta": "ஏக்கருக்கு 10–15 பொறிகள்",
+      "application": {
+        "mode": "cultural",
+        "group": null,
+        "rainfast_h": 0,
+        "max_temp_c": null,
+        "timing": "none",
+        "dose": null,
+        "interval_days": null,
+        "sources": [
+          "general"
+        ]
+      }
+    },
+    {
+      "id": "pheromone_traps",
+      "type": "cultural",
+      "source": "general",
+      "name_en": "Pheromone traps",
+      "name_ta": "இனக்கவர்ச்சிப் பொறிகள்",
+      "dosage_en": "5 traps per acre; change the lure monthly",
+      "dosage_ta": "ஏக்கருக்கு 5 பொறிகள்; மாதம் ஒருமுறை கவர்ச்சிப் பொருளை மாற்றவும்",
+      "application": {
+        "mode": "cultural",
+        "group": null,
+        "rainfast_h": 0,
+        "max_temp_c": null,
+        "timing": "none",
+        "dose": null,
+        "interval_days": null,
+        "sources": [
+          "general"
+        ]
+      }
+    },
+    {
+      "id": "remove_destroy_plants",
+      "type": "cultural",
+      "source": "general",
+      "name_en": "Uproot and destroy infected plants",
+      "name_ta": "பாதித்த செடிகளைப் பிடுங்கி அழித்தல்",
+      "dosage_en": "Immediately; burn or bury away from the field",
+      "dosage_ta": "உடனடியாக; வயலுக்கு வெளியே எரிக்கவும் அல்லது புதைக்கவும்",
+      "application": {
+        "mode": "cultural",
+        "group": null,
+        "rainfast_h": 0,
+        "max_temp_c": null,
+        "timing": "none",
+        "dose": null,
+        "interval_days": null,
+        "sources": [
+          "general"
+        ]
+      }
+    },
+    {
+      "id": "remove_infected_leaves",
+      "type": "cultural",
+      "source": "jagtap2025",
+      "name_en": "Prune infected / lower leaves",
+      "name_ta": "பாதித்த / கீழ் இலைகளை அகற்றுதல்",
+      "dosage_en": "Remove and destroy; do not compost",
+      "dosage_ta": "அகற்றி அழிக்கவும்; உரக்குழியில் போட வேண்டாம்",
+      "application": {
+        "mode": "cultural",
+        "group": null,
+        "rainfast_h": 0,
+        "max_temp_c": null,
+        "timing": "none",
+        "dose": null,
+        "interval_days": null,
+        "sources": [
+          "jagtap2025"
+        ]
+      }
+    },
+    {
+      "id": "collect_destroy",
+      "type": "cultural",
+      "source": "jagtap2025",
+      "name_en": "Collect and destroy bored fruits / mined leaves",
+      "name_ta": "துளையுள்ள காய்கள் / சுரங்க இலைகளைச் சேகரித்து அழித்தல்",
+      "dosage_en": "Every week",
+      "dosage_ta": "வாரந்தோறும்",
+      "application": {
+        "mode": "cultural",
+        "group": null,
+        "rainfast_h": 0,
+        "max_temp_c": null,
+        "timing": "none",
+        "dose": null,
+        "interval_days": null,
+        "sources": [
+          "jagtap2025"
+        ]
+      }
+    },
+    {
+      "id": "drip_irrigation",
+      "type": "cultural",
+      "source": "jagtap2025",
+      "name_en": "Water at the base (drip); keep leaves dry",
+      "name_ta": "சொட்டு நீர் — இலைகளை நனைக்காமல் வேரில் நீர்",
+      "dosage_en": "Water early in the day",
+      "dosage_ta": "காலையில் நீர் பாய்ச்சவும்",
+      "application": {
+        "mode": "cultural",
+        "group": null,
+        "rainfast_h": 0,
+        "max_temp_c": null,
+        "timing": "none",
+        "dose": null,
+        "interval_days": null,
+        "sources": [
+          "jagtap2025"
+        ]
+      }
+    },
+    {
+      "id": "disinfect_hands_tools",
+      "type": "cultural",
+      "source": "jagtap2025",
+      "name_en": "Disinfect hands and tools",
+      "name_ta": "கைகள், கருவிகளைக் கிருமி நீக்கம் செய்தல்",
+      "dosage_en": "Wash with soap; dip tools in boiling water for 5 minutes",
+      "dosage_ta": "சோப்பால் கழுவவும்; கருவிகளை 5 நிமிடம் கொதிநீரில் வைக்கவும்",
+      "application": {
+        "mode": "cultural",
+        "group": null,
+        "rainfast_h": 0,
+        "max_temp_c": null,
+        "timing": "none",
+        "dose": null,
+        "interval_days": null,
+        "sources": [
+          "jagtap2025"
+        ]
+      }
+    },
+    {
+      "id": "water_jet",
+      "type": "cultural",
+      "source": "jagtap2025",
+      "name_en": "Strong water spray on leaves",
+      "name_ta": "இலைகளில் வேகமான நீர்த் தெளிப்பு",
+      "dosage_en": "Early stage only — knocks mites off",
+      "dosage_ta": "ஆரம்ப நிலையில் மட்டும் — பேன்களை அகற்றும்",
+      "application": {
+        "mode": "physical",
+        "group": null,
+        "rainfast_h": 0,
+        "max_temp_c": null,
+        "timing": "morning",
+        "interval_days": 3,
+        "dose": null,
+        "sources": [
+          "jagtap2025",
+          "phi"
+        ],
+        "phi_days": 0
+      }
+    },
+    {
+      "id": "crop_rotation",
+      "type": "cultural",
+      "source": "general",
+      "name_en": "Crop rotation (2–3 seasons, non-solanaceous crops)",
+      "name_ta": "பயிர் சுழற்சி (2–3 பருவம், தக்காளி குடும்பம் அல்லாத பயிர்கள்)",
+      "dosage_en": "Next seasons: cereals, pulses or brassicas",
+      "dosage_ta": "அடுத்த பருவங்களில்: தானியங்கள், பயறு வகைகள், முட்டைக்கோஸ் வகைகள்",
+      "application": {
+        "mode": "cultural",
+        "group": null,
+        "rainfast_h": 0,
+        "max_temp_c": null,
+        "timing": "none",
+        "dose": null,
+        "interval_days": null,
+        "sources": [
+          "general"
+        ]
+      }
+    },
+    {
+      "id": "soil_solarization",
+      "type": "cultural",
+      "source": "general",
+      "name_en": "Soil solarization",
+      "name_ta": "மண் சூரியவெப்பச் சுத்திகரிப்பு",
+      "dosage_en": "Cover moist soil with clear plastic for 4–6 weeks in peak summer",
+      "dosage_ta": "கோடையில் ஈரமான மண்ணை 4–6 வாரம் ஒளி ஊடுருவும் பிளாஸ்டிக்கால் மூடவும்",
+      "application": {
+        "mode": "cultural",
+        "group": null,
+        "rainfast_h": 0,
+        "max_temp_c": null,
+        "timing": "none",
+        "dose": null,
+        "interval_days": null,
+        "sources": [
+          "general"
+        ]
+      }
+    },
+    {
+      "id": "even_watering_mulch",
+      "type": "cultural",
+      "source": "general",
+      "name_en": "Even watering + mulching",
+      "name_ta": "சீரான நீர்ப் பாசனம் + மூடாக்கு",
+      "dosage_en": "Keep soil evenly moist; avoid wet–dry cycles",
+      "dosage_ta": "மண்ணைச் சீராக ஈரமாக வைக்கவும்; வறட்சி–அதிக நீர் மாறி மாறி வேண்டாம்",
+      "application": {
+        "mode": "cultural",
+        "group": null,
+        "rainfast_h": 0,
+        "max_temp_c": null,
+        "timing": "none",
+        "dose": null,
+        "interval_days": null,
+        "sources": [
+          "general"
+        ]
+      }
+    },
+    {
+      "id": "resistant_varieties",
+      "type": "cultural",
+      "source": "jagtap2025",
+      "name_en": "Resistant varieties",
+      "name_ta": "நோய் எதிர்ப்பு ரகங்கள்",
+      "dosage_en": "Use for the next crop",
+      "dosage_ta": "அடுத்த பயிருக்குப் பயன்படுத்தவும்",
+      "application": {
+        "mode": "cultural",
+        "group": null,
+        "rainfast_h": 0,
+        "max_temp_c": null,
+        "timing": "none",
+        "dose": null,
+        "interval_days": null,
+        "sources": [
+          "jagtap2025"
+        ]
+      }
+    }
+  ],
+  "treated_by": [
+    [
+      "early_blight",
+      "mancozeb_75wp",
+      0.85
+    ],
+    [
+      "early_blight",
+      "copper_hydroxide",
+      0.8
+    ],
+    [
+      "early_blight",
+      "pseudomonas_bacillus",
+      0.65
+    ],
+    [
+      "early_blight",
+      "remove_infected_leaves",
+      0.6
+    ],
+    [
+      "early_blight",
+      "drip_irrigation",
+      0.5
+    ],
+    [
+      "late_blight",
+      "cyazofamid",
+      0.85
+    ],
+    [
+      "late_blight",
+      "azoxy_difeno",
+      0.8
+    ],
+    [
+      "late_blight",
+      "copper_oxychloride",
+      0.75
+    ],
+    [
+      "late_blight",
+      "trichoderma",
+      0.6
+    ],
+    [
+      "late_blight",
+      "remove_destroy_plants",
+      0.8
+    ],
+    [
+      "powdery_mildew",
+      "wettable_sulfur",
+      0.85
+    ],
+    [
+      "powdery_mildew",
+      "neem_oil",
+      0.7
+    ],
+    [
+      "powdery_mildew",
+      "remove_infected_leaves",
+      0.5
+    ],
+    [
+      "whitefly",
+      "yellow_sticky_traps",
+      0.75
+    ],
+    [
+      "whitefly",
+      "neem_oil",
+      0.75
+    ],
+    [
+      "whitefly",
+      "neonicotinoid",
+      0.7
+    ],
+    [
+      "leaf_curl_virus",
+      "remove_destroy_plants",
+      0.9
+    ],
+    [
+      "leaf_curl_virus",
+      "resistant_varieties",
+      0.8
+    ],
+    [
+      "leaf_curl_virus",
+      "yellow_sticky_traps",
+      0.65
+    ],
+    [
+      "leaf_curl_virus",
+      "neonicotinoid",
+      0.65
+    ],
+    [
+      "septoria_leaf_spot",
+      "mancozeb_75wp",
+      0.85
+    ],
+    [
+      "septoria_leaf_spot",
+      "copper_oxychloride",
+      0.8
+    ],
+    [
+      "septoria_leaf_spot",
+      "remove_infected_leaves",
+      0.65
+    ],
+    [
+      "septoria_leaf_spot",
+      "drip_irrigation",
+      0.55
+    ],
+    [
+      "bacterial_spot",
+      "copper_oxychloride",
+      0.7
+    ],
+    [
+      "bacterial_spot",
+      "copper_hydroxide",
+      0.7
+    ],
+    [
+      "bacterial_spot",
+      "remove_infected_leaves",
+      0.5
+    ],
+    [
+      "bacterial_spot",
+      "crop_rotation",
+      0.5
+    ],
+    [
+      "fusarium_wilt",
+      "crop_rotation",
+      0.8
+    ],
+    [
+      "fusarium_wilt",
+      "resistant_varieties",
+      0.8
+    ],
+    [
+      "fusarium_wilt",
+      "remove_destroy_plants",
+      0.7
+    ],
+    [
+      "fusarium_wilt",
+      "trichoderma",
+      0.55
+    ],
+    [
+      "fusarium_wilt",
+      "soil_solarization",
+      0.55
+    ],
+    [
+      "bacterial_wilt",
+      "remove_destroy_plants",
+      0.85
+    ],
+    [
+      "bacterial_wilt",
+      "crop_rotation",
+      0.75
+    ],
+    [
+      "bacterial_wilt",
+      "resistant_varieties",
+      0.75
+    ],
+    [
+      "blossom_end_rot",
+      "even_watering_mulch",
+      0.85
+    ],
+    [
+      "blossom_end_rot",
+      "calcium_spray",
+      0.8
+    ],
+    [
+      "mosaic_virus",
+      "remove_destroy_plants",
+      0.85
+    ],
+    [
+      "mosaic_virus",
+      "disinfect_hands_tools",
+      0.8
+    ],
+    [
+      "mosaic_virus",
+      "seed_treatment_naocl",
+      0.7
+    ],
+    [
+      "spider_mite",
+      "wettable_sulfur",
+      0.8
+    ],
+    [
+      "spider_mite",
+      "insecticidal_soap",
+      0.75
+    ],
+    [
+      "spider_mite",
+      "neem_oil",
+      0.65
+    ],
+    [
+      "spider_mite",
+      "chilli_extract",
+      0.55
+    ],
+    [
+      "spider_mite",
+      "water_jet",
+      0.5
+    ],
+    [
+      "fruit_borer",
+      "bt_spray",
+      0.8
+    ],
+    [
+      "fruit_borer",
+      "pheromone_traps",
+      0.7
+    ],
+    [
+      "fruit_borer",
+      "collect_destroy",
+      0.65
+    ],
+    [
+      "root_knot_nematode",
+      "soil_solarization",
+      0.75
+    ],
+    [
+      "root_knot_nematode",
+      "crop_rotation",
+      0.7
+    ],
+    [
+      "leaf_miner",
+      "diamide",
+      0.8
+    ],
+    [
+      "leaf_miner",
+      "bt_spray",
+      0.7
+    ],
+    [
+      "leaf_miner",
+      "collect_destroy",
+      0.7
+    ],
+    [
+      "leaf_miner",
+      "pheromone_traps",
+      0.65
+    ],
+    [
+      "leaf_miner",
+      "neem_oil",
+      0.6
+    ],
+    [
+      "leaf_miner",
+      "yellow_sticky_traps",
+      0.5
+    ],
+    [
+      "leaf_mold",
+      "azoxy_difeno",
+      0.8
+    ],
+    [
+      "leaf_mold",
+      "mancozeb_75wp",
+      0.75
+    ],
+    [
+      "leaf_mold",
+      "copper_oxychloride",
+      0.7
+    ],
+    [
+      "leaf_mold",
+      "remove_infected_leaves",
+      0.55
+    ],
+    [
+      "target_spot",
+      "azoxystrobin_sc",
+      0.8
+    ],
+    [
+      "target_spot",
+      "mancozeb_75wp",
+      0.7
+    ],
+    [
+      "target_spot",
+      "copper_hydroxide",
+      0.7
+    ],
+    [
+      "target_spot",
+      "bacillus_subtilis",
+      0.6
+    ]
+  ]
+}
