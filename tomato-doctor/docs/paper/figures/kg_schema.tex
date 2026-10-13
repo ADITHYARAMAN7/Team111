@@ -1,0 +1,22 @@
+% Knowledge-graph schema (Fig. 2)
+\begin{tikzpicture}[
+  font=\sffamily\scriptsize, >=Stealth,
+  ent/.style={draw=#1!75!black, fill=#1!9, rounded corners=6pt, align=center, inner sep=2.6pt, line width=0.6pt, minimum width=2.0cm, minimum height=0.85cm},
+  rel/.style={->, line width=0.6pt, draw=black!70},
+  rl/.style={font=\sffamily\tiny, fill=white, inner sep=1pt, align=center},
+]
+\node[ent=orange] (d) at (0,0) {\textbf{Disease}\\ {\tiny 17: type, severity, summary,}\\[-2pt] {\tiny prevention (ta/en), images}};
+\node[ent=gray] (c) at (-3.3,1.9) {\textbf{Crop}\\ {\tiny tomato}};
+\node[ent=violet] (w) at (3.3,1.9) {\textbf{SeasonCondition}\\ {\tiny 3: temp./RH range}};
+\node[ent=blue] (s) at (-3.3,-2.2) {\textbf{Symptom}\\ {\tiny 45: plant part, question}\\[-2pt] {\tiny (ta/en), observation cost}};
+\node[ent=red] (t) at (3.3,-2.2) {\textbf{Treatment}\\ {\tiny 30: type, dose, mode,}\\[-2pt] {\tiny FRAC/IRAC, rain-fast h}};
+\node[ent=gray] (i) at (0,-4.3) {\textbf{ConfirmationImage}\\ {\tiny 27: url, verified\_count}};
+\node[ent=green!55!black] (l) at (-3.3,-4.3) {\textbf{LayTerm}\\ {\tiny 247: ta 100, en 96, tl 51}};
+
+\draw[rel] (c) -- node[rl]{SUSCEPTIBLE\_TO} (d);
+\draw[rel] (d) -- node[rl]{FAVORED\_BY\\ {\tiny boost}} (w);
+\draw[rel] (d) -- node[rl]{HAS\_SYMPTOM\\ {\tiny $\alpha,\beta \Rightarrow \theta_{ds}$}} (s);
+\draw[rel] (d) -- node[rl]{TREATED\_BY\\ {\tiny efficacy}} (t);
+\draw[rel] (d) -- node[rl, pos=0.55]{CONFIRMED\_BY} (i);
+\draw[rel] (l) -- node[rl]{LAYTERM\_MAPS\_TO\\ {\tiny $\alpha,\beta \Rightarrow w_l$}} (s);
+\end{tikzpicture}

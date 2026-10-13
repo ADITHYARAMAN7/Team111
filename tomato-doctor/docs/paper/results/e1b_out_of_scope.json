@@ -1,0 +1,16 @@
+{
+  "n_cases": 12,
+  "n_runs": 20,
+  "variants": {
+    "with_unknown": {
+      "abstain_rate": 0.8208,
+      "no_symptom_matched_rate": 0.6667,
+      "confidently_wrong_rate": 0.0625
+    },
+    "no_unknown": {
+      "abstain_rate": 0.8083,
+      "no_symptom_matched_rate": 0.6667,
+      "confidently_wrong_rate": 0.0667
+    }
+  }
+}

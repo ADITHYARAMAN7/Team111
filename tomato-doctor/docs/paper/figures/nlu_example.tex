@@ -1,0 +1,43 @@
+% Worked example of the concept-level NLU (Fig. 3). Values from the implementation.
+\begin{tikzpicture}[
+  font=\sffamily\scriptsize, >=Stealth,
+  tok/.style={draw=black!45, rounded corners=2pt, fill=white, inner sep=2pt, minimum height=0.5cm, align=center},
+  con/.style={rounded corners=2pt, fill=#1, inner sep=2pt, align=center, font=\sffamily\tiny\bfseries, text=white},
+  stp/.style={font=\sffamily\tiny\bfseries, text=black!60, anchor=west},
+  arr/.style={->, line width=0.55pt, draw=black!60},
+]
+% input
+\node[stp] at (-4.25, 0.55) {(1) farmer input};
+\node[tok, text width=8.1cm, fill=green!6, draw=green!50!black] (in) at (0, 0) {\ta{இலையில் வெள்ளை தூள் இருக்கு ஆனா பூச்சி பறக்கலை}\\[-1pt] {\tiny ``there is white powder on the leaf, but the insects don't fly''}};
+
+% tokens -> concepts
+\node[stp] at (-4.25, -0.75) {(2) tokens $\to$ concepts (stems, lexicon, negation scope)};
+\node[tok] (t1) at (-3.55,-1.35) {\ta{இலையில்}};
+\node[tok] (t2) at (-2.05,-1.35) {\ta{வெள்ளை}};
+\node[tok] (t3) at (-0.75,-1.35) {\ta{தூள்}};
+\node[tok, draw=black!25, text=black!50] (t4) at (0.45,-1.35) {\ta{ஆனா}};
+\node[tok] (t5) at (1.65,-1.35) {\ta{பூச்சி}};
+\node[tok] (t6) at (3.25,-1.35) {\ta{பறக்கலை}};
+\node[con=green!50!black] (c1) at (-3.55,-2.05) {LEAF\\[-2pt]\tiny idf 1.65};
+\node[con=green!50!black] (c2) at (-2.05,-2.05) {WHITE\\[-2pt]\tiny idf 3.34};
+\node[con=green!50!black] (c3) at (-0.75,-2.05) {POWDER\\[-2pt]\tiny idf 4.21};
+\node[font=\sffamily\tiny, text=black!50, align=center] at (0.45,-2.05) {clause\\[-2pt]break};
+\node[con=red!70!black] (c5) at (1.65,-2.05) {$\neg$INSECT\\[-2pt]\tiny idf 4.21};
+\node[con=red!70!black] (c6) at (3.25,-2.05) {$\neg$FLY\\[-2pt]\tiny idf 4.90};
+\foreach \i in {1,2,3,5,6} \draw[arr] (t\i) -- (c\i);
+\node[font=\sffamily\tiny, text=red!60!black, align=center] at (2.45,-2.62) {negative verb ending \ta{-கலை} scopes back over the preceding noun};
+
+% lay-term matches
+\node[stp] at (-4.25, -3.0) {(3) lay-term coverage $\to$ evidence};
+\node[tok, text width=3.85cm, fill=blue!5, draw=blue!50!black] (m1) at (-2.15,-3.75) {\ta{இலையில் வெள்ளை பொடி}\\[-1pt]{\tiny $\to$ \texttt{white\_powder}: \textbf{present}, $s=0.90$}};
+\node[tok, text width=3.95cm, fill=red!5, draw=red!50!black] (m2) at (2.15,-3.75) {{\small\ta{வெள்ளை சிறு பூச்சிகள் பறக்கும்}}\\[-1pt]{\tiny $\to$ \texttt{insects\_fly\_up}: \textbf{absent}, $s=0.81$}};
+\draw[arr] (c3.south) -- (m1.north -| c3.south);
+\draw[arr] (c6.south) ++(0,-0.6) -- (m2.north -| c6.south);
+
+% posterior
+\node[stp] at (-4.25, -4.55) {(4) posterior $P(d\mid E)$};
+\node[tok, text width=8.1cm, fill=orange!6, draw=orange!70!black] (p) at (0,-5.15) {powdery mildew \textbf{0.518} $\cdot$ unknown 0.044 $\cdot$ whitefly 0.035 $\cdot$ early blight 0.028\\[-1pt]
+{\tiny v1 fuzzy matching on the same input ranks \emph{whitefly} first (score 1.07), ignoring the negation}};
+\draw[arr] (m1.south) -- (p.north -| m1.south);
+\draw[arr] (m2.south) -- (p.north -| m2.south);
+\end{tikzpicture}

@@ -1,0 +1,521 @@
+{
+  "fetched_at": "2026-10-13 15:26",
+  "sites": [
+    {
+      "name": "The Nilgiris (Ooty)",
+      "lat": 11.41,
+      "lon": 76.7,
+      "summary": {
+        "time": "2026-10-13T15:00",
+        "temp": 18.8,
+        "rh": 61,
+        "wind": 10.2,
+        "rain_last_3d_mm": 1.7,
+        "rain_next_24h_mm": 6.3,
+        "mean_temp_3d": 15.3,
+        "mean_rh_3d": 79.3,
+        "max_temp_next_24h": 19.0
+      },
+      "risks": {
+        "late_blight": {
+          "score": 1.0,
+          "level": "high",
+          "facts": {
+            "hutton_periods_7d": 5,
+            "humid_days_7d": 6,
+            "hutton_forecast": true,
+            "mean_temp": 15.4
+          },
+          "model": "hutton"
+        },
+        "early_blight": {
+          "score": 0.333,
+          "level": "medium",
+          "facts": {
+            "tomcast_dsv_7d": 5
+          },
+          "model": "tomcast"
+        },
+        "septoria_leaf_spot": {
+          "score": 0.093,
+          "level": "low",
+          "facts": {
+            "wet_hours_15_27C_7d": 7
+          },
+          "model": "jagtap2025"
+        },
+        "leaf_mold": {
+          "score": 0.8,
+          "level": "high",
+          "facts": {
+            "hours_rh_over_85_7d": 96
+          },
+          "model": "jagtap2025"
+        },
+        "target_spot": {
+          "score": 0.0,
+          "level": "low",
+          "facts": {
+            "warm_humid_hours_7d": 0
+          },
+          "model": "jagtap2025"
+        },
+        "powdery_mildew": {
+          "score": 0.033,
+          "level": "low",
+          "facts": {
+            "mild_dry_hours_7d": 5
+          },
+          "model": "jagtap2025"
+        },
+        "spider_mite": {
+          "score": 0.0,
+          "level": "low",
+          "facts": {
+            "hot_dry_hours_7d": 0
+          },
+          "model": "jagtap2025"
+        },
+        "leaf_miner": {
+          "score": 0.325,
+          "level": "low",
+          "facts": {
+            "favourable_hours_7d": 65
+          },
+          "model": "jagtap2025"
+        },
+        "bacterial_spot": {
+          "score": 0.347,
+          "level": "medium",
+          "facts": {
+            "rain_7d_mm": 28.9,
+            "warm_humid_hours_7d": 0
+          },
+          "model": "general"
+        },
+        "bacterial_wilt": {
+          "score": 0.185,
+          "level": "low",
+          "facts": {
+            "rain_7d_mm": 28.9,
+            "mean_temp": 15.4
+          },
+          "model": "general"
+        },
+        "whitefly": {
+          "score": 0.0,
+          "level": "low",
+          "facts": {
+            "mean_temp": 15.4,
+            "rain_7d_mm": 28.9
+          },
+          "model": "jagtap2025"
+        },
+        "leaf_curl_virus": {
+          "score": 0.0,
+          "level": "low",
+          "facts": {
+            "mean_temp": 15.4,
+            "rain_7d_mm": 28.9
+          },
+          "model": "jagtap2025"
+        },
+        "blossom_end_rot": {
+          "score": 0.0,
+          "level": "low",
+          "facts": {
+            "hot_days_7d": 0
+          },
+          "model": "general"
+        }
+      }
+    },
+    {
+      "name": "Coimbatore",
+      "lat": 11.02,
+      "lon": 76.96,
+      "summary": {
+        "time": "2026-10-13T15:00",
+        "temp": 32.8,
+        "rh": 33,
+        "wind": 15.0,
+        "rain_last_3d_mm": 3.1,
+        "rain_next_24h_mm": 4.5,
+        "mean_temp_3d": 26.9,
+        "mean_rh_3d": 63.7,
+        "max_temp_next_24h": 32.9
+      },
+      "risks": {
+        "late_blight": {
+          "score": 0.575,
+          "level": "medium",
+          "facts": {
+            "hutton_periods_7d": 2,
+            "humid_days_7d": 4,
+            "hutton_forecast": false,
+            "mean_temp": 26.3
+          },
+          "model": "hutton"
+        },
+        "early_blight": {
+          "score": 0.6,
+          "level": "medium",
+          "facts": {
+            "tomcast_dsv_7d": 9
+          },
+          "model": "tomcast"
+        },
+        "septoria_leaf_spot": {
+          "score": 0.56,
+          "level": "medium",
+          "facts": {
+            "wet_hours_15_27C_7d": 42
+          },
+          "model": "jagtap2025"
+        },
+        "leaf_mold": {
+          "score": 0.48,
+          "level": "medium",
+          "facts": {
+            "hours_rh_over_85_7d": 48
+          },
+          "model": "jagtap2025"
+        },
+        "target_spot": {
+          "score": 0.504,
+          "level": "medium",
+          "facts": {
+            "warm_humid_hours_7d": 63
+          },
+          "model": "jagtap2025"
+        },
+        "powdery_mildew": {
+          "score": 0.5,
+          "level": "medium",
+          "facts": {
+            "mild_dry_hours_7d": 75
+          },
+          "model": "jagtap2025"
+        },
+        "spider_mite": {
+          "score": 0.507,
+          "level": "medium",
+          "facts": {
+            "hot_dry_hours_7d": 19
+          },
+          "model": "jagtap2025"
+        },
+        "leaf_miner": {
+          "score": 0.45,
+          "level": "medium",
+          "facts": {
+            "favourable_hours_7d": 90
+          },
+          "model": "jagtap2025"
+        },
+        "bacterial_spot": {
+          "score": 0.38,
+          "level": "medium",
+          "facts": {
+            "rain_7d_mm": 28.5,
+            "warm_humid_hours_7d": 8
+          },
+          "model": "general"
+        },
+        "bacterial_wilt": {
+          "score": 0.456,
+          "level": "medium",
+          "facts": {
+            "rain_7d_mm": 28.5,
+            "mean_temp": 26.3
+          },
+          "model": "general"
+        },
+        "whitefly": {
+          "score": 0.153,
+          "level": "low",
+          "facts": {
+            "mean_temp": 26.3,
+            "rain_7d_mm": 28.5
+          },
+          "model": "jagtap2025"
+        },
+        "leaf_curl_virus": {
+          "score": 0.153,
+          "level": "low",
+          "facts": {
+            "mean_temp": 26.3,
+            "rain_7d_mm": 28.5
+          },
+          "model": "jagtap2025"
+        },
+        "blossom_end_rot": {
+          "score": 0.2,
+          "level": "low",
+          "facts": {
+            "hot_days_7d": 1
+          },
+          "model": "general"
+        }
+      }
+    },
+    {
+      "name": "Krishnagiri",
+      "lat": 12.52,
+      "lon": 78.21,
+      "summary": {
+        "time": "2026-10-13T15:00",
+        "temp": 31.7,
+        "rh": 41,
+        "wind": 13.8,
+        "rain_last_3d_mm": 0.0,
+        "rain_next_24h_mm": 0.0,
+        "mean_temp_3d": 27.1,
+        "mean_rh_3d": 62.5,
+        "max_temp_next_24h": 32.6
+      },
+      "risks": {
+        "late_blight": {
+          "score": 0.495,
+          "level": "medium",
+          "facts": {
+            "hutton_periods_7d": 2,
+            "humid_days_7d": 3,
+            "hutton_forecast": false,
+            "mean_temp": 26.9
+          },
+          "model": "hutton"
+        },
+        "early_blight": {
+          "score": 0.533,
+          "level": "medium",
+          "facts": {
+            "tomcast_dsv_7d": 8
+          },
+          "model": "tomcast"
+        },
+        "septoria_leaf_spot": {
+          "score": 0.36,
+          "level": "medium",
+          "facts": {
+            "wet_hours_15_27C_7d": 27
+          },
+          "model": "jagtap2025"
+        },
+        "leaf_mold": {
+          "score": 0.45,
+          "level": "medium",
+          "facts": {
+            "hours_rh_over_85_7d": 45
+          },
+          "model": "jagtap2025"
+        },
+        "target_spot": {
+          "score": 0.488,
+          "level": "medium",
+          "facts": {
+            "warm_humid_hours_7d": 61
+          },
+          "model": "jagtap2025"
+        },
+        "powdery_mildew": {
+          "score": 0.44,
+          "level": "medium",
+          "facts": {
+            "mild_dry_hours_7d": 66
+          },
+          "model": "jagtap2025"
+        },
+        "spider_mite": {
+          "score": 0.8,
+          "level": "high",
+          "facts": {
+            "hot_dry_hours_7d": 34
+          },
+          "model": "jagtap2025"
+        },
+        "leaf_miner": {
+          "score": 0.41,
+          "level": "medium",
+          "facts": {
+            "favourable_hours_7d": 82
+          },
+          "model": "jagtap2025"
+        },
+        "bacterial_spot": {
+          "score": 0.138,
+          "level": "low",
+          "facts": {
+            "rain_7d_mm": 5.5,
+            "warm_humid_hours_7d": 15
+          },
+          "model": "general"
+        },
+        "bacterial_wilt": {
+          "score": 0.088,
+          "level": "low",
+          "facts": {
+            "rain_7d_mm": 5.5,
+            "mean_temp": 26.9
+          },
+          "model": "general"
+        },
+        "whitefly": {
+          "score": 0.39,
+          "level": "medium",
+          "facts": {
+            "mean_temp": 26.9,
+            "rain_7d_mm": 5.5
+          },
+          "model": "jagtap2025"
+        },
+        "leaf_curl_virus": {
+          "score": 0.39,
+          "level": "medium",
+          "facts": {
+            "mean_temp": 26.9,
+            "rain_7d_mm": 5.5
+          },
+          "model": "jagtap2025"
+        },
+        "blossom_end_rot": {
+          "score": 0.0,
+          "level": "low",
+          "facts": {
+            "hot_days_7d": 0
+          },
+          "model": "general"
+        }
+      }
+    },
+    {
+      "name": "Madurai",
+      "lat": 9.93,
+      "lon": 78.12,
+      "summary": {
+        "time": "2026-10-13T15:00",
+        "temp": 33.3,
+        "rh": 47,
+        "wind": 13.8,
+        "rain_last_3d_mm": 3.1,
+        "rain_next_24h_mm": 0.0,
+        "mean_temp_3d": 29.0,
+        "mean_rh_3d": 68.8,
+        "max_temp_next_24h": 33.5
+      },
+      "risks": {
+        "late_blight": {
+          "score": 0.284,
+          "level": "low",
+          "facts": {
+            "hutton_periods_7d": 1,
+            "humid_days_7d": 3,
+            "hutton_forecast": true,
+            "mean_temp": 28.6
+          },
+          "model": "hutton"
+        },
+        "early_blight": {
+          "score": 0.533,
+          "level": "medium",
+          "facts": {
+            "tomcast_dsv_7d": 8
+          },
+          "model": "tomcast"
+        },
+        "septoria_leaf_spot": {
+          "score": 0.507,
+          "level": "medium",
+          "facts": {
+            "wet_hours_15_27C_7d": 38
+          },
+          "model": "jagtap2025"
+        },
+        "leaf_mold": {
+          "score": 0.51,
+          "level": "medium",
+          "facts": {
+            "hours_rh_over_85_7d": 51
+          },
+          "model": "jagtap2025"
+        },
+        "target_spot": {
+          "score": 0.536,
+          "level": "medium",
+          "facts": {
+            "warm_humid_hours_7d": 67
+          },
+          "model": "jagtap2025"
+        },
+        "powdery_mildew": {
+          "score": 0.3,
+          "level": "low",
+          "facts": {
+            "mild_dry_hours_7d": 45
+          },
+          "model": "jagtap2025"
+        },
+        "spider_mite": {
+          "score": 0.427,
+          "level": "medium",
+          "facts": {
+            "hot_dry_hours_7d": 16
+          },
+          "model": "jagtap2025"
+        },
+        "leaf_miner": {
+          "score": 0.305,
+          "level": "low",
+          "facts": {
+            "favourable_hours_7d": 61
+          },
+          "model": "jagtap2025"
+        },
+        "bacterial_spot": {
+          "score": 0.528,
+          "level": "medium",
+          "facts": {
+            "rain_7d_mm": 22.4,
+            "warm_humid_hours_7d": 54
+          },
+          "model": "general"
+        },
+        "bacterial_wilt": {
+          "score": 0.358,
+          "level": "medium",
+          "facts": {
+            "rain_7d_mm": 22.4,
+            "mean_temp": 28.6
+          },
+          "model": "general"
+        },
+        "whitefly": {
+          "score": 0.305,
+          "level": "low",
+          "facts": {
+            "mean_temp": 28.6,
+            "rain_7d_mm": 22.4
+          },
+          "model": "jagtap2025"
+        },
+        "leaf_curl_virus": {
+          "score": 0.305,
+          "level": "low",
+          "facts": {
+            "mean_temp": 28.6,
+            "rain_7d_mm": 22.4
+          },
+          "model": "jagtap2025"
+        },
+        "blossom_end_rot": {
+          "score": 0.8,
+          "level": "high",
+          "facts": {
+            "hot_days_7d": 5
+          },
+          "model": "general"
+        }
+      }
+    }
+  ]
+}

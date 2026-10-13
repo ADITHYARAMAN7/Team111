@@ -1,0 +1,21 @@
+{
+  "nlu": {
+    "median_ms": 2.01,
+    "p95_ms": 2.58
+  },
+  "inference_step": {
+    "median_ms": 0.84,
+    "p95_ms": 0.87
+  },
+  "api_diagnose": {
+    "median_ms": 3.65,
+    "p95_ms": 4.18
+  },
+  "photo": {
+    "median_ms": 7.12,
+    "p95_ms": 8.09
+  },
+  "cpu": "AMD64 Family 25 Model 80 Stepping 0, AuthenticAMD",
+  "cores": 12,
+  "python": "3.11.9"
+}
