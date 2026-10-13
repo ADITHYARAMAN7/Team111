@@ -1,0 +1,15 @@
+# runtime
+flask>=3.0,<4
+neo4j>=5.20,<6
+rapidfuzz>=3.9,<4
+numpy>=1.26
+pillow>=10.0
+onnxruntime>=1.17
+pypdf>=4.0          # reads text-based soil test reports (PDF)
+
+# development / evaluation
+pytest>=8
+
+# only needed to (re)train the photo model: scripts/train_vision.py
+# torch>=2.2
+# torchvision>=0.17
