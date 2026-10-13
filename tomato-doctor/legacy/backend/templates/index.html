@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>தக்காளி நோய் கண்டறிதல் | Tomato Disease Diagnosis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Karla:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600&family=Noto+Serif+Tamil:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EFE8D6;
+    --card:#FBF8F0;
+    --ink:#24301F;
+    --forest:#2F5233;
+    --forest-dark:#20391F;
+    --brick:#B14A2E;
+    --gold:#C9A227;
+    --line:#D8CDAE;
+    --muted:#6E6650;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Karla',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  .tamil{font-family:'Noto Sans Tamil','Karla',sans-serif;}
+  .tamil-display{font-family:'Noto Serif Tamil',serif;}
+
+  header{
+    background:var(--forest-dark);
+    color:var(--paper);
+    padding:22px 24px 20px;
+    border-bottom:3px solid var(--brick);
+  }
+  header .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--gold);
+    margin:0 0 6px;
+  }
+  header h1{
+    font-family:'Noto Serif Tamil',serif;
+    font-weight:700;
+    font-size:24px;
+    margin:0 0 4px;
+    line-height:1.25;
+  }
+  header p{
+    font-family:'Fraunces',serif;
+    font-style:italic;
+    font-size:14px;
+    margin:0;
+    opacity:.75;
+  }
+
+  .container{max-width:640px;margin:0 auto;padding:20px 16px 60px;}
+
+  /* ---- Stepper (signature element: growing plant) ---- */
+  .stepper{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    margin:4px 0 24px;
+    padding:16px 14px 12px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+  }
+  .step{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    flex:1;
+    position:relative;
+  }
+  .step:not(:last-child)::after{
+    content:'';
+    position:absolute;
+    top:13px; left:56%; right:-44%;
+    height:2px;
+    background:var(--line);
+    z-index:0;
+  }
+  .step.done:not(:last-child)::after{background:var(--forest);}
+  .step .leaf{
+    width:26px;height:26px;
+    border-radius:50%;
+    background:var(--card);
+    border:2px solid var(--line);
+    display:flex;align-items:center;justify-content:center;
+    z-index:1;
+    transition:all .35s ease;
+  }
+  .step.done .leaf{background:var(--forest);border-color:var(--forest);}
+  .step.active .leaf{border-color:var(--brick);box-shadow:0 0 0 4px rgba(177,74,46,.15);}
+  .step .leaf svg{width:14px;height:14px;stroke:var(--line);transition:stroke .35s ease;}
+  .step.done .leaf svg{stroke:var(--paper);}
+  .step.active .leaf svg{stroke:var(--brick);}
+  .step label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--muted);
+    margin-top:6px;
+    text-align:center;
+  }
+  .step.active label{color:var(--brick);font-weight:600;}
+  .step.done label{color:var(--forest);}
+
+  /* ---- Cards ---- */
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:20px;
+    margin-bottom:16px;
+  }
+  .card-label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--muted);
+    margin:0 0 10px;
+  }
+
+  textarea{
+    width:100%;
+    min-height:88px;
+    padding:12px 14px;
+    font-size:16px;
+    font-family:'Noto Sans Tamil','Karla',sans-serif;
+    color:var(--ink);
+    background:#fff;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    resize:vertical;
+    transition:border-color .2s;
+  }
+  textarea:focus{outline:none;border-color:var(--forest);}
+
+  .input-row{display:flex;gap:8px;margin-top:12px;align-items:stretch;}
+  .input-row .btn-primary{flex:1;}
+
+  button{
+    font-family:'Karla',sans-serif;
+    font-weight:600;
+    font-size:14.5px;
+    border:none;
+    border-radius:8px;
+    padding:12px 18px;
+    cursor:pointer;
+    transition:transform .12s ease, background .15s ease;
+  }
+  button:active{transform:scale(0.97);}
+  .btn-primary{background:var(--forest);color:var(--paper);}
+  .btn-primary:hover{background:var(--forest-dark);}
+  .btn-secondary{background:transparent;color:var(--ink);border:1.5px solid var(--line);}
+  .btn-secondary:hover{border-color:var(--forest);}
+  .btn-mic{
+    width:48px;flex:0 0 48px;
+    background:#fff;border:1.5px solid var(--line);
+    display:flex;align-items:center;justify-content:center;
+    position:relative;
+    cursor:not-allowed;
+  }
+  .btn-mic svg{width:18px;height:18px;stroke:var(--muted);}
+  .btn-mic .tooltip{
+    position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);
+    background:var(--ink);color:var(--paper);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;white-space:nowrap;
+    padding:6px 9px;border-radius:6px;
+    opacity:0;pointer-events:none;transition:opacity .15s;
+  }
+  .btn-mic:hover .tooltip{opacity:1;}
+
+  /* ---- Example chips ---- */
+  .examples{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-top:12px;}
+  .example-chip{
+    flex:0 0 auto;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:7px 14px;
+    font-family:'Noto Sans Tamil','Karla',sans-serif;
+    font-size:12.5px;
+    color:var(--forest-dark);
+    cursor:pointer;
+    white-space:nowrap;
+    transition:all .15s;
+  }
+  .example-chip:hover{background:var(--forest);color:var(--paper);border-color:var(--forest);}
+
+  /* ---- Clarify card ---- */
+  .clarify-badge{
+    display:inline-block;
+    background:rgba(201,162,39,.18);
+    color:#8a6d15;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    padding:4px 10px;
+    border-radius:20px;
+    margin-bottom:12px;
+  }
+  .candidate-row{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:9px 0;border-bottom:1px solid var(--line);
+  }
+  .candidate-row:last-of-type{border-bottom:none;}
+  .candidate-name{font-family:'Noto Sans Tamil','Karla',sans-serif;font-size:14.5px;}
+  .candidate-bar-wrap{width:70px;height:5px;background:var(--line);border-radius:3px;overflow:hidden;margin-left:10px;}
+  .candidate-bar{height:100%;background:var(--forest);}
+
+  /* ---- Confidence meter ---- */
+  .confidence-wrap{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .confidence-track{flex:1;height:8px;background:var(--line);border-radius:4px;overflow:hidden;}
+  .confidence-fill{height:100%;background:linear-gradient(90deg,var(--forest),var(--gold));}
+  .confidence-num{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--muted);}
+
+  .disease-type-badge{
+    display:inline-flex;align-items:center;gap:5px;
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;
+    padding:3px 9px;border-radius:20px;margin-bottom:10px;
+    background:rgba(47,82,51,.12);color:var(--forest-dark);
+  }
+  .disease-name{font-family:'Fraunces',serif;font-weight:600;font-size:22px;margin:2px 0 2px;}
+  .disease-name-ta{font-family:'Noto Serif Tamil',serif;font-size:16px;color:var(--muted);margin-bottom:14px;}
+
+  .leaf-img{width:100%;border-radius:8px;margin:10px 0 4px;display:block;border:1px solid var(--line);}
+
+  /* ---- Why panel ---- */
+  .why-panel{margin-top:14px;}
+  .why-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+  .why-tag{
+    display:flex;align-items:center;gap:5px;
+    background:rgba(47,82,51,.09);
+    border:1px solid rgba(47,82,51,.25);
+    color:var(--forest-dark);
+    font-family:'Noto Sans Tamil','Karla',sans-serif;
+    font-size:12px;padding:5px 10px;border-radius:16px;
+  }
+  .why-tag svg{width:11px;height:11px;stroke:var(--forest);flex-shrink:0;}
+
+  .confirm-row{display:flex;gap:10px;margin:16px 0 4px;}
+  .confirm-row button{flex:1;}
+
+  /* ---- Treatment cards ---- */
+  .treatment-item{
+    border-left:3px solid var(--forest);
+    background:#fff;
+    padding:12px 14px;
+    margin:10px 0;
+    border-radius:0 6px 6px 0;
+  }
+  .treatment-head{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+  .treatment-icon{width:16px;height:16px;flex-shrink:0;}
+  .treatment-icon svg{width:100%;height:100%;stroke:var(--forest);}
+  .treatment-name{font-weight:700;font-size:14.5px;}
+  .treatment-type-tag{
+    font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;
+    color:var(--muted);border:1px solid var(--line);padding:1px 7px;border-radius:20px;
+  }
+  .treatment-dosage{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:#3a3325;margin-top:3px;}
+  .treatment-source{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--gold);margin-top:5px;}
+
+  .reset-row{text-align:center;margin-top:18px;}
+
+  /* ---- Loading ---- */
+  .loading-dots{display:none;align-items:center;gap:5px;padding:10px 0;justify-content:center;}
+  .loading-dots.show{display:flex;}
+  .loading-dots span{width:7px;height:7px;border-radius:50%;background:var(--forest);animation:pulse 1s infinite ease-in-out;}
+  .loading-dots span:nth-child(2){animation-delay:.15s;}
+  .loading-dots span:nth-child(3){animation-delay:.3s;}
+  @keyframes pulse{0%,80%,100%{opacity:.25;transform:scale(.8);}40%{opacity:1;transform:scale(1);}}
+
+  .hidden{display:none;}
+  .muted-note{font-family:'Karla',sans-serif;font-size:12px;color:var(--muted);margin-top:8px;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important; transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="eyebrow">TOMATO KG DIAGNOSIS · CHECKPOINT DEMO</p>
+  <h1 class="tamil-display">தக்காளி நோய் கண்டறிதல்</h1>
+  <p>A knowledge-graph diagnosis engine for tomato growers</p>
+</header>
+
+<div class="container">
+
+  <div class="stepper" id="stepper">
+    <div class="step active" data-step="describe">
+      <div class="leaf"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2"><path d="M12 2v20M12 6c-3 0-6 2-6 6s3 2 6 2 6-2 6-6-3-2-6-2z"/></svg></div>
+      <label class="tamil">விவரி</label>
+    </div>
+    <div class="step" data-step="clarify">
+      <div class="leaf"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg></div>
+      <label class="tamil">தெளிவு</label>
+    </div>
+    <div class="step" data-step="confirm">
+      <div class="leaf"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2"><path d="M4 12l5 5L20 6"/></svg></div>
+      <label class="tamil">உறுதி</label>
+    </div>
+    <div class="step" data-step="treat">
+      <div class="leaf"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2"><path d="M12 2L4 7v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V7l-8-5z"/></svg></div>
+      <label class="tamil">சிகிச்சை</label>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="card-label">STEP 1 — DESCRIBE THE PROBLEM</p>
+    <textarea id="farmerInput" class="tamil" placeholder="எ.கா. இலையில் வெள்ளை தூள் போல இருக்கு..."></textarea>
+    <div class="input-row">
+      <button class="btn-primary" onclick="diagnose()">சமர்ப்பிக்க · Submit</button>
+      <button class="btn-mic" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v3"/></svg>
+        <span class="tooltip">குரல் உள்ளீடு விரைவில் · Voice input coming soon</span>
+      </button>
+    </div>
+    <div class="examples" id="examples"></div>
+  </div>
+
+  <div class="loading-dots" id="loading"><span></span><span></span><span></span></div>
+
+  <div class="card hidden" id="clarifyCard">
+    <span class="clarify-badge tamil">தெளிவுபடுத்த வேண்டும் · Needs clarification</span>
+    <p id="clarifyQuestion" style="font-size:14.5px;line-height:1.5;"></p>
+    <div id="candidateList"></div>
+    <div class="confirm-row">
+      <button class="btn-primary" onclick="answerYes()">ஆம் · Yes</button>
+      <button class="btn-secondary" onclick="answerNo()">இல்லை · No</button>
+    </div>
+  </div>
+
+  <div class="card hidden" id="noMatchCard">
+    <p class="tamil" id="noMatchMsg" style="font-size:14.5px;"></p>
+  </div>
+
+  <div class="card hidden" id="resultCard">
+    <span class="disease-type-badge" id="typeBadge"></span>
+    <div class="confidence-wrap">
+      <div class="confidence-track"><div class="confidence-fill" id="confidenceFill" style="width:0%"></div></div>
+      <span class="confidence-num" id="confidenceNum"></span>
+    </div>
+    <div class="disease-name" id="diseaseNameEn"></div>
+    <div class="disease-name-ta tamil-display" id="diseaseNameTa"></div>
+    <img id="confirmImg" class="leaf-img" src="" alt="Sample confirmation image">
+    <p class="muted-note tamil">உறுதிப்படுத்த மாதிரி படம். இது உங்கள் செடியுடன் பொருந்துகிறதா?</p>
+
+    <div class="why-panel">
+      <p class="card-label" style="margin-bottom:2px;">WHY THIS DIAGNOSIS</p>
+      <div class="why-tags" id="whyTags"></div>
+    </div>
+
+    <div class="confirm-row">
+      <button class="btn-primary" onclick="submitConfirmation(true)">ஆம், இது தான் · Yes</button>
+      <button class="btn-secondary" onclick="submitConfirmation(false)">இல்லை · No</button>
+    </div>
+
+    <p class="card-label" style="margin-top:20px;">RECOMMENDED TREATMENT</p>
+    <div id="treatmentList"></div>
+  </div>
+
+  <div class="card hidden" id="feedbackCard">
+    <p class="tamil" id="feedbackMsg" style="font-size:14.5px;"></p>
+    <div class="reset-row">
+      <button class="btn-secondary" onclick="resetFlow()">புதிதாக தொடங்கு · Start over</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const EXAMPLES = [
+  "இலையில் வெள்ளை தூள் போல இருக்கு",
+  "வளையம் போன்ற புள்ளி இலையில்",
+  "இலை சுருண்டு போகுது",
+  "இலக்கு வளையம் போன்ற புள்ளிகள் இலையில்",
+  "செடியின் ஒரு பக்கம் மட்டும் வாடுது"
+];
+
+const TREATMENT_ICONS = {
+  chemical: '<path d="M9 3h6M10 3v5.5L5 17a2 2 0 001.7 3h10.6a2 2 0 001.7-3l-5-8.5V3"/>',
+  organic: '<path d="M12 2v20M12 6c-3 0-6 2-6 6s3 2 6 2 6-2 6-6-3-2-6-2z"/>',
+  cultural: '<path d="M3 21h18M12 3v10M8 9l4 4 4-4"/>',
+  physiological: '<circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/>'
+};
+
+let lastMatchedSymptoms = [];
+let lastDiseaseId = null;
+let askedSymptoms = [];
+
+function renderExamples(){
+  document.getElementById('examples').innerHTML = EXAMPLES.map(e =>
+    `<div class="example-chip tamil" onclick="useExample('${e.replace(/'/g,"\\'")}')">${e}</div>`
+  ).join('');
+}
+function useExample(text){
+  document.getElementById('farmerInput').value = text;
+}
+
+function setStep(name){
+  document.querySelectorAll('.step').forEach(s => {
+    const step = s.dataset.step;
+    s.classList.remove('active','done');
+    const order = ['describe','clarify','confirm','treat'];
+    const cur = order.indexOf(name), self = order.indexOf(step);
+    if(self < cur) s.classList.add('done');
+    else if(self === cur) s.classList.add('active');
+  });
+}
+
+function show(id){ document.getElementById(id).classList.remove('hidden'); }
+function hide(id){ document.getElementById(id).classList.add('hidden'); }
+function hideAllCards(){ ['clarifyCard','noMatchCard','resultCard','feedbackCard'].forEach(hide); }
+
+async function diagnose(){
+  const text = document.getElementById('farmerInput').value.trim();
+  if(!text) return;
+  hideAllCards();
+  document.getElementById('loading').classList.add('show');
+
+  const res = await fetch('/api/diagnose', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({text, already_asked_symptoms: askedSymptoms})
+  });
+  const data = await res.json();
+  document.getElementById('loading').classList.remove('show');
+
+  if(data.status === 'no_match'){
+    setStep('describe');
+    document.getElementById('noMatchMsg').innerText = data.message;
+    show('noMatchCard');
+  } else if(data.status === 'clarify'){
+    setStep('clarify');
+    document.getElementById('clarifyQuestion').innerHTML =
+      '<strong>Follow-up:</strong> ' + (data.next_question ? data.next_question.description_en : 'N/A');
+    const maxScore = Math.max(...data.candidates.map(c=>c.score));
+    document.getElementById('candidateList').innerHTML = data.candidates.map(c => `
+      <div class="candidate-row">
+        <span class="candidate-name tamil">${c.name_en} · ${c.name_ta}</span>
+        <div style="display:flex;align-items:center;">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);">${c.score}</span>
+          <div class="candidate-bar-wrap"><div class="candidate-bar" style="width:${(c.score/maxScore*100).toFixed(0)}%"></div></div>
+        </div>
+      </div>`).join('');
+    if(data.next_question) askedSymptoms.push(data.next_question.symptom_id);
+    show('clarifyCard');
+  } else if(data.status === 'confirm'){
+    setStep('confirm');
+    lastMatchedSymptoms = data.matched_symptoms;
+    lastDiseaseId = data.disease_id;
+    const d = data.detail;
+
+    document.getElementById('typeBadge').textContent = (d.type || '').toUpperCase();
+    document.getElementById('diseaseNameEn').textContent = d.name_en;
+    document.getElementById('diseaseNameTa').textContent = d.name_ta;
+    const pct = Math.min(100, Math.round(data.score * 100));
+    document.getElementById('confidenceFill').style.width = pct + '%';
+    document.getElementById('confidenceNum').textContent = 'confidence ' + data.score;
+
+    const img = document.getElementById('confirmImg');
+    img.src = d.image_url || '';
+    img.style.display = d.image_url ? 'block' : 'none';
+
+    document.getElementById('whyTags').innerHTML = (data.matched_symptom_descriptions || []).map(s => `
+      <span class="why-tag tamil"><svg viewBox="0 0 24 24" fill="none" stroke-width="3"><path d="M4 12l5 5L20 6"/></svg>${s.description_en}</span>
+    `).join('') || '<span class="muted-note">No individual symptom breakdown available.</span>';
+
+    document.getElementById('treatmentList').innerHTML = (d.treatments || []).filter(t=>t.name).map(t => `
+      <div class="treatment-item">
+        <div class="treatment-head">
+          <span class="treatment-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2">${TREATMENT_ICONS[t.type] || TREATMENT_ICONS.cultural}</svg></span>
+          <span class="treatment-name">${t.name}</span>
+          <span class="treatment-type-tag">${t.type || ''}</span>
+        </div>
+        <div class="treatment-dosage">${t.dosage || ''}</div>
+        ${t.source ? `<div class="treatment-source">Source: ${t.source}</div>` : ''}
+      </div>`).join('');
+
+    show('resultCard');
+  }
+}
+
+function answerYes(){
+  document.getElementById('farmerInput').value += ' ஆம்';
+  diagnose();
+}
+function answerNo(){ diagnose(); }
+
+async function submitConfirmation(confirmed){
+  setStep('treat');
+  await fetch('/api/confirm', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({disease_id:lastDiseaseId, matched_symptoms:lastMatchedSymptoms, confirmed})
+  });
+  document.getElementById('feedbackMsg').textContent = confirmed
+    ? 'நன்றி! KG எடைகள் புதுப்பிக்கப்பட்டது. · Thanks — KG weights updated.'
+    : 'பதிவு செய்யப்பட்டது. · Noted for future refinement.';
+  show('feedbackCard');
+}
+
+function resetFlow(){
+  hideAllCards();
+  document.getElementById('farmerInput').value = '';
+  askedSymptoms = [];
+  setStep('describe');
+}
+
+renderExamples();
+setStep('describe');
+</script>
+
+</body>
+</html>
