@@ -1,0 +1,103 @@
+[
+  ["early_blight", "ta", "கீழ் இலைகளில் பழுப்பு புள்ளிகள், புள்ளிக்குள் வட்ட வட்டமா கோடு"],
+  ["early_blight", "ta", "இலைகளில் கருப்பு வட்டப் புள்ளிகள் வந்து இலை மஞ்சளாகி உதிருது"],
+  ["early_blight", "en", "dark brown spots with circles inside on the old leaves"],
+  ["early_blight", "en", "lower leaves have bullseye spots and are turning yellow"],
+  ["early_blight", "tl", "keezh ilai la pazhuppu pulli valayam maadhiri"],
+
+  ["late_blight", "ta", "இலைகள் தண்ணீரில் நனைஞ்ச மாதிரி கருப்பா ஆகி ரெண்டு நாள்ல வயல் முழுக்க பரவிடுச்சு"],
+  ["late_blight", "ta", "இலைக்கு அடியில வெள்ளையா பூஞ்சை, இலை கருகி போகுது"],
+  ["late_blight", "en", "big dark greasy patches on leaves, spreading very fast after the rains"],
+  ["late_blight", "en", "black wet looking blotches and white fuzz under the leaves"],
+  ["late_blight", "tl", "ilai karugi pochu, adiyil vellai poonjai"],
+
+  ["powdery_mildew", "ta", "இலை மேல வெள்ளை பவுடர் தூவின மாதிரி இருக்கு"],
+  ["powdery_mildew", "ta", "இலையில் மாவு போல வெள்ளை படலம், பூச்சி எதுவும் இல்லை"],
+  ["powdery_mildew", "en", "leaves look like someone dusted white flour on them"],
+  ["powdery_mildew", "en", "white powdery stuff on top of leaves, no insects"],
+  ["powdery_mildew", "tl", "ilai mela vellai maavu maadhiri"],
+
+  ["whitefly", "ta", "செடியை தொட்டா சின்ன வெள்ளை பூச்சிகள் பறக்குது"],
+  ["whitefly", "ta", "இலைக்கு அடியில நிறைய வெள்ளை ஈ, இலை பிசுபிசுன்னு இருக்கு"],
+  ["whitefly", "en", "tiny white flies under the leaves and leaves are sticky"],
+  ["whitefly", "en", "white insects flying when I shake the plant"],
+  ["whitefly", "tl", "vellai ee romba irukku ilai adiyil"],
+
+  ["leaf_curl_virus", "ta", "புது இலைகள் மேல்நோக்கி சுருண்டு மஞ்சளா இருக்கு, செடி வளரலை"],
+  ["leaf_curl_virus", "ta", "இலை சுருள், செடி குட்டை, பூ உதிருது"],
+  ["leaf_curl_virus", "en", "top leaves curling up and yellow, plant stunted and bushy"],
+  ["leaf_curl_virus", "en", "leaves are cupped upward and the plant stopped growing"],
+  ["leaf_curl_virus", "tl", "ilai surundu, chedi kuttaiya irukku"],
+
+  ["septoria_leaf_spot", "ta", "கீழ் இலைகளில் நிறைய சின்ன சாம்பல் புள்ளிகள், ஓரம் கருப்பு"],
+  ["septoria_leaf_spot", "ta", "சிறு வட்ட புள்ளிகள் நடுவில் கருப்பு பொட்டு, இலை உதிருது"],
+  ["septoria_leaf_spot", "en", "lots of small round grey spots with dark edges on bottom leaves"],
+  ["septoria_leaf_spot", "en", "tiny spots with black dots in the middle, leaves falling"],
+  ["septoria_leaf_spot", "tl", "niraya chinna saambal pulli keezh ilai la"],
+
+  ["bacterial_spot", "ta", "இலையில் சின்ன கருப்பு நனைஞ்ச புள்ளிகள், சுத்தி மஞ்சள் வளையம்"],
+  ["bacterial_spot", "ta", "காயில் சொரசொரப்பான கருப்பு புள்ளிகள், இலையிலும் புள்ளி"],
+  ["bacterial_spot", "en", "small dark water soaked spots with yellow halo on leaves"],
+  ["bacterial_spot", "en", "raised scabby spots on the fruits and small spots on leaves"],
+  ["bacterial_spot", "tl", "ilai la chinna karuppu pulli suthi manjal"],
+
+  ["fusarium_wilt", "ta", "ஒரு கிளை மட்டும் மஞ்சளா வாடுது, கீழ் இலை மஞ்சள்"],
+  ["fusarium_wilt", "ta", "செடியின் ஒரு பக்கம் வாடி, தண்டு உள்ளே பழுப்பா இருக்கு"],
+  ["fusarium_wilt", "en", "one side of the plant is wilting and lower leaves are yellow"],
+  ["fusarium_wilt", "en", "wilting branch and brown streaks inside the stem"],
+  ["fusarium_wilt", "tl", "oru pakkam vaadudhu, keezh ilai manjal"],
+
+  ["bacterial_wilt", "ta", "நேத்து நல்லா இருந்த செடி இன்னைக்கு திடீர்னு முழுசா வாடிடுச்சு, இலை பச்சையாவே இருக்கு"],
+  ["bacterial_wilt", "ta", "தண்டை வெட்டி தண்ணில போட்டா பால் மாதிரி வெள்ளையா வருது"],
+  ["bacterial_wilt", "en", "healthy green plant collapsed suddenly"],
+  ["bacterial_wilt", "en", "plant wilted overnight, leaves still green, milky ooze from cut stem"],
+  ["bacterial_wilt", "tl", "chedi thideernu vaadi pochu, ilai pachaiya irukku"],
+
+  ["blossom_end_rot", "ta", "பழத்தோட அடியில கருப்பு குழி, தோல் மாதிரி இருக்கு"],
+  ["blossom_end_rot", "ta", "காயின் கீழ் பகுதி கருப்பாகி அழுகுது"],
+  ["blossom_end_rot", "en", "bottom of the tomatoes are black and sunken"],
+  ["blossom_end_rot", "en", "fruits rotting at the flower end with leathery dark patch"],
+  ["blossom_end_rot", "tl", "kaai adiyil karuppa kuzhi"],
+
+  ["mosaic_virus", "ta", "இலையில் பச்சை வெளிர் பச்சை திட்டு திட்டா, இலை முறுக்கி இருக்கு"],
+  ["mosaic_virus", "ta", "இலை தேமல் மாதிரி, பழம் சீரா பழுக்கலை"],
+  ["mosaic_virus", "en", "mottled light and dark green leaves, a bit twisted"],
+  ["mosaic_virus", "en", "leaves have mosaic pattern and fruits ripen unevenly"],
+  ["mosaic_virus", "tl", "ilai themal maadhiri, murukki irukku"],
+
+  ["spider_mite", "ta", "இலை முழுக்க மஞ்சள் பொட்டு பொட்டா, அடியில மெல்லிய வலை"],
+  ["spider_mite", "ta", "வெயில் காலத்தில இலை வெண்கல நிறமா காஞ்சு, சிலந்தி வலை இருக்கு"],
+  ["spider_mite", "en", "fine webs under leaves and tiny yellow speckles"],
+  ["spider_mite", "en", "leaves look stippled and bronze, webbing on the plant"],
+  ["spider_mite", "tl", "ilai adiyil valai, manjal pottu"],
+
+  ["fruit_borer", "ta", "காயில ஓட்டை போட்டு உள்ள புழு இருக்கு"],
+  ["fruit_borer", "ta", "பச்சை புழு காயை துளைச்சு தின்னுது"],
+  ["fruit_borer", "en", "caterpillar holes in the fruits"],
+  ["fruit_borer", "en", "green worms boring into tomatoes"],
+  ["fruit_borer", "tl", "kaai la ottai, ulla pulu"],
+
+  ["root_knot_nematode", "ta", "செடி குட்டையா இருக்கு, பிடுங்கி பார்த்தா வேர்ல முடிச்சுகள்"],
+  ["root_knot_nematode", "ta", "மதியம் வாடுது, வேரில் கட்டி கட்டியா இருக்கு"],
+  ["root_knot_nematode", "en", "stunted yellow plants with knots on the roots"],
+  ["root_knot_nematode", "en", "root galls and plants wilt in the afternoon"],
+  ["root_knot_nematode", "tl", "ver la mudichu mudichu, chedi kuttai"],
+
+  ["leaf_miner", "ta", "இலையில பாம்பு போல வெள்ளை கோடுகள் வளைஞ்சு வளைஞ்சு"],
+  ["leaf_miner", "ta", "இலைக்குள் சுரங்கம் மாதிரி கோடுகள், இலை காயுது"],
+  ["leaf_miner", "en", "white squiggly lines inside the leaves"],
+  ["leaf_miner", "en", "winding trails in leaves and leaves drying"],
+  ["leaf_miner", "tl", "ilai la paambu maadhiri kodu"],
+
+  ["leaf_mold", "ta", "இலை அடியில பச்சை பழுப்பு வெல்வெட் மாதிரி பூசணம், மேலே மஞ்சள்"],
+  ["leaf_mold", "ta", "இலைக்கு மேல வெளிர் மஞ்சள் திட்டு, அடியில பூஞ்சை"],
+  ["leaf_mold", "en", "olive coloured velvety mould under the leaves with pale yellow patches on top"],
+  ["leaf_mold", "en", "fuzzy brown mould on underside of leaves in the polyhouse"],
+  ["leaf_mold", "tl", "ilai adiyil pazhuppu poosanam, mela manjal"],
+
+  ["target_spot", "ta", "இலையில சின்ன நனைஞ்ச புள்ளிகள் பெருசாகி வளையம் வளையமா ஆகுது"],
+  ["target_spot", "ta", "இலக்கு மாதிரி வளையப் புள்ளிகள், இலை நிறைய உதிருது"],
+  ["target_spot", "en", "small wet spots that grow into target rings, lots of leaf drop"],
+  ["target_spot", "en", "ring spots with yellow halo and leaves falling in humid weather"],
+  ["target_spot", "tl", "chinna nanainja pulli apram valayam aagudhu"]
+]
