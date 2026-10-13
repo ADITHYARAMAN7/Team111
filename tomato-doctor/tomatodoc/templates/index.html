@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>தக்காளி டாக்டர் · Tomato Doctor</title>
+<meta name="description" content="Describe your tomato plant's problem in Tamil or English — get a diagnosis, treatment and prevention advice.">
+<meta name="theme-color" content="#1f3a22">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/static/img/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/static/img/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Karla:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&family=Noto+Serif+Tamil:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/app.css?v={{ version }}">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M5 19c8 0 14-6 14-14-8 0-14 6-14 14z"/><path d="M5 19L14 10"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></symbol>
+  <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-2-7z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 015 0c0 2-2.5 2-2.5 4M12 17h.01"/></symbol>
+  <symbol id="i-speaker" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9a4 4 0 010 6M18.5 6.5a8 8 0 010 11"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 11l7.6-4M8.2 13l7.6 4"/></symbol>
+  <symbol id="i-print" viewBox="0 0 24 24"><path d="M7 9V4h10v5M7 17H5v-6h14v6h-2"/><rect x="7" y="14" width="10" height="6"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M5 4h10a4 4 0 014 4v12H9a4 4 0 01-4-4z"/><path d="M5 16a4 4 0 014-4h10"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18h10a4 4 0 000-8 6 6 0 00-11.5 1.5A3.3 3.3 0 007 18z"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-6 7-11a7 7 0 00-14 0c0 5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3l9.5 17h-19z"/><path d="M12 10v4M12 17h.01"/></symbol>
+  <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6M10 3v6L4.5 18a2 2 0 001.7 3h11.6a2 2 0 001.7-3L14 9V3"/></symbol>
+  <symbol id="i-sprout" viewBox="0 0 24 24"><path d="M12 21v-9M12 12C12 8 9 5 4 5c0 4 3 7 8 7zM12 10c0-3 2.5-6 8-6 0 4-3 6-8 6"/></symbol>
+  <symbol id="i-hand" viewBox="0 0 24 24"><path d="M8 13V6a1.5 1.5 0 013 0v5M11 11V4.5a1.5 1.5 0 013 0V11M14 11V6a1.5 1.5 0 013 0v7c0 4-2.5 7-6 7-3 0-4.5-2-6-4l-2-3a1.5 1.5 0 012.5-1.5L8 13"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/></symbol>
+  <symbol id="i-soil" viewBox="0 0 24 24"><path d="M3 15h18M3 19h18"/><path d="M7 19v-2M12 19v-1.5M17 19v-2"/><path d="M12 15v-4M12 11c0-3-2.2-5-5.5-5 0 3 2.2 5 5.5 5zM12 9.5c0-2.5 2-4.5 5-4.5 0 2.6-2 4.5-5 4.5"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></symbol>
+</svg>
+
+<header class="topbar">
+  <button class="brand" data-nav="home" aria-label="Home">
+    <span class="brand-mark"><svg><use href="#i-leaf"/></svg></span>
+    <span class="brand-text"><b class="ta-display" data-i18n="app_name"></b><small data-i18n="app_tagline"></small></span>
+  </button>
+  <nav class="topnav">
+    <button class="icon-btn soil-nav" id="fieldNav" data-nav="field" data-i18n-title="nav_field"><svg><use href="#i-soil"/></svg><i class="nav-dot hidden" id="fieldDot"></i></button>
+    <button class="icon-btn" data-nav="library" data-i18n-title="nav_library"><svg><use href="#i-book"/></svg></button>
+    <button class="icon-btn" data-nav="history" data-i18n-title="nav_history"><svg><use href="#i-clock"/></svg></button>
+    <button class="lang-toggle" id="langToggle" aria-label="Language"><span data-lang="ta">தமிழ்</span><span data-lang="en">EN</span></button>
+  </nav>
+</header>
+<div class="offline-banner hidden" id="offlineBanner" data-i18n="offline"></div>
+
+<main id="app">
+
+  <!-- ============ HOME ============ -->
+  <section class="view" id="view-home">
+    <div class="hero">
+      <h1 class="ta-display" data-i18n="home_title"></h1>
+      <p data-i18n="home_sub"></p>
+    </div>
+
+    <div class="card compose">
+      <label for="farmerInput" class="sr-only" data-i18n="home_title"></label>
+      <textarea id="farmerInput" rows="3" data-i18n-placeholder="input_placeholder"></textarea>
+      <div class="listening hidden" id="listening"><span class="pulse"></span><span data-i18n="listening"></span></div>
+      <div class="compose-tools">
+        <button class="tool" id="micBtn" type="button"><svg><use href="#i-mic"/></svg><span data-i18n="tool_voice"></span></button>
+        <button class="tool" id="photoBtn" type="button"><svg><use href="#i-camera"/></svg><span data-i18n="tool_photo"></span></button>
+        <button class="tool" id="pickBtn" type="button"><svg><use href="#i-grid"/></svg><span data-i18n="tool_pick"></span></button>
+        <input type="file" id="photoInput" accept="image/*" capture="environment" hidden>
+      </div>
+      <div class="attachments" id="attachments"></div>
+      <div class="ai-box hidden" id="aiBox"></div>
+      <details class="more" id="moreDetails">
+        <summary><span data-i18n="sev_title"></span> · <span data-i18n="ext_title"></span> · <span data-i18n="sprayed_title"></span></summary>
+        <div class="seg-group"><p class="eyebrow" data-i18n="sev_title"></p>
+          <div class="seg" id="sevSeg"><button data-sev="mild" data-i18n="sev_mild"></button><button data-sev="moderate" data-i18n="sev_moderate"></button><button data-sev="severe" data-i18n="sev_severe"></button></div></div>
+        <div class="seg-group"><p class="eyebrow" data-i18n="ext_title"></p>
+          <div class="seg" id="extSeg"><button data-ext="5" data-i18n="ext_few"></button><button data-ext="30" data-i18n="ext_some"></button><button data-ext="80" data-i18n="ext_most"></button></div></div>
+        <div class="seg-group"><p class="eyebrow" data-i18n="sprayed_title"></p>
+          <div class="spray-row"><input id="sprayProduct" type="text" data-i18n-placeholder="sprayed_ph">
+            <select id="sprayDays" data-i18n-title="sprayed_days"><option value="2">2</option><option value="5" selected>5</option><option value="10">10</option><option value="20">20+</option></select>
+            <button class="btn btn-ghost btn-sm" id="sprayAdd" data-i18n="sprayed_add"></button></div>
+          <div class="chips" id="sprayChips"></div></div>
+      </details>
+      <button class="btn btn-primary btn-block" id="startBtn"><svg><use href="#i-send"/></svg><span data-i18n="start"></span></button>
+    </div>
+
+    <div class="examples">
+      <p class="eyebrow" data-i18n="examples"></p>
+      <div class="chips" id="exampleChips"></div>
+    </div>
+
+    <div class="context-row">
+      <button class="context-chip" id="seasonChip"><svg><use href="#i-cloud"/></svg><span id="seasonLabel"></span></button>
+      <button class="context-chip" id="locChip"><svg><use href="#i-pin"/></svg><span id="locLabel" data-i18n="loc_use"></span></button>
+      <a class="context-chip hidden" id="fieldChip" href="#field"><svg><use href="#i-soil"/></svg><span id="fieldChipLabel"></span></a>
+    </div>
+
+    <div class="card field-card hidden" id="fieldCard"></div>
+
+    <div class="how card soft">
+      <p class="eyebrow" data-i18n="how_title"></p>
+      <ol class="how-steps">
+        <li><b data-i18n="how1_t"></b><span data-i18n="how1"></span></li>
+        <li><b data-i18n="how2_t"></b><span data-i18n="how2"></span></li>
+        <li><b data-i18n="how3_t"></b><span data-i18n="how3"></span></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============ CONSULT (dialogue) ============ -->
+  <section class="view hidden" id="view-consult">
+    <button class="back-link" data-nav="home"><svg><use href="#i-back"/></svg><span data-i18n="new_diagnosis"></span></button>
+
+    <div class="context-strip hidden" id="consultContext"></div>
+    <div class="card understood">
+      <div class="card-head"><p class="eyebrow" data-i18n="understood"></p><button class="link" id="addSymptomsBtn" data-i18n="add_symptoms"></button></div>
+      <div class="evidence-chips" id="evidenceChips"></div>
+      <div id="photoSummary"></div>
+    </div>
+
+    <div class="card question-card" id="questionCard">
+      <div class="q-progress" id="qProgress"></div>
+      <p class="q-text ta-display" id="qText"></p>
+      <p class="q-sub" id="qSub"></p>
+      <div class="answer-row">
+        <button class="btn btn-yes" data-answer="yes"><svg><use href="#i-check"/></svg><span data-i18n="yes"></span></button>
+        <button class="btn btn-no" data-answer="no"><svg><use href="#i-x"/></svg><span data-i18n="no"></span></button>
+      </div>
+      <div class="answer-row secondary">
+        <button class="btn btn-ghost" data-answer="unsure"><svg><use href="#i-help"/></svg><span data-i18n="not_sure"></span></button>
+        <button class="icon-btn speak-btn" id="speakQ" data-i18n-title="listen"><svg><use href="#i-speaker"/></svg></button>
+      </div>
+      <p class="why-asked" id="whyAsked"></p>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><p class="eyebrow" data-i18n="candidates"></p><button class="link" id="finishBtn" data-i18n="show_result_now"></button></div>
+      <div class="bars" id="posteriorBars"></div>
+    </div>
+  </section>
+
+  <!-- ============ RESULT ============ -->
+  <section class="view hidden" id="view-result">
+    <button class="back-link no-print" data-nav="home"><svg><use href="#i-back"/></svg><span data-i18n="new_diagnosis"></span></button>
+    <div id="resultBody"></div>
+  </section>
+
+  <!-- ============ LIBRARY ============ -->
+  <section class="view hidden" id="view-library">
+    <button class="back-link" data-nav="home"><svg><use href="#i-back"/></svg><span data-i18n="home"></span></button>
+    <h2 class="view-title ta-display" data-i18n="nav_library"></h2>
+    <p class="muted" data-i18n="library_sub"></p>
+    <div class="filter-row" id="libraryFilters"></div>
+    <div class="disease-grid" id="libraryGrid"></div>
+  </section>
+
+  <!-- ============ DISEASE DETAIL ============ -->
+  <section class="view hidden" id="view-disease">
+    <button class="back-link" data-nav="library"><svg><use href="#i-back"/></svg><span data-i18n="nav_library"></span></button>
+    <div id="diseaseBody"></div>
+  </section>
+
+  <!-- ============ MY FIELD (optional): crop, harvest, location, soil ============ -->
+  <section class="view hidden" id="view-field">
+    <button class="back-link" id="fieldBack"><svg><use href="#i-back"/></svg><span data-i18n="home"></span></button>
+    <div class="soil-head">
+      <h2 class="view-title ta-display" data-i18n="field_page_title"></h2>
+      <span class="pill" id="fieldStatePill"></span>
+    </div>
+    <p class="muted" data-i18n="field_page_sub"></p>
+
+    <div class="card field-form">
+      <p class="eyebrow" data-i18n="crop_title"></p>
+      <div id="stageBox"></div>
+      <div class="soil-two">
+        <label class="soil-date"><span class="eyebrow" data-i18n="plant_date"></span><input type="date" id="plantDate"></label>
+        <label class="soil-date"><span class="eyebrow" data-i18n="variety_name"></span><input type="text" id="varietyName" maxlength="40" data-i18n-placeholder="variety_ph"></label>
+      </div>
+      <div class="soil-two">
+        <div class="seg-group"><p class="eyebrow" data-i18n="soil_crop"></p>
+          <div class="seg seg-2" id="cropSeg"><button data-crop="variety" data-i18n="crop_variety"></button><button data-crop="hybrid" data-i18n="crop_hybrid"></button></div></div>
+        <label class="soil-date"><span class="eyebrow" data-i18n="field_area"></span>
+          <span class="soil-in"><input type="number" min="0" step="any" inputmode="decimal" id="fieldArea">
+            <select id="fieldUnit"><option value="cents" data-i18n="calc_cents"></option><option value="acres" data-i18n="calc_acres"></option></select></span></label>
+      </div>
+      <div class="seg-group"><p class="eyebrow" data-i18n="pick_title"></p>
+        <div class="seg" id="pickSeg"><button data-pick-mode="auto" data-i18n="pick_auto"></button><button data-pick-mode="yes" data-i18n="pick_yes"></button><button data-pick-mode="no" data-i18n="pick_no"></button></div></div>
+      <div class="pick-details hidden" id="pickDetails">
+        <div class="soil-two">
+          <label class="soil-date"><span class="eyebrow" data-i18n="last_pick"></span>
+            <span class="pick-row"><input type="date" id="lastPick"><button class="btn btn-ghost btn-sm" id="pickedToday" data-i18n="picked_today"></button></span></label>
+          <label class="soil-date"><span class="eyebrow" data-i18n="pick_every"></span><select id="pickEvery"></select></label>
+        </div>
+        <p class="muted small" data-i18n="pick_note"></p>
+      </div>
+      <button class="btn btn-primary btn-block" id="fieldSave"><svg><use href="#i-check"/></svg><span data-i18n="field_save"></span></button>
+      <button class="btn btn-ghost btn-block hidden" id="fieldRemove" data-i18n="field_remove"></button>
+    </div>
+
+    <div class="card field-loc">
+      <div class="card-head"><p class="eyebrow" data-i18n="field_location"></p><button class="link" data-act="loc-pick" data-i18n="loc_change"></button></div>
+      <p class="loc-line"><svg><use href="#i-pin"/></svg><span id="fieldLocLabel"></span></p>
+    </div>
+
+    <div class="soil-head" id="soilSection">
+      <h3 class="section-title ta-display" data-i18n="soil_title"></h3>
+      <span class="pill" id="soilStatePill"></span>
+    </div>
+    <p class="muted" data-i18n="soil_sub"></p>
+
+    <div class="card">
+      <button class="btn btn-ghost btn-block" id="soilUploadBtn"><svg><use href="#i-upload"/></svg><span data-i18n="soil_upload"></span></button>
+      <input type="file" id="soilFile" accept="application/pdf,image/*" hidden>
+      <p class="muted small" id="soilUploadNote"></p>
+      <p class="soil-status hidden" id="soilStatus"></p>
+    </div>
+
+    <div class="card soil-form">
+      <div class="card-head"><p class="eyebrow" data-i18n="soil_values"></p><span class="muted small" data-i18n="soil_values_hint"></span></div>
+      <div class="soil-grid" id="soilMain"></div>
+      <details class="more"><summary data-i18n="soil_more"></summary><div class="soil-grid" id="soilMore"></div></details>
+      <div class="seg-group"><p class="eyebrow" data-i18n="soil_texture"></p>
+        <div class="seg" id="texSeg"><button data-tex="sandy" data-i18n="tex_sandy"></button><button data-tex="loamy" data-i18n="tex_loamy"></button><button data-tex="clayey" data-i18n="tex_clayey"></button></div></div>
+      <label class="soil-date"><span class="eyebrow" data-i18n="soil_date"></span><input type="date" id="soilDate"></label>
+      <button class="btn btn-primary btn-block" id="soilSave"><svg><use href="#i-check"/></svg><span data-i18n="soil_save"></span></button>
+      <button class="btn btn-ghost btn-block hidden" id="soilRemove" data-i18n="soil_remove"></button>
+      <p class="muted small" data-i18n="soil_privacy"></p>
+    </div>
+
+    <div id="soilReport"></div>
+  </section>
+
+  <!-- ============ HISTORY ============ -->
+  <section class="view hidden" id="view-history">
+    <button class="back-link" data-nav="home"><svg><use href="#i-back"/></svg><span data-i18n="home"></span></button>
+    <h2 class="view-title ta-display" data-i18n="nav_history"></h2>
+    <div id="historyList"></div>
+  </section>
+
+  <div class="loading hidden" id="loading" role="status"><span></span><span></span><span></span></div>
+</main>
+
+<!-- symptom picker sheet -->
+<div class="sheet-backdrop hidden" id="pickerBackdrop"></div>
+<div class="sheet hidden" id="picker" role="dialog" aria-modal="true" aria-labelledby="pickerTitle">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head">
+    <h3 id="pickerTitle" class="ta-display" data-i18n="pick_title"></h3>
+    <button class="icon-btn" id="pickerClose" aria-label="Close"><svg><use href="#i-x"/></svg></button>
+  </div>
+  <p class="muted" data-i18n="pick_sub"></p>
+  <div class="sheet-body" id="pickerBody"></div>
+  <div class="sheet-foot"><button class="btn btn-primary btn-block" id="pickerDone"><span data-i18n="done"></span> <b id="pickedCount"></b></button></div>
+</div>
+
+<!-- season sheet -->
+<div class="sheet hidden" id="seasonSheet" role="dialog" aria-modal="true">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head"><h3 class="ta-display" data-i18n="season_title"></h3><button class="icon-btn" data-close-sheet aria-label="Close"><svg><use href="#i-x"/></svg></button></div>
+  <p class="muted" data-i18n="season_sub"></p>
+  <div class="sheet-body" id="seasonOptions"></div>
+</div>
+
+<!-- location sheet -->
+<div class="sheet hidden" id="locSheet" role="dialog" aria-modal="true">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head"><h3 class="ta-display" data-i18n="loc_title"></h3><button class="icon-btn" data-close-sheet aria-label="Close"><svg><use href="#i-x"/></svg></button></div>
+  <p class="muted" data-i18n="loc_sub"></p>
+  <div class="sheet-body">
+    <button class="btn btn-primary btn-block" id="gpsBtn"><svg><use href="#i-pin"/></svg><span data-i18n="loc_gps"></span></button>
+    <p class="eyebrow" style="margin-top:14px" data-i18n="loc_pick"></p>
+    <div class="district-grid" id="districtList"></div>
+    <button class="btn btn-ghost btn-block" id="locClear" data-i18n="loc_clear"></button>
+  </div>
+</div>
+
+<div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
+
+<footer class="footer no-print">
+  <p><svg><use href="#i-phone"/></svg> <span data-i18n="helpline"></span> <a href="tel:18001801551">1800-180-1551</a></p>
+  <p class="muted small" data-i18n="disclaimer"></p>
+</footer>
+
+<script src="/static/js/i18n.js?v={{ version }}"></script>
+<script src="/static/js/i18n_field.js?v={{ version }}"></script>
+<script src="/static/js/i18n_soil.js?v={{ version }}"></script>
+<script src="/static/js/i18n_myfield.js?v={{ version }}"></script>
+<script src="/static/js/app.js?v={{ version }}"></script>
+</body>
+</html>
