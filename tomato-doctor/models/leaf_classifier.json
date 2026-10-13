@@ -1,0 +1,206 @@
+{
+  "labels": [
+    "bacterial_spot",
+    "early_blight",
+    "healthy",
+    "late_blight",
+    "leaf_curl_virus",
+    "leaf_mold",
+    "mosaic_virus",
+    "septoria_leaf_spot",
+    "spider_mite",
+    "target_spot"
+  ],
+  "img_size": 224,
+  "mean": [
+    0.485,
+    0.456,
+    0.406
+  ],
+  "std": [
+    0.229,
+    0.224,
+    0.225
+  ],
+  "temperature": 0.5231,
+  "backbone": "mobilenet_v3_large (ImageNet, frozen)",
+  "train_images": 20000,
+  "val_images": 1000,
+  "val_accuracy": 0.976,
+  "per_class": {
+    "bacterial_spot": {
+      "precision": 0.9802,
+      "recall": 0.99,
+      "f1": 0.9851
+    },
+    "early_blight": {
+      "precision": 0.9216,
+      "recall": 0.94,
+      "f1": 0.9307
+    },
+    "healthy": {
+      "precision": 0.98,
+      "recall": 0.98,
+      "f1": 0.98
+    },
+    "late_blight": {
+      "precision": 0.9608,
+      "recall": 0.98,
+      "f1": 0.9703
+    },
+    "leaf_curl_virus": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "leaf_mold": {
+      "precision": 0.9899,
+      "recall": 0.98,
+      "f1": 0.9849
+    },
+    "mosaic_virus": {
+      "precision": 0.9804,
+      "recall": 1.0,
+      "f1": 0.9901
+    },
+    "septoria_leaf_spot": {
+      "precision": 0.99,
+      "recall": 0.99,
+      "f1": 0.99
+    },
+    "spider_mite": {
+      "precision": 0.9697,
+      "recall": 0.96,
+      "f1": 0.9648
+    },
+    "target_spot": {
+      "precision": 0.9895,
+      "recall": 0.94,
+      "f1": 0.9641
+    }
+  },
+  "confusion_matrix": [
+    [
+      99,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      2,
+      94,
+      0,
+      2,
+      0,
+      1,
+      0,
+      0,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      98,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      1
+    ],
+    [
+      0,
+      2,
+      0,
+      98,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      100,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      2,
+      0,
+      0,
+      0,
+      98,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      100,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      99,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      1,
+      2,
+      0,
+      0,
+      1,
+      0,
+      96,
+      0
+    ],
+    [
+      0,
+      2,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      2,
+      94
+    ]
+  ],
+  "note": "Validation images come from the same PlantVillage distribution (lab photos, plain background). Expect lower accuracy on field photos - which is why the app fuses this as soft evidence with the knowledge graph rather than trusting it alone.",
+  "trained_at": "2026-10-13 12:01"
+}
