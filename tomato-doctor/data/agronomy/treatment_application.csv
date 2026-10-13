@@ -1,0 +1,31 @@
+﻿treatment_id,name_en,name_ta,type,mode,resistance_group,rainfast_hours,max_temp_c,best_time,dose_min,dose_max,dose_unit,dose_per,repeat_interval_days,phi_days,used_for,sources
+mancozeb_75wp,Mancozeb 75% WP,மேன்கோசெப் 75% WP,chemical,contact,FRAC M3,4,35,any,3,3,g,litre,7,5,early_blight septoria_leaf_spot leaf_mold target_spot,jagtap2025; rainfast; frac_irac
+copper_hydroxide,Copper Hydroxide 53.8% DF,காப்பர் ஹைட்ராக்சைடு 53.8% DF,chemical,contact,FRAC M1,4,35,any,2,2,g,litre,10,3,early_blight bacterial_spot target_spot,jagtap2025; rainfast; frac_irac
+copper_oxychloride,Copper Oxychloride 50% WP,காப்பர் ஆக்ஸிகுளோரைடு 50% WP,chemical,contact,FRAC M1,4,35,any,1,2,g,litre,7,3,late_blight septoria_leaf_spot bacterial_spot leaf_mold,jagtap2025; rainfast; frac_irac
+cyazofamid,Cyazofamid 34.5% SC,சயசோஃபாமிட் 34.5% SC,chemical,contact,FRAC 21,2,35,any,80,80,ml,acre,7,3,late_blight,jagtap2025; frac_irac
+azoxy_difeno,Azoxystrobin 18.2% + Difenoconazole 11.4% SC,அசாக்ஸிஸ்ட்ரோபின் 18.2% + டைஃபெனோகோனசோல் 11.4% SC,chemical,systemic,FRAC 11 + 3,2,35,any,200,200,ml,acre,10,5,late_blight leaf_mold,jagtap2025; frac_irac
+azoxystrobin_sc,Azoxystrobin 250 g/L SC,அசாக்ஸிஸ்ட்ரோபின் 250 SC,chemical,systemic,FRAC 11,2,35,any,1,1,ml,litre,10,5,target_spot,jagtap2025; frac_irac
+neonicotinoid,Neonicotinoid insecticide (controls whitefly vector),நியோனிகோட்டினாய்டு பூச்சிக்கொல்லி (வெள்ளை ஈ கட்டுப்பாடு),chemical,systemic,IRAC 4A,2,35,morning_evening,0.75,1,ml,litre,10,7,whitefly leaf_curl_virus,jagtap2025; frac_irac
+diamide,Diamide insecticide,டயமைடு பூச்சிக்கொல்லி,chemical,systemic,IRAC 28,2,35,morning_evening,1.7,2,ml,litre,10,5,leaf_miner,jagtap2025; frac_irac
+calcium_spray,Calcium chloride foliar spray,கால்சியம் குளோரைடு இலைத் தெளிப்பு,chemical,nutrient,,2,30,morning_evening,5,5,g,litre,10,0,blossom_end_rot,general
+seed_treatment_naocl,Seed treatment: 1% sodium hypochlorite,விதை நேர்த்தி: 1% சோடியம் ஹைப்போகுளோரைட்,chemical,pre_planting,,,,none,,,,,,,mosaic_virus,jagtap2025
+trichoderma,Trichoderma asperellum (soil application),டிரைக்கோடெர்மா (மண்ணில் இடுதல்),organic,biological_soil,,,,morning_evening,1,1,kg,acre,,,late_blight fusarium_wilt,jagtap2025
+pseudomonas_bacillus,Pseudomonas fluorescens + Bacillus subtilis,சூடோமோனாஸ் + பேசில்லஸ் சப்டிலிஸ்,organic,biological,,2,35,evening,5,10,g,litre,7,0,early_blight,jagtap2025
+bacillus_subtilis,Bacillus subtilis (strain QST 713),பேசில்லஸ் சப்டிலிஸ் (QST 713),organic,biological,FRAC BM02,2,35,evening,4.5,4.5,kg,hectare,7,0,target_spot,jagtap2025; frac_irac
+wettable_sulfur,Wettable sulfur,நனையும் கந்தகம்,organic,contact,FRAC M2,3,32,morning_evening,2,2,g,litre,7,1,powdery_mildew spider_mite,general; sulfur_heat; frac_irac
+neem_oil,Neem oil,வேப்ப எண்ணெய்,organic,botanical,,3,32,evening,5,5,ml,litre,6,1,powdery_mildew whitefly spider_mite leaf_miner,general
+insecticidal_soap,Insecticidal soap,பூச்சிக்கொல்லி சோப்புக் கரைசல்,organic,contact_insect,,3,32,evening,,,,,6,0,spider_mite,jagtap2025
+chilli_extract,Chilli extract spray,மிளகாய்க் கரைசல்,organic,botanical,,3,32,evening,,,,,7,1,spider_mite,jagtap2025
+bt_spray,Bacillus thuringiensis (Bt),பேசில்லஸ் துரிஞ்சியென்சிஸ் (Bt),organic,biological,IRAC 11A,2,35,evening,2,2,g,litre,6,0,fruit_borer leaf_miner,jagtap2025; frac_irac
+yellow_sticky_traps,Yellow sticky traps,மஞ்சள் ஒட்டும் பொறிகள்,cultural,cultural,,,,none,,,,,,,whitefly leaf_curl_virus leaf_miner,general
+pheromone_traps,Pheromone traps,இனக்கவர்ச்சிப் பொறிகள்,cultural,cultural,,,,none,,,,,,,fruit_borer leaf_miner,general
+remove_destroy_plants,Uproot and destroy infected plants,பாதித்த செடிகளைப் பிடுங்கி அழித்தல்,cultural,cultural,,,,none,,,,,,,late_blight leaf_curl_virus fusarium_wilt bacterial_wilt mosaic_virus,general
+remove_infected_leaves,Prune infected / lower leaves,பாதித்த / கீழ் இலைகளை அகற்றுதல்,cultural,cultural,,,,none,,,,,,,early_blight powdery_mildew septoria_leaf_spot bacterial_spot leaf_mold,jagtap2025
+collect_destroy,Collect and destroy bored fruits / mined leaves,துளையுள்ள காய்கள் / சுரங்க இலைகளைச் சேகரித்து அழித்தல்,cultural,cultural,,,,none,,,,,,,fruit_borer leaf_miner,jagtap2025
+drip_irrigation,Water at the base (drip); keep leaves dry,சொட்டு நீர் — இலைகளை நனைக்காமல் வேரில் நீர்,cultural,cultural,,,,none,,,,,,,early_blight septoria_leaf_spot,jagtap2025
+disinfect_hands_tools,Disinfect hands and tools,"கைகள், கருவிகளைக் கிருமி நீக்கம் செய்தல்",cultural,cultural,,,,none,,,,,,,mosaic_virus,jagtap2025
+water_jet,Strong water spray on leaves,இலைகளில் வேகமான நீர்த் தெளிப்பு,cultural,physical,,,,morning,,,,,3,0,spider_mite,jagtap2025
+crop_rotation,"Crop rotation (2–3 seasons, non-solanaceous crops)","பயிர் சுழற்சி (2–3 பருவம், தக்காளி குடும்பம் அல்லாத பயிர்கள்)",cultural,cultural,,,,none,,,,,,,bacterial_spot fusarium_wilt bacterial_wilt root_knot_nematode,general
+soil_solarization,Soil solarization,மண் சூரியவெப்பச் சுத்திகரிப்பு,cultural,cultural,,,,none,,,,,,,fusarium_wilt root_knot_nematode,general
+even_watering_mulch,Even watering + mulching,சீரான நீர்ப் பாசனம் + மூடாக்கு,cultural,cultural,,,,none,,,,,,,blossom_end_rot,general
+resistant_varieties,Resistant varieties,நோய் எதிர்ப்பு ரகங்கள்,cultural,cultural,,,,none,,,,,,,leaf_curl_virus fusarium_wilt bacterial_wilt,jagtap2025
