@@ -1,0 +1,14 @@
+\documentclass[border=4pt]{standalone}
+\usepackage{fontspec}
+\usepackage{unicode-math}
+\setmainfont{texgyretermes}[Extension=.otf, UprightFont=*-regular, BoldFont=*-bold, ItalicFont=*-italic, BoldItalicFont=*-bolditalic]
+\setmathfont{texgyretermes-math.otf}
+\setsansfont{texgyreheros}[Extension=.otf, UprightFont=*-regular, BoldFont=*-bold, ItalicFont=*-italic, BoldItalicFont=*-bolditalic]
+\newfontfamily\tamilfont[Path=../../fonts/, Script=Tamil, BoldFont=NotoSansTamil-Bold.ttf, Scale=0.92]{NotoSansTamil-Regular.ttf}
+\newcommand{\ta}[1]{{\tamilfont #1}}
+\newcommand{\unk}{\textsc{unknown}}
+\usepackage{amsmath,tikz}
+\usetikzlibrary{positioning,arrows.meta,shapes,fit,calc,backgrounds}
+\begin{document}
+\input{../../figures/arch.tex}
+\end{document}

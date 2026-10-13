@@ -1,0 +1,5394 @@
+{
+ "title": [
+  {
+   "t": "Tomato Doctor: A Tamil-First Conversational Crop-Disease Diagnosis System on a Probabilistic Knowledge Graph with Information-Gain Questioning and Weather-Aware Advisory"
+  }
+ ],
+ "blocks": [
+  {
+   "type": "abstract",
+   "runs": [
+    {
+     "t": "Smallholder tomato growers describe crop problems in colloquial, mixed-script language, often without a usable photograph, while most digital diagnosis tools are image classifiers trained on laboratory photographs. We present "
+    },
+    {
+     "t": "Tomato Doctor",
+     "i": true
+    },
+    {
+     "t": ", a Tamil-first diagnosis system that reasons over a probabilistic knowledge graph (KG) of 17 diseases and pests, 45 observable symptoms, 247 Tamil, English and Tanglish lay-terms and 30 cited treatments. A concept-level language layer with Tamil stem matching, negation scope and IDF-weighted phrase coverage turns free text into reliability-weighted symptom evidence; a Bayesian engine with an explicit "
+    },
+    {
+     "t": "unknown",
+     "sc": true
+    },
+    {
+     "t": " hypothesis fuses that evidence with a calibrated leaf-photo classifier and a weather-driven prior, and asks the follow-up question with the highest expected information gain. Confirmed outcomes update Beta-distributed KG edge weights, and an advisory layer turns local hourly weather into spray windows, resistance-aware rotation and a dated schedule. On 85 held-out farmer descriptions with simulated noisy dialogues, top-1 accuracy rises from 63.5% (95% CI 52.9–74.1) for the fuzzy-matching prototype to 96.8% (94.5–98.5), while confidently wrong answers fall from 10.6% to 1.2%; information-gain questioning needs 2.1 questions on average, 37% fewer than a weight-variance heuristic at equal accuracy. Under field-like photo degradation the classifier alone drops to 36.4%, whereas fusing the same photo with the dialogue recovers 67.8%. Starting from a deliberately corrupted graph, confirmation-driven learning raises accuracy from 81.2% to 93.6% over 1,500 simulated consultations and nearly halves the mean edge-weight error, whereas the prototype’s update rule increases it. A request costs 3.7 ms on a laptop CPU."
+    }
+   ]
+  },
+  {
+   "type": "keywords",
+   "runs": [
+    {
+     "t": "Knowledge graphs, plant disease diagnosis, Bayesian inference, expected information gain, low-resource languages, Tamil, decision support systems, precision agriculture."
+    }
+   ]
+  },
+  {
+   "type": "h1",
+   "num": "I",
+   "runs": [
+    {
+     "t": "Introduction"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "Early, correct identification of a crop disease decides whether a farmer sprays the right product at the right time or loses part of a harvest. Deep convolutional networks recognise diseases in curated leaf photographs with high accuracy [1], [2], yet their accuracy falls sharply on images taken in the field, with cluttered backgrounds, multiple symptoms and variable lighting [2], [3]. Moreover, an image-only tool assumes that the farmer can and will produce a clear photograph, and it cannot use the most informative signal the farmer already has: what they saw, said in their own words."
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "For Tamil-speaking growers that description is colloquial, agglutinative and frequently code-mixed with English or written in Latin script (“Tanglish”), e.g. "
+    },
+    {
+     "t": "இலையில் வெள்ளை தூள் போல இருக்கு",
+     "ta": true
+    },
+    {
+     "t": " (“white dust-like stuff on the leaf”). Such descriptions are also genuinely ambiguous: “white dust” fits both powdery mildew and a whitefly infestation, two problems with entirely different treatments. A useful system must therefore (i) understand informal multilingual text robustly, (ii) recognise when the evidence is insufficient and ask the "
+    },
+    {
+     "t": "one",
+     "i": true
+    },
+    {
+     "t": " question that best separates the remaining candidates, (iii) remain usable when the photograph is poor, (iv) adapt treatment advice to the local weather that determines both disease pressure and whether a spray will wash off, and (v) improve as farmers confirm or correct its answers."
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "A first prototype of this project stored diseases, symptoms, Tamil lay-terms and treatments in a Neo4j graph, matched farmer text to lay-terms with whole-phrase fuzzy matching and summed edge weights to rank diseases. Analysing it revealed failure modes that motivate this work: shared filler words caused spurious matches, negation was ignored, answers to follow-up questions did not influence the ranking, and a single rejection decayed edge weights for all future users."
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "This paper makes the following contributions:"
+    }
+   ]
+  },
+  {
+   "type": "list",
+   "ordered": true,
+   "items": [
+    [
+     {
+      "t": "A "
+     },
+     {
+      "t": "probabilistic agricultural KG",
+      "b": true
+     },
+     {
+      "t": " whose symptom and lay-term edges are Beta posteriors, with cited treatments annotated by mode of action, FRAC/IRAC resistance group, rain-fastness, heat limit and dose (Section IV)."
+     }
+    ],
+    [
+     {
+      "t": "A "
+     },
+     {
+      "t": "concept-level multilingual symptom matcher",
+      "b": true
+     },
+     {
+      "t": " for Tamil, English and Tanglish with stem matching, negation scope and IDF-weighted coverage, plus an LLM front end that is "
+     },
+     {
+      "t": "constrained to the KG’s vocabulary",
+      "i": true
+     },
+     {
+      "t": " for speech (Section V)."
+     }
+    ],
+    [
+     {
+      "t": "A "
+     },
+     {
+      "t": "Bayesian diagnosis engine",
+      "b": true
+     },
+     {
+      "t": " with reliability-weighted asymmetric evidence, an explicit "
+     },
+     {
+      "t": "unknown",
+      "sc": true
+     },
+     {
+      "t": " hypothesis, tempered photo-likelihood fusion and cost-aware expected-information-gain questioning (Section VI)."
+     }
+    ],
+    [
+     {
+      "t": "A "
+     },
+     {
+      "t": "weather- and location-aware advisory layer",
+      "b": true
+     },
+     {
+      "t": ": published disease-forecast models (Hutton criteria, TOM-CAST) as a data-driven prior, spray-window planning, severity-adaptive and resistance-aware treatment plans, and community outbreak alerts (Section VII)."
+     }
+    ],
+    [
+     {
+      "t": "Confirmation-driven online learning",
+      "b": true
+     },
+     {
+      "t": " that only learns from verified outcomes (Section VIII), and an evaluation with ablations, a photo-robustness study, a learning simulation and a live weather case study (Section X)."
+     }
+    ]
+   ]
+  },
+  {
+   "type": "h1",
+   "num": "II",
+   "runs": [
+    {
+     "t": "Related Work"
+    }
+   ]
+  },
+  {
+   "type": "h2",
+   "num": "A",
+   "runs": [
+    {
+     "t": "Image-based plant disease recognition"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "The PlantVillage collection [4] enabled convolutional models that reach high accuracy on held-out laboratory images [1], [2]. The same studies, and a dedicated analysis of influencing factors [3], report substantial degradation under field conditions caused by background, illumination, symptom variability and co-occurring disorders. We use such a classifier as one source of evidence and quantify how fusion with dialogue changes its behaviour under degradation."
+    }
+   ]
+  },
+  {
+   "type": "h2",
+   "num": "B",
+   "runs": [
+    {
+     "t": "Probabilistic diagnosis and question selection"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "Normative expert systems such as Pathfinder [5] and the probabilistic reformulation of INTERNIST-1/QMR [6] represent diagnosis as Bayesian inference over findings; Pathfinder additionally chooses the next finding to observe by its expected value of information, and the expected information gain of an experiment goes back to Lindley [7]. We adapt this line of work to an agricultural KG whose findings arrive through noisy language understanding rather than structured entry, and model that noise explicitly."
+    }
+   ]
+  },
+  {
+   "type": "h2",
+   "num": "C",
+   "runs": [
+    {
+     "t": "Agricultural knowledge graphs and conversational agents"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "Knowledge graphs organise entities and typed relations for retrieval and reasoning [8]. AgriKG [9] extracts agricultural entities from web text into a graph for entity retrieval and question answering. FarmChat [10] showed that a speech-based conversational agent built from Kisan Call Centre logs can meet the information needs of low-literate farmers in India. Our system differs in that the KG is "
+    },
+    {
+     "t": "probabilistic",
+     "i": true
+    },
+    {
+     "t": " and drives an adaptive diagnostic dialogue, and in that weights change with verified field outcomes."
+    }
+   ]
+  },
+  {
+   "type": "h2",
+   "num": "D",
+   "runs": [
+    {
+     "t": "Language technology for Indian languages"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "IndicNLPSuite [11] provides corpora and multilingual models for Indian languages, and large-scale weakly supervised speech recognition [12] and multimodal large language models [13] now transcribe Tamil speech. Colloquial agricultural symptom descriptions remain a low-resource domain, which motivates our lightweight, inspectable concept lexicon and the use of an LLM only as a constrained entity linker."
+    }
+   ]
+  },
+  {
+   "type": "h2",
+   "num": "E",
+   "runs": [
+    {
+     "t": "Weather-driven disease forecasting"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "Disease forecasters convert weather into infection risk: FAST [14] and its TOM-CAST derivative accumulate daily disease-severity values (DSVs) from leaf wetness and temperature for early blight [15]; the Smith Period and the more sensitive Hutton Criteria flag late-blight risk from consecutive warm, humid days [16]. We use these models, together with rules derived from a tomato disease dataset [17], as a prior for diagnosis and as an early warning."
+    }
+   ]
+  },
+  {
+   "type": "h1",
+   "num": "III",
+   "runs": [
+    {
+     "t": "System Overview"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "Fig. 1 shows the architecture. A Tamil-first progressive web application collects free text, voice, a leaf photograph, location, and optional tapped symptoms, severity, extent and previously sprayed products. Four extractors turn these inputs into evidence: the concept matcher (Section V), an LLM entity linker for speech, a leaf-photo classifier, and a field-context service that fetches hourly weather and nearby outbreak reports. The reasoning core maintains a posterior over diseases (Section VI); while no hypothesis is confident it asks the most informative question, otherwise it returns a diagnosis with an evidence-level explanation and a weather-aware treatment plan (Section VII). Farmer confirmations and expert curation close the loop (Section VIII)."
+    }
+   ]
+  },
+  {
+   "type": "figure",
+   "wide": true,
+   "number": "1",
+   "caption": [
+    {
+     "t": "Architecture of Tomato Doctor. Black arrows carry evidence and decisions; red arrows form the dialogue and learning loops; dashed arrows carry weather and community outbreak reports. The knowledge graph is stored in Neo4j or in an embedded store and is mirrored in memory for inference."
+    }
+   ],
+   "items": [
+    {
+     "img": "assets/arch.png"
+    }
+   ],
+   "layout": "stack"
+  },
+  {
+   "type": "h1",
+   "num": "IV",
+   "runs": [
+    {
+     "t": "Probabilistic Knowledge Graph"
+    }
+   ]
+  },
+  {
+   "type": "h2",
+   "num": "A",
+   "runs": [
+    {
+     "t": "Schema"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "The KG schema is shown in Fig. 2 and its contents in Table I. A "
+    },
+    {
+     "t": "Disease",
+     "i": true
+    },
+    {
+     "t": " node (fungal, bacterial, viral, pest or physiological) links to observable "
+    },
+    {
+     "t": "Symptom",
+     "i": true
+    },
+    {
+     "t": " nodes through "
+    },
+    {
+     "t": "HAS_SYMPTOM",
+     "sf": true
+    },
+    {
+     "t": " edges whose weight "
+    },
+    {
+     "t": "θ",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "ds",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": " approximates "
+    },
+    {
+     "t": "P",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "(symptom ",
+     "math": true
+    },
+    {
+     "t": "s",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " observed|",
+     "math": true
+    },
+    {
+     "t": "d",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": ")",
+     "math": true
+    },
+    {
+     "t": ". Each symptom carries a farmer-facing question in Tamil and English, the plant part, and an "
+    },
+    {
+     "t": "observation cost",
+     "i": true
+    },
+    {
+     "t": " for destructive checks (cutting a stem: 0.10; the stem-ooze test: 0.15; uprooting a plant: 0.25). "
+    },
+    {
+     "t": "LayTerm",
+     "i": true
+    },
+    {
+     "t": " nodes hold colloquial phrases in Tamil script, English and Tanglish linked to symptoms by "
+    },
+    {
+     "t": "LAYTERM_MAPS_TO",
+     "sf": true
+    },
+    {
+     "t": " edges with a confidence "
+    },
+    {
+     "t": "w",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "l",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": ". Diseases link to "
+    },
+    {
+     "t": "Treatment",
+     "i": true
+    },
+    {
+     "t": " nodes ("
+    },
+    {
+     "t": "TREATED_BY",
+     "sf": true
+    },
+    {
+     "t": ", efficacy), reference photographs ("
+    },
+    {
+     "t": "CONFIRMED_BY",
+     "sf": true
+    },
+    {
+     "t": ") and "
+    },
+    {
+     "t": "SeasonCondition",
+     "i": true
+    },
+    {
+     "t": " nodes ("
+    },
+    {
+     "t": "FAVORED_BY",
+     "sf": true
+    },
+    {
+     "t": ", boost)."
+    }
+   ]
+  },
+  {
+   "type": "figure",
+   "wide": false,
+   "number": "2",
+   "caption": [
+    {
+     "t": "Knowledge-graph schema with node counts. "
+    },
+    {
+     "t": "HAS_SYMPTOM",
+     "sf": true
+    },
+    {
+     "t": " and "
+    },
+    {
+     "t": "LAYTERM_MAPS_TO",
+     "sf": true
+    },
+    {
+     "t": " weights are Beta posteriors that are updated by confirmed field outcomes."
+    }
+   ],
+   "items": [
+    {
+     "img": "assets/kg_schema.png"
+    }
+   ],
+   "layout": "stack"
+  },
+  {
+   "type": "table",
+   "number": "I",
+   "caption": [
+    {
+     "t": "Contents of the knowledge graph"
+    }
+   ],
+   "aligns": [
+    "left",
+    "right",
+    "left"
+   ],
+   "rows": [
+    {
+     "cells": [
+      [
+       {
+        "t": "Element"
+       }
+      ],
+      [
+       {
+        "t": "Count"
+       }
+      ],
+      [
+       {
+        "t": "Notes"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "Diseases and pests"
+       }
+      ],
+      [
+       {
+        "t": "17"
+       }
+      ],
+      [
+       {
+        "t": "7 fungal, 5 pest, 2 viral, 2 bacterial, 1 physiological"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "Symptoms"
+       }
+      ],
+      [
+       {
+        "t": "45"
+       }
+      ],
+      [
+       {
+        "t": "22 leaf, 8 fruit, 6 whole-plant, 4 pest, 3 stem, 1 root, 1 flower"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "Lay-terms"
+       }
+      ],
+      [
+       {
+        "t": "247"
+       }
+      ],
+      [
+       {
+        "t": "100 Tamil, 96 English, 51 Tanglish"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "Treatments"
+       }
+      ],
+      [
+       {
+        "t": "30"
+       }
+      ],
+      [
+       {
+        "t": "12 cultural, 10 chemical, 8 organic"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "HAS_SYMPTOM",
+        "sf": true
+       }
+      ],
+      [
+       {
+        "t": "131"
+       }
+      ],
+      [
+       {
+        "t": "7.7 symptoms per disease on average"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "TREATED_BY",
+        "sf": true
+       }
+      ],
+      [
+       {
+        "t": "65"
+       }
+      ],
+      [
+       {
+        "t": "efficacy-weighted"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "Reference photos"
+       }
+      ],
+      [
+       {
+        "t": "27"
+       }
+      ],
+      [
+       {
+        "t": "3 for each of 9 diseases"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "FAVORED_BY",
+        "sf": true
+       }
+      ],
+      [
+       {
+        "t": "18"
+       }
+      ],
+      [
+       {
+        "t": "3 season conditions"
+       }
+      ]
+     ]
+    }
+   ],
+   "mid_rows": [
+    1
+   ]
+  },
+  {
+   "type": "h2",
+   "num": "B",
+   "runs": [
+    {
+     "t": "Sources and curation"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "Symptoms, favourable conditions and treatments for nine diseases are drawn from a tomato disease dataset compiled from more than 40 authoritative sources [17]; the remaining entries are standard extension guidance and are labelled as such in the graph and the user interface. Of the 30 treatments, 21 cite the dataset. Tamil lay-terms were written by the authors, including the 28 phrases of the original prototype, and the graph grows at run time through expert curation (Section VIII). A referential-integrity validator checks the graph before every load."
+    }
+   ]
+  },
+  {
+   "type": "h2",
+   "num": "C",
+   "runs": [
+    {
+     "t": "Weights as Beta posteriors"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "A seeded weight "
+    },
+    {
+     "t": "w",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "0",
+     "math": true,
+     "sub": true
+    },
+    {
+     "t": " is stored as "
+    },
+    {
+     "t": "Beta(",
+     "math": true
+    },
+    {
+     "t": "α",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": ", ",
+     "math": true
+    },
+    {
+     "t": "β",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": ")",
+     "math": true
+    },
+    {
+     "t": " with "
+    },
+    {
+     "t": "α",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " = ",
+     "math": true
+    },
+    {
+     "t": "Kw",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "0",
+     "math": true,
+     "sub": true
+    },
+    {
+     "t": ", "
+    },
+    {
+     "t": "β",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " = ",
+     "math": true
+    },
+    {
+     "t": "K",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "(1 − ",
+     "math": true
+    },
+    {
+     "t": "w",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "0",
+     "math": true,
+     "sub": true
+    },
+    {
+     "t": ")",
+     "math": true
+    },
+    {
+     "t": " and prior strength "
+    },
+    {
+     "t": "K",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " = 20",
+     "math": true
+    },
+    {
+     "t": " pseudo-observations, so that"
+    }
+   ]
+  },
+  {
+   "type": "equation",
+   "num": "1",
+   "omml": "<m:sSub><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">θ</m:t></m:r></m:e><m:sub><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">d</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">s</m:t></m:r></m:sub></m:sSub><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">=</m:t></m:r><m:f><m:num><m:sSub><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">α</m:t></m:r></m:e><m:sub><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">d</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">s</m:t></m:r></m:sub></m:sSub></m:num><m:den><m:sSub><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">α</m:t></m:r></m:e><m:sub><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">d</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">s</m:t></m:r></m:sub></m:sSub><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">+</m:t></m:r><m:sSub><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">β</m:t></m:r></m:e><m:sub><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">d</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">s</m:t></m:r></m:sub></m:sSub></m:den></m:f><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">.</m:t></m:r>"
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "Updates add fractional evidence to "
+    },
+    {
+     "t": "α",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " or "
+    },
+    {
+     "t": "β",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": ", keeping weights in "
+    },
+    {
+     "t": "(0, 1)",
+     "math": true
+    },
+    {
+     "t": ", reversible and auditable."
+    }
+   ]
+  },
+  {
+   "type": "h2",
+   "num": "D",
+   "runs": [
+    {
+     "t": "Treatment application attributes"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "Every sprayable treatment carries the attributes required for weather-aware advice (Table II): mode (contact, systemic, biological, botanical), FRAC/IRAC group [18], [19], dry hours needed before rain, maximum application temperature, preferred time of day, a numeric dose and a repeat interval. Rain-fastness of contact protectants is set conservatively to 4 h, since reported drying times range from 1.5–2 h to 6 h on product labels and mancozeb deposits are partly washed off by moderate rain [20]; the 32 "
+    },
+    {
+     "t": "°",
+     "math": true
+    },
+    {
+     "t": "C limit for sulfur follows reported phytotoxicity above that temperature [21]."
+    }
+   ]
+  },
+  {
+   "type": "table",
+   "number": "II",
+   "caption": [
+    {
+     "t": "Application attributes of selected treatments"
+    }
+   ],
+   "aligns": [
+    "left",
+    "left",
+    "left",
+    "left",
+    "left",
+    "left"
+   ],
+   "rows": [
+    {
+     "cells": [
+      [
+       {
+        "t": "Treatment"
+       }
+      ],
+      [
+       {
+        "t": "Mode"
+       }
+      ],
+      [
+       {
+        "t": "Group"
+       }
+      ],
+      [
+       {
+        "t": "Dry"
+       }
+      ],
+      [
+       {
+        "t": "T",
+        "math": true,
+        "i": true
+       },
+       {
+        "t": "max",
+        "math": true,
+        "sub": true
+       }
+      ],
+      [
+       {
+        "t": "Dose"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "Mancozeb 75% WP"
+       }
+      ],
+      [
+       {
+        "t": "contact"
+       }
+      ],
+      [
+       {
+        "t": "M3"
+       }
+      ],
+      [
+       {
+        "t": "4 h"
+       }
+      ],
+      [
+       {
+        "t": "35 "
+       },
+       {
+        "t": "°",
+        "math": true
+       },
+       {
+        "t": "C"
+       }
+      ],
+      [
+       {
+        "t": "3 g/L"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "Azoxystrobin + difenoconazole"
+       }
+      ],
+      [
+       {
+        "t": "systemic"
+       }
+      ],
+      [
+       {
+        "t": "11+3"
+       }
+      ],
+      [
+       {
+        "t": "2 h"
+       }
+      ],
+      [
+       {
+        "t": "35 "
+       },
+       {
+        "t": "°",
+        "math": true
+       },
+       {
+        "t": "C"
+       }
+      ],
+      [
+       {
+        "t": "200 mL/ac"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "Wettable sulfur"
+       }
+      ],
+      [
+       {
+        "t": "contact"
+       }
+      ],
+      [
+       {
+        "t": "M2"
+       }
+      ],
+      [
+       {
+        "t": "3 h"
+       }
+      ],
+      [
+       {
+        "t": "32 "
+       },
+       {
+        "t": "°",
+        "math": true
+       },
+       {
+        "t": "C"
+       }
+      ],
+      [
+       {
+        "t": "2 g/L"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "B. thuringiensis",
+        "i": true
+       }
+      ],
+      [
+       {
+        "t": "biological"
+       }
+      ],
+      [
+       {
+        "t": "11A"
+       },
+       {
+        "t": "†",
+        "math": true,
+        "sup": true
+       }
+      ],
+      [
+       {
+        "t": "2 h"
+       }
+      ],
+      [
+       {
+        "t": "35 "
+       },
+       {
+        "t": "°",
+        "math": true
+       },
+       {
+        "t": "C"
+       }
+      ],
+      [
+       {
+        "t": "2 g/L"
+       },
+       {
+        "t": "‡",
+        "math": true,
+        "sup": true
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "Neem oil"
+       }
+      ],
+      [
+       {
+        "t": "botanical"
+       }
+      ],
+      [
+       {
+        "t": "–"
+       }
+      ],
+      [
+       {
+        "t": "3 h"
+       }
+      ],
+      [
+       {
+        "t": "32 "
+       },
+       {
+        "t": "°",
+        "math": true
+       },
+       {
+        "t": "C"
+       }
+      ],
+      [
+       {
+        "t": "5 mL/L"
+       },
+       {
+        "t": "‡",
+        "math": true,
+        "sup": true
+       }
+      ]
+     ]
+    },
+    {
+     "note": true,
+     "cells": [
+      [
+       {
+        "t": "Group: FRAC code, "
+       },
+       {
+        "t": "†",
+        "math": true,
+        "sup": true
+       },
+       {
+        "t": "IRAC code. Dry: rain-free hours needed after spraying. "
+       },
+       {
+        "t": "‡",
+        "math": true,
+        "sup": true
+       },
+       {
+        "t": "Evening application."
+       }
+      ]
+     ]
+    }
+   ],
+   "mid_rows": [
+    1
+   ]
+  },
+  {
+   "type": "h1",
+   "num": "V",
+   "runs": [
+    {
+     "t": "Multilingual Symptom Understanding"
+    }
+   ]
+  },
+  {
+   "type": "h2",
+   "num": "A",
+   "runs": [
+    {
+     "t": "Concept lexicon"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "Tamil, English and Tanglish surface forms map to 95 language-independent concepts through a lexicon of 944 forms (e.g. "
+    },
+    {
+     "t": "தூள்",
+     "ta": true
+    },
+    {
+     "t": ", "
+    },
+    {
+     "t": "பொடி",
+     "ta": true
+    },
+    {
+     "t": ", "
+    },
+    {
+     "t": "powder",
+     "i": true
+    },
+    {
+     "t": ", "
+    },
+    {
+     "t": "podi",
+     "i": true
+    },
+    {
+     "t": " "
+    },
+    {
+     "t": "→ ",
+     "math": true
+    },
+    {
+     "t": "powder",
+     "sc": true
+    },
+    {
+     "t": "). Because Tamil is agglutinative ("
+    },
+    {
+     "t": "இலை",
+     "ta": true
+    },
+    {
+     "t": ", "
+    },
+    {
+     "t": "இலையில்",
+     "ta": true
+    },
+    {
+     "t": ", "
+    },
+    {
+     "t": "இலைகளில்",
+     "ta": true
+    },
+    {
+     "t": "), a Tamil token matches the longest lexicon stem it begins with when the remaining suffix has at most eight code points; Latin tokens match exactly or by a stem with at most four trailing characters, with a typo-tolerant fallback (normalised edit similarity "
+    },
+    {
+     "t": "≥ 0.88",
+     "math": true
+    },
+    {
+     "t": ") for tokens of five or more characters. Multi-word forms are matched first, which also lets fixed negative idioms such as "
+    },
+    {
+     "t": "காய் பிடிக்கலை",
+     "ta": true
+    },
+    {
+     "t": " (“fruits are not setting”) be read as symptoms rather than as negations."
+    }
+   ]
+  },
+  {
+   "type": "h2",
+   "num": "B",
+   "runs": [
+    {
+     "t": "Negation and clauses"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "Text is split into clauses at punctuation and contrastive conjunctions ("
+    },
+    {
+     "t": "ஆனா",
+     "ta": true
+    },
+    {
+     "t": ", "
+    },
+    {
+     "t": "but",
+     "i": true
+    },
+    {
+     "t": "). Tamil negators follow what they negate, so "
+    },
+    {
+     "t": "இல்லை",
+     "ta": true
+    },
+    {
+     "t": " and negative verb endings such as "
+    },
+    {
+     "t": "‑க்கலை",
+     "ta": true
+    },
+    {
+     "t": " negate the preceding content words; English negators ("
+    },
+    {
+     "t": "no",
+     "i": true
+    },
+    {
+     "t": ", "
+    },
+    {
+     "t": "not",
+     "i": true
+    },
+    {
+     "t": ", "
+    },
+    {
+     "t": "without",
+     "i": true
+    },
+    {
+     "t": ") negate up to three following words. Negated concepts form a separate bag that yields "
+    },
+    {
+     "t": "absent",
+     "i": true
+    },
+    {
+     "t": " evidence."
+    }
+   ]
+  },
+  {
+   "type": "h2",
+   "num": "C",
+   "runs": [
+    {
+     "t": "IDF-weighted coverage"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "Every lay-term phrase "
+    },
+    {
+     "t": "p",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " is processed into a concept set "
+    },
+    {
+     "t": "C",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "p",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": ". Concepts are weighted by inverse document frequency over all phrases [22], "
+    },
+    {
+     "t": "w",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "c",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": " = ln (",
+     "math": true
+    },
+    {
+     "t": "N",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " + 1)/(df",
+     "math": true
+    },
+    {
+     "t": "c",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": " + 1) + 1",
+     "math": true
+    },
+    {
+     "t": ", so that informative concepts ("
+    },
+    {
+     "t": "powder",
+     "sc": true
+    },
+    {
+     "t": ", "
+    },
+    {
+     "t": "web",
+     "sc": true
+    },
+    {
+     "t": ") dominate frequent ones ("
+    },
+    {
+     "t": "leaf",
+     "sc": true
+    },
+    {
+     "t": ", "
+    },
+    {
+     "t": "spot",
+     "sc": true
+    },
+    {
+     "t": "). With "
+    },
+    {
+     "t": "B",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " the concepts found in the input and "
+    },
+    {
+     "t": "σ",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "(",
+     "math": true
+    },
+    {
+     "t": "c",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": ", ",
+     "math": true
+    },
+    {
+     "t": "B",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": ") ∈ [0, 1]",
+     "math": true
+    },
+    {
+     "t": " the best exact or related-concept similarity, the coverage of "
+    },
+    {
+     "t": "p",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " is"
+    }
+   ]
+  },
+  {
+   "type": "equation",
+   "num": "2",
+   "omml": "<m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">cov</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">p</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">=</m:t></m:r><m:f><m:num><m:nary><m:naryPr><m:chr m:val=\"∑\"/><m:limLoc m:val=\"undOvr\"/><m:supHide m:val=\"1\"/></m:naryPr><m:sub><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">c</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">∈</m:t></m:r><m:sSub><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">C</m:t></m:r></m:e><m:sub><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">p</m:t></m:r></m:sub></m:sSub></m:sub><m:sup/><m:e><m:sSub><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">w</m:t></m:r></m:e><m:sub><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">c</m:t></m:r></m:sub></m:sSub><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">σ</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">c</m:t></m:r></m:e></m:nary><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">,</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">B</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r></m:num><m:den><m:nary><m:naryPr><m:chr m:val=\"∑\"/><m:limLoc m:val=\"undOvr\"/><m:supHide m:val=\"1\"/></m:naryPr><m:sub><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">c</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">∈</m:t></m:r><m:sSub><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">C</m:t></m:r></m:e><m:sub><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">p</m:t></m:r></m:sub></m:sSub></m:sub><m:sup/><m:e><m:sSub><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">w</m:t></m:r></m:e><m:sub><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">c</m:t></m:r></m:sub></m:sSub></m:e></m:nary></m:den></m:f><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">.</m:t></m:r>"
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "A phrase matches when "
+    },
+    {
+     "t": "cov(",
+     "math": true
+    },
+    {
+     "t": "p",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": ") ≥ 0.6",
+     "math": true
+    },
+    {
+     "t": " "
+    },
+    {
+     "t": "and",
+     "i": true
+    },
+    {
+     "t": " the most informative half of its concepts reaches the same coverage. The second condition prevents generic words from matching a specific phrase (“green leaves on the plant” must not match “green caterpillar on the plant”). When the input’s negated concepts account for at least a quarter of the phrase weight, the match yields "
+    },
+    {
+     "t": "absent",
+     "i": true
+    },
+    {
+     "t": " evidence. The match strength is "
+    },
+    {
+     "t": "s",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " = cov(",
+     "math": true
+    },
+    {
+     "t": "p",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": ") ",
+     "math": true
+    },
+    {
+     "t": "w",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "l",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": ", and each symptom keeps its strongest match. Fig. 3 traces an example."
+    }
+   ]
+  },
+  {
+   "type": "figure",
+   "wide": false,
+   "number": "3",
+   "caption": [
+    {
+     "t": "Worked example. The Tamil input contains a synonym of the lay-term ("
+    },
+    {
+     "t": "தூள்",
+     "ta": true
+    },
+    {
+     "t": " vs. "
+    },
+    {
+     "t": "பொடி",
+     "ta": true
+    },
+    {
+     "t": ", both "
+    },
+    {
+     "t": "powder",
+     "sc": true
+    },
+    {
+     "t": ") and a negated clause. The concept matcher produces one present and one absent symptom, and the posterior favours powdery mildew. All values are produced by the implementation."
+    }
+   ],
+   "items": [
+    {
+     "img": "assets/nlu_example.png"
+    }
+   ],
+   "layout": "stack"
+  },
+  {
+   "type": "h2",
+   "num": "D",
+   "runs": [
+    {
+     "t": "Speech and LLM entity linking"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "For voice input, the recording is converted to 16 kHz mono WAV in the browser and sent to a multimodal LLM (Gemini [13]) with a JSON schema whose symptom and treatment fields are "
+    },
+    {
+     "t": "enumerations of KG identifiers",
+     "i": true
+    },
+    {
+     "t": ". The model returns a verbatim transcript, linked symptoms with a confidence and the quoted words, severity, the estimated share of affected plants, duration, crop stage and products already sprayed; it is explicitly instructed not to diagnose. The output is validated (unknown identifiers dropped, numbers clamped), the transcript is also passed through the concept matcher, and LLM-linked symptoms are used only where the matcher found nothing. The LLM thus widens recall without being able to introduce a disease or a dosage that is not in the curated graph. Without an API key the system falls back to browser speech recognition, and severity and extent are still extracted from plain words (e.g. "
+    },
+    {
+     "t": "கொஞ்சம்",
+     "ta": true
+    },
+    {
+     "t": ", “a little” "
+    },
+    {
+     "t": "→ ",
+     "math": true
+    },
+    {
+     "t": "mild). This component is implemented and unit-tested with recorded responses but was "
+    },
+    {
+     "t": "not",
+     "i": true
+    },
+    {
+     "t": " part of the quantitative evaluation."
+    }
+   ]
+  },
+  {
+   "type": "h1",
+   "num": "VI",
+   "runs": [
+    {
+     "t": "Bayesian Diagnosis and Information-Gain Dialogue"
+    }
+   ]
+  },
+  {
+   "type": "h2",
+   "num": "A",
+   "runs": [
+    {
+     "t": "Hypotheses and evidence"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "The hypothesis space "
+    },
+    {
+     "t": "ℋ",
+     "math": true
+    },
+    {
+     "t": " contains the 17 diseases and an explicit "
+    },
+    {
+     "t": "unknown",
+     "sc": true
+    },
+    {
+     "t": " hypothesis (“a problem not in the graph”) with "
+    },
+    {
+     "t": "θ",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "unknown",
+     "math": true,
+     "sub": true,
+     "sc": true
+    },
+    {
+     "t": ",",
+     "math": true,
+     "sub": true
+    },
+    {
+     "t": "s",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": " = 0.12",
+     "math": true
+    },
+    {
+     "t": " for every symptom. Each piece of evidence "
+    },
+    {
+     "t": "e",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " is a report that symptom "
+    },
+    {
+     "t": "s",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "e",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": " is present or absent, with a reliability "
+    },
+    {
+     "t": "c",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "e",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": ": for text "
+    },
+    {
+     "t": "c",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " = clip(0.5 + 0.45 ",
+     "math": true
+    },
+    {
+     "t": "s",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": ",  0.55,  0.95)",
+     "math": true
+    },
+    {
+     "t": "; for answers "
+    },
+    {
+     "t": "c",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " = 0.92",
+     "math": true
+    },
+    {
+     "t": " (yes) or "
+    },
+    {
+     "t": "0.90",
+     "math": true
+    },
+    {
+     "t": " (no); for tapped symptoms "
+    },
+    {
+     "t": "c",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " = 0.90",
+     "math": true
+    },
+    {
+     "t": "; for LLM links "
+    },
+    {
+     "t": "c",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " = clip(0.5 + 0.4 ",
+     "math": true
+    },
+    {
+     "t": "κ",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": ",  0.55,  0.90)",
+     "math": true
+    },
+    {
+     "t": " with model confidence "
+    },
+    {
+     "t": "κ",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": ". A direct answer overrides inferred evidence for the same symptom. With "
+    },
+    {
+     "t": "θ",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " = ",
+     "math": true
+    },
+    {
+     "t": "θ",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "hs",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": ", or a leak value of 0.02 when the KG has no edge, the report likelihood is"
+    }
+   ]
+  },
+  {
+   "type": "equation",
+   "num": "3",
+   "omml": "<m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">P</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:sSup><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">e</m:t></m:r></m:e><m:sup><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">+</m:t></m:r></m:sup></m:sSup><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">|</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">h</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">=</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">c</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">θ</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">+</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">λ</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">1</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">−</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">c</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">1</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">−</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">θ</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">,</m:t></m:r>"
+  },
+  {
+   "type": "equation",
+   "num": "4",
+   "omml": "<m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">P</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:sSup><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">e</m:t></m:r></m:e><m:sup><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">−</m:t></m:r></m:sup></m:sSup><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">|</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">h</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">=</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">c</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">1</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">−</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">θ</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">+</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">1</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">−</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">c</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">θ</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">,</m:t></m:r>"
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "where "
+    },
+    {
+     "t": "λ",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " = 0.3",
+     "math": true
+    },
+    {
+     "t": " makes false alarms rarer than misses: farmers overlook symptoms more often than they invent a specific one. A weak language match therefore moves the posterior only slightly, which bounds the damage of matching errors."
+    }
+   ]
+  },
+  {
+   "type": "h2",
+   "num": "B",
+   "runs": [
+    {
+     "t": "Priors and photo fusion"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "The prior is "
+    },
+    {
+     "t": "P",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "(",
+     "math": true
+    },
+    {
+     "t": "h",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": ") ∝ ",
+     "math": true
+    },
+    {
+     "t": "f",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "h",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": " with "
+    },
+    {
+     "t": "f",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "unknown",
+     "math": true,
+     "sub": true,
+     "sc": true
+    },
+    {
+     "t": " = 0.6",
+     "math": true
+    },
+    {
+     "t": " and, for a disease, either a calendar-season boost "
+    },
+    {
+     "t": "f",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "d",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": " = 1 + ",
+     "math": true
+    },
+    {
+     "t": "b",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "d",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": " from "
+    },
+    {
+     "t": "FAVORED_BY",
+     "sf": true
+    },
+    {
+     "t": " edges or, when the location is known, the weather-driven factor of Section VII. A leaf photo enters as a tempered likelihood"
+    }
+   ]
+  },
+  {
+   "type": "equation",
+   "num": "5",
+   "omml": "<m:sSub><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">L</m:t></m:r></m:e><m:sub><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">img</m:t></m:r></m:sub></m:sSub><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">d</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">=</m:t></m:r><m:d><m:dPr><m:begChr m:val=\"{\"/><m:endChr m:val=\"\"/></m:dPr><m:e><m:eqArr><m:e><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">max</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:sSub><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">p</m:t></m:r></m:e><m:sub><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">d</m:t></m:r></m:sub></m:sSub><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">,</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">0</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">.</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">0</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">2</m:t></m:r><m:sSup><m:e><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r></m:e><m:sup><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">τ</m:t></m:r></m:sup></m:sSup><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">&amp;</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\"> </m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">d</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\"> in the classifier’s classes</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">,</m:t></m:r></m:e><m:e><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">0</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">.</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">0</m:t></m:r><m:sSup><m:e><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">5</m:t></m:r></m:e><m:sup><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">τ</m:t></m:r></m:sup></m:sSup><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">&amp;</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\"> </m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">otherwise,</m:t></m:r></m:e></m:eqArr></m:e></m:d>"
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "where "
+    },
+    {
+     "t": "p",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "d",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": " is the calibrated class probability and "
+    },
+    {
+     "t": "τ",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " = 0.6",
+     "math": true
+    },
+    {
+     "t": ", reduced to 0.25 when a quality check fails or "
+    },
+    {
+     "t": "max",
+     "math": true
+    },
+    {
+     "t": "d",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": "p",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "d",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": " < 0.5",
+     "math": true
+    },
+    {
+     "t": ", and to 0 when no leaf is detected. The posterior is"
+    }
+   ]
+  },
+  {
+   "type": "equation",
+   "num": "6",
+   "omml": "<m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">P</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">h</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">|</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">E</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">∝</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">P</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">h</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r><m:sSub><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">L</m:t></m:r></m:e><m:sub><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">img</m:t></m:r></m:sub></m:sSub><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">h</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r><m:nary><m:naryPr><m:chr m:val=\"∏\"/><m:limLoc m:val=\"undOvr\"/><m:supHide m:val=\"1\"/></m:naryPr><m:sub><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">e</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">∈</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">E</m:t></m:r></m:sub><m:sup/><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">P</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">e</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">|</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">h</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r></m:e></m:nary><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">.</m:t></m:r>"
+  },
+  {
+   "type": "h2",
+   "num": "C",
+   "runs": [
+    {
+     "t": "Cost-aware expected information gain"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "For an unobserved symptom "
+    },
+    {
+     "t": "s",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": ", let "
+    },
+    {
+     "t": "π",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " = ",
+     "math": true
+    },
+    {
+     "t": "P",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "(·|",
+     "math": true
+    },
+    {
+     "t": "E",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": ")",
+     "math": true
+    },
+    {
+     "t": " and "
+    },
+    {
+     "t": "π",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "a",
+     "math": true,
+     "sup": true,
+     "i": true
+    },
+    {
+     "t": " the posterior after answer "
+    },
+    {
+     "t": "a",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " ∈ {yes, no}",
+     "math": true
+    },
+    {
+     "t": " with reliability 0.92. The expected information gain is"
+    }
+   ]
+  },
+  {
+   "type": "equation",
+   "num": "7",
+   "omml": "<m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">EIG</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">s</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">=</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">H</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">π</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">−</m:t></m:r><m:nary><m:naryPr><m:chr m:val=\"∑\"/><m:limLoc m:val=\"undOvr\"/><m:supHide m:val=\"1\"/></m:naryPr><m:sub><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">a</m:t></m:r></m:sub><m:sup/><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">P</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">a</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">|</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">E</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">H</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:sSup><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">π</m:t></m:r></m:e><m:sup><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">a</m:t></m:r></m:sup></m:sSup><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r></m:e></m:nary><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">,</m:t></m:r>"
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "with "
+    },
+    {
+     "t": "H",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " the Shannon entropy in bits [7], and the next question maximises "
+    },
+    {
+     "t": "EIG(",
+     "math": true
+    },
+    {
+     "t": "s",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": ") (1 − cost",
+     "math": true
+    },
+    {
+     "t": "s",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": ")",
+     "math": true
+    },
+    {
+     "t": ". Dialogue stops when the best disease reaches 0.85, after six questions, or when no question offers more than 0.03 bits (Algorithm 1). The farmer may also answer “not sure” or ask for the result at any time."
+    }
+   ]
+  },
+  {
+   "type": "algorithm",
+   "number": "1",
+   "caption": [
+    {
+     "t": "Interactive diagnosis"
+    }
+   ],
+   "lines": [
+    {
+     "n": null,
+     "level": 0,
+     "runs": [
+      {
+       "t": "Input: ",
+       "b": true
+      },
+      {
+       "t": "text "
+      },
+      {
+       "t": "x",
+       "math": true,
+       "i": true
+      },
+      {
+       "t": ", optional photo, location, tapped symptoms"
+      }
+     ],
+     "comment": null
+    },
+    {
+     "n": null,
+     "level": 0,
+     "runs": [
+      {
+       "t": "Output: ",
+       "b": true
+      },
+      {
+       "t": "diagnosis with explanation, or an abstention"
+      }
+     ],
+     "comment": null
+    },
+    {
+     "n": 1,
+     "level": 0,
+     "runs": [
+      {
+       "t": "E",
+       "math": true,
+       "i": true
+      },
+      {
+       "t": " ← ",
+       "math": true
+      },
+      {
+       "t": "Match",
+       "sc": true
+      },
+      {
+       "t": "(",
+       "math": true
+      },
+      {
+       "t": "x",
+       "math": true,
+       "i": true
+      },
+      {
+       "t": ")",
+       "math": true
+      },
+      {
+       "t": " "
+      },
+      {
+       "t": "∪",
+       "math": true
+      },
+      {
+       "t": " tapped symptoms "
+      },
+      {
+       "t": "∪",
+       "math": true
+      },
+      {
+       "t": " LLM links"
+      }
+     ],
+     "comment": [
+      {
+       "t": "Sec. V"
+      }
+     ]
+    },
+    {
+     "n": 2,
+     "level": 0,
+     "runs": [
+      {
+       "t": "P",
+       "math": true,
+       "i": true
+      },
+      {
+       "t": "(",
+       "math": true
+      },
+      {
+       "t": "h",
+       "math": true,
+       "i": true
+      },
+      {
+       "t": ") ← ",
+       "math": true
+      },
+      {
+       "t": "Prior",
+       "sc": true
+      },
+      {
+       "t": "(location, weather, outbreaks)"
+      }
+     ],
+     "comment": [
+      {
+       "t": "Sec. VII"
+      }
+     ]
+    },
+    {
+     "n": 3,
+     "level": 0,
+     "runs": [
+      {
+       "t": "if ",
+       "b": true
+      },
+      {
+       "t": "E",
+       "math": true,
+       "i": true
+      },
+      {
+       "t": " = ∅",
+       "math": true
+      },
+      {
+       "t": " "
+      },
+      {
+       "t": "and",
+       "b": true
+      },
+      {
+       "t": " no photo"
+      },
+      {
+       "t": " then",
+       "b": true
+      }
+     ],
+     "comment": null
+    },
+    {
+     "n": 4,
+     "level": 1,
+     "runs": [
+      {
+       "t": "return ",
+       "b": true
+      },
+      {
+       "t": "ask the farmer to tap symptoms; log "
+      },
+      {
+       "t": "x",
+       "math": true,
+       "i": true
+      },
+      {
+       "t": " for experts"
+      }
+     ],
+     "comment": null
+    },
+    {
+     "n": 5,
+     "level": 0,
+     "runs": [
+      {
+       "t": "end if",
+       "b": true
+      }
+     ],
+     "comment": null
+    },
+    {
+     "n": 6,
+     "level": 0,
+     "runs": [
+      {
+       "t": "for ",
+       "b": true
+      },
+      {
+       "t": "k",
+       "math": true,
+       "i": true
+      },
+      {
+       "t": " = 1, …, 6",
+       "math": true
+      },
+      {
+       "t": " do",
+       "b": true
+      }
+     ],
+     "comment": null
+    },
+    {
+     "n": 7,
+     "level": 1,
+     "runs": [
+      {
+       "t": "compute "
+      },
+      {
+       "t": "π",
+       "math": true,
+       "i": true
+      },
+      {
+       "t": " = ",
+       "math": true
+      },
+      {
+       "t": "P",
+       "math": true,
+       "i": true
+      },
+      {
+       "t": "(",
+       "math": true
+      },
+      {
+       "t": "h",
+       "math": true,
+       "i": true
+      },
+      {
+       "t": "|",
+       "math": true
+      },
+      {
+       "t": "E",
+       "math": true,
+       "i": true
+      },
+      {
+       "t": ")",
+       "math": true
+      },
+      {
+       "t": " by (6)"
+      }
+     ],
+     "comment": null
+    },
+    {
+     "n": 8,
+     "level": 1,
+     "runs": [
+      {
+       "t": "if ",
+       "b": true
+      },
+      {
+       "t": "max",
+       "math": true
+      },
+      {
+       "t": "d",
+       "math": true,
+       "sub": true,
+       "i": true
+      },
+      {
+       "t": "π",
+       "math": true,
+       "i": true
+      },
+      {
+       "t": "d",
+       "math": true,
+       "sub": true,
+       "i": true
+      },
+      {
+       "t": " ≥ 0.85",
+       "math": true
+      },
+      {
+       "t": " then",
+       "b": true
+      },
+      {
+       "t": " "
+      },
+      {
+       "t": "break",
+       "b": true
+      }
+     ],
+     "comment": null,
+     "inline_then": true
+    },
+    {
+     "n": 9,
+     "level": 1,
+     "runs": [
+      {
+       "t": "end if",
+       "b": true
+      }
+     ],
+     "comment": null
+    },
+    {
+     "n": 10,
+     "level": 1,
+     "runs": [
+      {
+       "t": "s",
+       "math": true,
+       "i": true
+      },
+      {
+       "t": "⋆",
+       "math": true,
+       "sup": true
+      },
+      {
+       "t": " ← arg max",
+       "math": true
+      },
+      {
+       "t": "s",
+       "math": true,
+       "sub": true,
+       "i": true
+      },
+      {
+       "t": "∉",
+       "math": true,
+       "sub": true
+      },
+      {
+       "t": "E",
+       "math": true,
+       "sub": true,
+       "i": true
+      },
+      {
+       "t": " EIG(",
+       "math": true
+      },
+      {
+       "t": "s",
+       "math": true,
+       "i": true
+      },
+      {
+       "t": ") (1 − cost",
+       "math": true
+      },
+      {
+       "t": "s",
+       "math": true,
+       "sub": true,
+       "i": true
+      },
+      {
+       "t": ")",
+       "math": true
+      }
+     ],
+     "comment": null
+    },
+    {
+     "n": 11,
+     "level": 1,
+     "runs": [
+      {
+       "t": "if ",
+       "b": true
+      },
+      {
+       "t": "EIG(",
+       "math": true
+      },
+      {
+       "t": "s",
+       "math": true,
+       "i": true
+      },
+      {
+       "t": "⋆",
+       "math": true,
+       "sup": true
+      },
+      {
+       "t": ") < 0.03",
+       "math": true
+      },
+      {
+       "t": " then",
+       "b": true
+      },
+      {
+       "t": " "
+      },
+      {
+       "t": "break",
+       "b": true
+      }
+     ],
+     "comment": null,
+     "inline_then": true
+    },
+    {
+     "n": 12,
+     "level": 1,
+     "runs": [
+      {
+       "t": "end if",
+       "b": true
+      }
+     ],
+     "comment": null
+    },
+    {
+     "n": 13,
+     "level": 1,
+     "runs": [
+      {
+       "t": "ask the question of "
+      },
+      {
+       "t": "s",
+       "math": true,
+       "i": true
+      },
+      {
+       "t": "⋆",
+       "math": true,
+       "sup": true
+      },
+      {
+       "t": "; add the answer to "
+      },
+      {
+       "t": "E",
+       "math": true,
+       "i": true
+      },
+      {
+       "t": " unless “not sure”"
+      }
+     ],
+     "comment": null
+    },
+    {
+     "n": 14,
+     "level": 0,
+     "runs": [
+      {
+       "t": "end for",
+       "b": true
+      }
+     ],
+     "comment": null
+    },
+    {
+     "n": 15,
+     "level": 0,
+     "runs": [
+      {
+       "t": "d",
+       "math": true,
+       "i": true
+      },
+      {
+       "t": "1",
+       "math": true,
+       "sub": true
+      },
+      {
+       "t": ", ",
+       "math": true
+      },
+      {
+       "t": "d",
+       "math": true,
+       "i": true
+      },
+      {
+       "t": "2",
+       "math": true,
+       "sub": true
+      },
+      {
+       "t": " ← ",
+       "math": true
+      },
+      {
+       "t": "two most probable diseases"
+      }
+     ],
+     "comment": null
+    },
+    {
+     "n": 16,
+     "level": 0,
+     "runs": [
+      {
+       "t": "if ",
+       "b": true
+      },
+      {
+       "t": "π",
+       "math": true,
+       "i": true
+      },
+      {
+       "t": "unknown",
+       "math": true,
+       "sub": true,
+       "sc": true
+      },
+      {
+       "t": " > ",
+       "math": true
+      },
+      {
+       "t": "π",
+       "math": true,
+       "i": true
+      },
+      {
+       "t": "d",
+       "math": true,
+       "sub": true,
+       "i": true
+      },
+      {
+       "t": "1",
+       "math": true,
+       "sub": true
+      },
+      {
+       "t": " "
+      },
+      {
+       "t": "or",
+       "b": true
+      },
+      {
+       "t": " "
+      },
+      {
+       "t": "π",
+       "math": true,
+       "i": true
+      },
+      {
+       "t": "d",
+       "math": true,
+       "sub": true,
+       "i": true
+      },
+      {
+       "t": "1",
+       "math": true,
+       "sub": true
+      },
+      {
+       "t": " < 0.35",
+       "math": true
+      },
+      {
+       "t": " then",
+       "b": true
+      }
+     ],
+     "comment": null
+    },
+    {
+     "n": 17,
+     "level": 1,
+     "runs": [
+      {
+       "t": "return ",
+       "b": true
+      },
+      {
+       "t": "abstain: compare reference photos, contact an expert"
+      }
+     ],
+     "comment": null
+    },
+    {
+     "n": 18,
+     "level": 0,
+     "runs": [
+      {
+       "t": "end if",
+       "b": true
+      }
+     ],
+     "comment": null
+    },
+    {
+     "n": 19,
+     "level": 0,
+     "runs": [
+      {
+       "t": "return ",
+       "b": true
+      },
+      {
+       "t": "d",
+       "math": true,
+       "i": true
+      },
+      {
+       "t": "1",
+       "math": true,
+       "sub": true
+      },
+      {
+       "t": ", "
+      },
+      {
+       "t": "π",
+       "math": true,
+       "i": true
+      },
+      {
+       "t": "d",
+       "math": true,
+       "sub": true,
+       "i": true
+      },
+      {
+       "t": "1",
+       "math": true,
+       "sub": true
+      },
+      {
+       "t": ", evidence ranked by "
+      },
+      {
+       "t": "|log ",
+       "math": true
+      },
+      {
+       "t": "P",
+       "math": true,
+       "i": true
+      },
+      {
+       "t": "(",
+       "math": true
+      },
+      {
+       "t": "e",
+       "math": true,
+       "i": true
+      },
+      {
+       "t": "|",
+       "math": true
+      },
+      {
+       "t": "d",
+       "math": true,
+       "i": true
+      },
+      {
+       "t": "1",
+       "math": true,
+       "sub": true
+      },
+      {
+       "t": ") − log ",
+       "math": true
+      },
+      {
+       "t": "P",
+       "math": true,
+       "i": true
+      },
+      {
+       "t": "(",
+       "math": true
+      },
+      {
+       "t": "e",
+       "math": true,
+       "i": true
+      },
+      {
+       "t": "|",
+       "math": true
+      },
+      {
+       "t": "d",
+       "math": true,
+       "i": true
+      },
+      {
+       "t": "2",
+       "math": true,
+       "sub": true
+      },
+      {
+       "t": ")|",
+       "math": true
+      },
+      {
+       "t": ", advisory"
+      }
+     ],
+     "comment": null
+    }
+   ]
+  },
+  {
+   "type": "h2",
+   "num": "D",
+   "runs": [
+    {
+     "t": "Explanations"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "For the top disease "
+    },
+    {
+     "t": "d",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "1",
+     "math": true,
+     "sub": true
+    },
+    {
+     "t": " and the runner-up "
+    },
+    {
+     "t": "d",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "2",
+     "math": true,
+     "sub": true
+    },
+    {
+     "t": ", each evidence item is shown with its log-likelihood ratio "
+    },
+    {
+     "t": "log ",
+     "math": true
+    },
+    {
+     "t": "P",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "(",
+     "math": true
+    },
+    {
+     "t": "e",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "|",
+     "math": true
+    },
+    {
+     "t": "d",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "1",
+     "math": true,
+     "sub": true
+    },
+    {
+     "t": ") − log ",
+     "math": true
+    },
+    {
+     "t": "P",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "(",
+     "math": true
+    },
+    {
+     "t": "e",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "|",
+     "math": true
+    },
+    {
+     "t": "d",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "2",
+     "math": true,
+     "sub": true
+    },
+    {
+     "t": ")",
+     "math": true
+    },
+    {
+     "t": ", labelled as supporting or contradicting, together with the farmer’s own words, the lay-term it matched and the KG weight "
+    },
+    {
+     "t": "θ",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "d",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": "1",
+     "math": true,
+     "sub": true
+    },
+    {
+     "t": "s",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": ". The strongest unobserved symptoms of "
+    },
+    {
+     "t": "d",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "1",
+     "math": true,
+     "sub": true
+    },
+    {
+     "t": " are listed as things to check next."
+    }
+   ]
+  },
+  {
+   "type": "h1",
+   "num": "VII",
+   "runs": [
+    {
+     "t": "Weather- and Location-Aware Advisory"
+    }
+   ]
+  },
+  {
+   "type": "h2",
+   "num": "A",
+   "runs": [
+    {
+     "t": "Disease-risk models"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "Given a location (GPS or a district, always rounded to a 0.05"
+    },
+    {
+     "t": "°",
+     "math": true
+    },
+    {
+     "t": " grid of about 5 km), the system retrieves seven days of hourly history and three days of forecast [23]. Relative humidity "
+    },
+    {
+     "t": "≥ ",
+     "math": true
+    },
+    {
+     "t": "90% serves as the leaf-wetness proxy, as in operational TOM-CAST implementations [15]. "
+    },
+    {
+     "t": "Late blight",
+     "i": true
+    },
+    {
+     "t": " uses the Hutton criteria [16]: a day qualifies when the minimum temperature is "
+    },
+    {
+     "t": "≥ ",
+     "math": true
+    },
+    {
+     "t": "10 "
+    },
+    {
+     "t": "°",
+     "math": true
+    },
+    {
+     "t": "C and at least six hours have RH"
+    },
+    {
+     "t": " ≥ ",
+     "math": true
+    },
+    {
+     "t": "90%; with "
+    },
+    {
+     "t": "P",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " the number of consecutive qualifying day pairs in the last week, "
+    },
+    {
+     "t": "H",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " the qualifying days and "
+    },
+    {
+     "t": "F",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " an indicator of a forecast pair,"
+    }
+   ]
+  },
+  {
+   "type": "equation",
+   "num": "8",
+   "omml": "<m:sSub><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">r</m:t></m:r></m:e><m:sub><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">LB</m:t></m:r></m:sub></m:sSub><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">=</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">min</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">1</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">,</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">0</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">.</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">4</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">5</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">P</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">+</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">0</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">.</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">1</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">5</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">H</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">+</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">0</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">.</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">3</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">F</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">g</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:acc><m:accPr><m:chr m:val=\"&#772;\"/></m:accPr><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">T</m:t></m:r></m:e></m:acc><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">,</m:t></m:r>"
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "where "
+    },
+    {
+     "t": "g",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " is 1 for a mean temperature of 12–23 "
+    },
+    {
+     "t": "°",
+     "math": true
+    },
+    {
+     "t": "C (the dataset gives 18–23 "
+    },
+    {
+     "t": "°",
+     "math": true
+    },
+    {
+     "t": "C as the fastest-spread range [17]) and decreases linearly to 0.1 at 30 "
+    },
+    {
+     "t": "°",
+     "math": true
+    },
+    {
+     "t": "C, because the criteria were calibrated in a temperate climate. "
+    },
+    {
+     "t": "Early blight",
+     "i": true
+    },
+    {
+     "t": " sums TOM-CAST daily severity values [14], [15] over the last seven days and uses "
+    },
+    {
+     "t": "r",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "EB",
+     "math": true,
+     "sub": true
+    },
+    {
+     "t": " = min(1, DSV",
+     "math": true
+    },
+    {
+     "t": "7",
+     "math": true,
+     "sub": true
+    },
+    {
+     "t": "/15)",
+     "math": true
+    },
+    {
+     "t": ". Eleven further diseases use transparent rules that count hours meeting favourable temperature and humidity conditions (e.g. "
+    },
+    {
+     "t": "T",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " ≥ 30",
+     "math": true
+    },
+    {
+     "t": " "
+    },
+    {
+     "t": "°",
+     "math": true
+    },
+    {
+     "t": "C and RH"
+    },
+    {
+     "t": " < ",
+     "math": true
+    },
+    {
+     "t": "50% for spider mites), taken from [17] where the dataset covers the disease (septoria, leaf mold, target spot, spider mite, leaf miner, leaf curl virus) and from general guidance otherwise; they are capped at 0.8 so that heuristics never claim the certainty of the published models. Four diseases without a weather signal (fruit borer, root-knot nematode, Fusarium wilt, mosaic virus) receive no model. Risks are shown as a weekly early warning, and replace the calendar season in the prior as "
+    },
+    {
+     "t": "f",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "d",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": " = 1 + 1.5 ",
+     "math": true
+    },
+    {
+     "t": "r",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "d",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": ", with unmodelled diseases receiving the mean factor."
+    }
+   ]
+  },
+  {
+   "type": "h2",
+   "num": "B",
+   "runs": [
+    {
+     "t": "Community outbreak signal"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "Confirmed diagnoses with a location become reports. For a farmer, the count "
+    },
+    {
+     "t": "n",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "d",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": " of reports of disease "
+    },
+    {
+     "t": "d",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " within 30 km in the last 21 days multiplies the prior by "
+    },
+    {
+     "t": "1 + 0.2min(",
+     "math": true
+    },
+    {
+     "t": "n",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "d",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": ", 5)",
+     "math": true
+    },
+    {
+     "t": " and triggers an alert; an expert map shows all reports."
+    }
+   ]
+  },
+  {
+   "type": "h2",
+   "num": "C",
+   "runs": [
+    {
+     "t": "Spray windows"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "An hour is suitable for a product when it falls in the product’s application hours (daylight, or 16:00–19:00 for UV-sensitive biologicals and oils), it is not raining, no hour within the product’s rain-fast period has "
+    },
+    {
+     "t": "≥ ",
+     "math": true
+    },
+    {
+     "t": "0.3 mm of rain or "
+    },
+    {
+     "t": "≥ ",
+     "math": true
+    },
+    {
+     "t": "60% rain probability, the wind is below 20 km/h [24], the temperature is below the product limit, and RH is below 97%. The earliest run of at least two suitable hours in the next 72 h is reported, with a caution for wind of 15–20 km/h. Every treatment is labelled "
+    },
+    {
+     "t": "OK now",
+     "i": true
+    },
+    {
+     "t": ", "
+    },
+    {
+     "t": "wait",
+     "i": true
+    },
+    {
+     "t": " (with the reason and the next window) or "
+    },
+    {
+     "t": "not in the next three days",
+     "i": true
+    },
+    {
+     "t": "."
+    }
+   ]
+  },
+  {
+   "type": "h2",
+   "num": "D",
+   "runs": [
+    {
+     "t": "Severity-adaptive, resistance-aware plan"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "Treatments are ranked by efficacy adjusted for severity (mild: cultural "
+    },
+    {
+     "t": "+0.3",
+     "math": true
+    },
+    {
+     "t": ", organic "
+    },
+    {
+     "t": "+0.2",
+     "math": true
+    },
+    {
+     "t": ", chemical "
+    },
+    {
+     "t": "−0.3",
+     "math": true
+    },
+    {
+     "t": "; severe: chemical "
+    },
+    {
+     "t": "+0.25",
+     "math": true
+    },
+    {
+     "t": ", cultural "
+    },
+    {
+     "t": "+0.1",
+     "math": true
+    },
+    {
+     "t": ", organic "
+    },
+    {
+     "t": "−0.1",
+     "math": true
+    },
+    {
+     "t": "), for rain expected within 24 h (systemic "
+    },
+    {
+     "t": "+0.1",
+     "math": true
+    },
+    {
+     "t": ", contact "
+    },
+    {
+     "t": "−0.05",
+     "math": true
+    },
+    {
+     "t": ") and for resistance (a product sharing a FRAC/IRAC group with a recently sprayed one: "
+    },
+    {
+     "t": "−0.4",
+     "math": true
+    },
+    {
+     "t": "). Previously sprayed products named by the farmer are fuzzy-matched to KG treatments; the plan states when to switch groups and when a product does not target the diagnosed problem, and that viral diseases have no cure. The share of affected plants sets the scope (below 10%: treat or remove those plants; below 40%: the patch; otherwise the field). A dated schedule alternates resistance groups at the products’ repeat intervals and is exported as an iCalendar file; a calculator converts doses to a 16 L knapsack tank and to the farmer’s area in cents or acres."
+    }
+   ]
+  },
+  {
+   "type": "h1",
+   "num": "VIII",
+   "runs": [
+    {
+     "t": "Learning from Farmer Feedback"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "After a diagnosis the farmer confirms it, picks the correct disease from reference photos, rejects it, or is unsure. Only confirmed or corrected outcomes update weights: a bare rejection tells us that the answer was wrong, not which answer is right, and decaying the predicted disease’s edges on rejection, as the prototype did, penalises edges that may be correct. For the true disease "
+    },
+    {
+     "t": "d",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "⋆",
+     "math": true,
+     "sup": true
+    },
+    {
+     "t": " and each evidence item with reliability "
+    },
+    {
+     "t": "c",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": ", let "
+    },
+    {
+     "t": "ω",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " = 2(",
+     "math": true
+    },
+    {
+     "t": "c",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " − 0.5)",
+     "math": true
+    },
+    {
+     "t": ". If "
+    },
+    {
+     "t": "(",
+     "math": true
+    },
+    {
+     "t": "d",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "⋆",
+     "math": true,
+     "sup": true
+    },
+    {
+     "t": ", ",
+     "math": true
+    },
+    {
+     "t": "s",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": ")",
+     "math": true
+    },
+    {
+     "t": " exists, a present report adds "
+    },
+    {
+     "t": "ω",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " to "
+    },
+    {
+     "t": "α",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " and an absent report adds "
+    },
+    {
+     "t": "ω",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " to "
+    },
+    {
+     "t": "β",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": ". A present symptom with "
+    },
+    {
+     "t": "ω",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " ≥ 0.6",
+     "math": true
+    },
+    {
+     "t": " and no edge creates a "
+    },
+    {
+     "t": "suggested edge",
+     "i": true
+    },
+    {
+     "t": " for expert review. For a text match through lay-term "
+    },
+    {
+     "t": "l",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": ", "
+    },
+    {
+     "t": "α",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "l",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": " grows by "
+    },
+    {
+     "t": "ω",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "/2",
+     "math": true
+    },
+    {
+     "t": " if "
+    },
+    {
+     "t": "s",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " is a symptom of "
+    },
+    {
+     "t": "d",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "⋆",
+     "math": true,
+     "sup": true
+    },
+    {
+     "t": " and "
+    },
+    {
+     "t": "β",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "l",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": " otherwise. Descriptions that matched nothing are queued in an expert console, where mapping one to a symptom creates a new LayTerm node immediately; Fig. 4 shows the console."
+    }
+   ]
+  },
+  {
+   "type": "figure",
+   "wide": false,
+   "number": "4",
+   "caption": [
+    {
+     "t": "Expert console. Edge thickness encodes the KG weight; the console also lists unmatched farmer phrases for curation and the drift of every learned edge weight."
+    }
+   ],
+   "items": [
+    {
+     "subcaption": [
+      {
+       "t": "Knowledge-graph explorer focused on late blight; the tooltip gives the Tamil name (diseases red, symptoms green, treatments gold, edge width = weight)"
+      }
+     ],
+     "img": "../figures/screens/g_graph.png"
+    },
+    {
+     "subcaption": [
+      {
+       "t": "Community outbreak map (simulated demonstration reports)"
+      }
+     ],
+     "img": "../figures/screens/g_map.png"
+    }
+   ],
+   "layout": "stack"
+  },
+  {
+   "type": "h1",
+   "num": "IX",
+   "runs": [
+    {
+     "t": "Implementation"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "The back end is a Python/Flask service. The KG is stored in Neo4j [25] (tested with Neo4j 5.26; AuraDB is supported) or in an embedded store that combines the curated JSON seed with learned state in SQLite; both produce the same in-memory graph, and the service falls back to the embedded store when Neo4j is unreachable. Learned "
+    },
+    {
+     "t": "α",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": ", ",
+     "math": true
+    },
+    {
+     "t": "β",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " are written back onto the Neo4j relationships. The front end is a framework-free progressive web application with Tamil and English interfaces, read-aloud, tap-to-pick symptoms, a disease library, history, sharing and a service worker for weak connectivity (Fig. 5)."
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "The leaf classifier uses a frozen ImageNet MobileNetV3-Large backbone [26] on a 10-class PlantVillage tomato subset [4] (9 diseases and healthy; 1,000 training and 100 validation images per class). Pooled 960-d features of the training images and their mirror images (20,000 vectors) train a 960–256–10 MLP head with dropout 0.3, AdamW [27] (learning rate "
+    },
+    {
+     "t": "2×10",
+     "math": true
+    },
+    {
+     "t": "−3",
+     "math": true,
+     "sup": true
+    },
+    {
+     "t": ", weight decay "
+    },
+    {
+     "t": "10",
+     "math": true
+    },
+    {
+     "t": "−3",
+     "math": true,
+     "sup": true
+    },
+    {
+     "t": ", cosine schedule, 40 epochs), label smoothing 0.05 [28] and Gaussian feature noise. A softmax temperature ("
+    },
+    {
+     "t": "T",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " = 0.523",
+     "math": true
+    },
+    {
+     "t": ") is fitted on the validation set [29], and the network is exported to ONNX (12.9 MB) for CPU inference. Validation accuracy is 97.6% (Fig. 9a); because the epoch and the temperature were selected on the same 1,000 images, this figure is optimistic. Lightweight checks flag dark, over-exposed, blurred and leafless photographs."
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "The implementation comprises about 3,000 lines of Python, a test suite of 71 tests (including Neo4j integration tests), and reproducible scripts for training, evaluation, figures and screenshots."
+    }
+   ]
+  },
+  {
+   "type": "figure",
+   "wide": true,
+   "number": "5",
+   "caption": [
+    {
+     "t": "The farmer application on a phone (location: the Nilgiris). (a) Live weather, a weekly risk list led by late blight (Hutton criteria) and outbreak alerts, which are marked as simulated in this demonstration. (b) A question that separates leaf mold from early blight, asked in Tamil with an English subtitle. (c) A confident late-blight diagnosis. (d) Severity-adaptive plan citing the local weather evidence, and a schedule that alternates FRAC groups."
+    }
+   ],
+   "items": [
+    {
+     "subcaption": [
+      {
+       "t": "Field conditions"
+      }
+     ],
+     "img": "../figures/screens/a_field_top.png"
+    },
+    {
+     "subcaption": [
+      {
+       "t": "Information-gain question"
+      }
+     ],
+     "img": "../figures/screens/b_question.png"
+    },
+    {
+     "subcaption": [
+      {
+       "t": "Diagnosis"
+      }
+     ],
+     "img": "../figures/screens/c_hero.png"
+    },
+    {
+     "subcaption": [
+      {
+       "t": "Weather-aware plan"
+      }
+     ],
+     "img": "../figures/screens/d_plan.png"
+    }
+   ],
+   "layout": "row"
+  },
+  {
+   "type": "h1",
+   "num": "X",
+   "runs": [
+    {
+     "t": "Evaluation"
+    }
+   ]
+  },
+  {
+   "type": "h2",
+   "num": "A",
+   "runs": [
+    {
+     "t": "Setup"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "Test set.",
+     "i": true
+    },
+    {
+     "t": " 85 farmer descriptions, five per disease (two Tamil, two English, one Tanglish: 34/34/17), were written independently of the KG lay-terms, using different wording, partial descriptions and multiple symptoms. "
+    },
+    {
+     "t": "Simulated farmer.",
+     "i": true
+    },
+    {
+     "t": " Questions are answered “yes” with probability "
+    },
+    {
+     "t": "θ",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "d",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": "⋆",
+     "math": true,
+     "sub": true,
+     "sup": true
+    },
+    {
+     "t": "s",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": " for the true disease "
+    },
+    {
+     "t": "d",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "⋆",
+     "math": true,
+     "sup": true
+    },
+    {
+     "t": ", or 0.02 when no edge exists, so answers are noisy; each case is run 20 times. We report top-1 and top-3 accuracy, the rate of "
+    },
+    {
+     "t": "confidently wrong",
+     "i": true
+    },
+    {
+     "t": " answers (a wrong disease with posterior "
+    },
+    {
+     "t": "≥ 0.85",
+     "math": true
+    },
+    {
+     "t": "; for the prototype, a non-ambiguous wrong answer), the mean number of questions, and 95% bootstrap confidence intervals over cases (2,000 resamples) [30]. "
+    },
+    {
+     "t": "Baselines and ablations",
+     "i": true
+    },
+    {
+     "t": " (Table III) all use the same KG: the prototype (whole-phrase fuzzy matching with a 0.55 threshold and additive scoring; its follow-up answers did not affect the ranking, so its final answer equals its text-only answer); the prototype’s matcher with our engine; our matcher without questions; random questions; the prototype’s question rule (prefer a symptom absent for one of the top-3 candidates, else the largest weight variance) with answers fed back; and the full system with symmetric noise ("
+    },
+    {
+     "t": "λ",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " = 1",
+     "math": true
+    },
+    {
+     "t": ") or without the "
+    },
+    {
+     "t": "unknown",
+     "sc": true
+    },
+    {
+     "t": " hypothesis."
+    }
+   ]
+  },
+  {
+   "type": "table",
+   "number": "III",
+   "caption": [
+    {
+     "t": "Diagnostic accuracy on 85 held-out descriptions (20 simulated dialogues each)"
+    }
+   ],
+   "aligns": [
+    "left",
+    "center",
+    "center",
+    "center",
+    "center"
+   ],
+   "rows": [
+    {
+     "cells": [
+      [
+       {
+        "t": "Method"
+       }
+      ],
+      [
+       {
+        "t": "Top-1 [95% CI]"
+       }
+      ],
+      [
+       {
+        "t": "Top-3"
+       }
+      ],
+      [
+       {
+        "t": "Wrong"
+       },
+       {
+        "t": "*",
+        "math": true,
+        "sup": true
+       }
+      ],
+      [
+       {
+        "t": "Qs."
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "v1 prototype"
+       }
+      ],
+      [
+       {
+        "t": "63.5 [52.9, 74.1]"
+       }
+      ],
+      [
+       {
+        "t": "85.9"
+       }
+      ],
+      [
+       {
+        "t": "10.6"
+       }
+      ],
+      [
+       {
+        "t": "–"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "v1 matching + our engine"
+       }
+      ],
+      [
+       {
+        "t": "86.4 [82.0, 90.4]"
+       }
+      ],
+      [
+       {
+        "t": "95.8"
+       }
+      ],
+      [
+       {
+        "t": "1.9"
+       }
+      ],
+      [
+       {
+        "t": "4.19"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "Our matching, no questions"
+       }
+      ],
+      [
+       {
+        "t": "92.9 [87.1, 97.6]"
+       }
+      ],
+      [
+       {
+        "t": "100.0"
+       }
+      ],
+      [
+       {
+        "t": "0.0"
+       }
+      ],
+      [
+       {
+        "t": "0"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "+ random questions"
+       }
+      ],
+      [
+       {
+        "t": "95.1 [92.5, 97.3]"
+       }
+      ],
+      [
+       {
+        "t": "99.9"
+       }
+      ],
+      [
+       {
+        "t": "0.5"
+       }
+      ],
+      [
+       {
+        "t": "3.58"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "+ v1 variance rule"
+       }
+      ],
+      [
+       {
+        "t": "96.3 [93.9, 98.2]"
+       }
+      ],
+      [
+       {
+        "t": "99.9"
+       }
+      ],
+      [
+       {
+        "t": "0.9"
+       }
+      ],
+      [
+       {
+        "t": "3.36"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "+ EIG ("
+       },
+       {
+        "t": "proposed",
+        "b": true
+       },
+       {
+        "t": ")"
+       }
+      ],
+      [
+       {
+        "t": "96.8",
+        "b": true
+       },
+       {
+        "t": " [94.5, 98.5]"
+       }
+      ],
+      [
+       {
+        "t": "99.7"
+       }
+      ],
+      [
+       {
+        "t": "1.2"
+       }
+      ],
+      [
+       {
+        "t": "2.12",
+        "b": true
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "Proposed, symmetric noise"
+       }
+      ],
+      [
+       {
+        "t": "96.5 [94.5, 98.2]"
+       }
+      ],
+      [
+       {
+        "t": "99.7"
+       }
+      ],
+      [
+       {
+        "t": "0.1"
+       }
+      ],
+      [
+       {
+        "t": "3.79"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "Proposed, no "
+       },
+       {
+        "t": "unknown",
+        "sc": true
+       }
+      ],
+      [
+       {
+        "t": "96.6 [94.3, 98.5]"
+       }
+      ],
+      [
+       {
+        "t": "99.9"
+       }
+      ],
+      [
+       {
+        "t": "1.2"
+       }
+      ],
+      [
+       {
+        "t": "2.01"
+       }
+      ]
+     ]
+    },
+    {
+     "note": true,
+     "cells": [
+      [
+       {
+        "t": "All values in % except Qs. (mean number of questions). "
+       },
+       {
+        "t": "*",
+        "math": true,
+        "sup": true
+       },
+       {
+        "t": "Confidently wrong: wrong disease reported with posterior "
+       },
+       {
+        "t": "≥ 0.85",
+        "math": true
+       },
+       {
+        "t": "."
+       }
+      ]
+     ]
+    }
+   ],
+   "mid_rows": [
+    1,
+    7
+   ]
+  },
+  {
+   "type": "h2",
+   "num": "B",
+   "runs": [
+    {
+     "t": "Diagnostic accuracy and ablations"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "Table III shows that the language layer is the largest single improvement: replacing whole-phrase fuzzy matching with concept-level matching raises description-only accuracy from 63.5% to 92.9%, and the prototype’s matcher remains the bottleneck even when paired with our engine (86.4%). The prototype understood 91.8% of inputs and was confidently wrong on 10.6%; the motivating “white dust” sentence illustrates why: shared filler words gave weight to unrelated ring-spot lay-terms, and a negated clause was ignored entirely (Fig. 3). Dialogue adds 3.9 points, and every configuration built on our matcher is confidently wrong on at most 1.2% of runs. Accuracy is balanced across languages: 96.3% for Tamil, 96.9% for English and 97.4% for Tanglish inputs (prototype: 67.6%, 52.9% and 76.5%). Per disease (Fig. 6), the remaining errors concentrate on bacterial spot (75%) and target spot (89%); the most frequent confusions are bacterial spot "
+    },
+    {
+     "t": "→ ",
+     "math": true
+    },
+    {
+     "t": "target spot and target spot "
+    },
+    {
+     "t": "→ ",
+     "math": true
+    },
+    {
+     "t": "early blight, three diseases that genuinely share small dark, ring-forming lesions with yellow halos in the dataset [17]."
+    }
+   ]
+  },
+  {
+   "type": "figure",
+   "wide": false,
+   "number": "6",
+   "caption": [
+    {
+     "t": "Top-1 accuracy per disease after dialogue (five descriptions per disease; 20 dialogues each for the proposed system)."
+    }
+   ],
+   "items": [
+    {
+     "img": "assets/per_disease.png"
+    }
+   ],
+   "layout": "stack"
+  },
+  {
+   "type": "h2",
+   "num": "C",
+   "runs": [
+    {
+     "t": "Question efficiency"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "The accuracy differences between EIG, the variance rule and random questions lie within each other’s confidence intervals, so we do not claim that EIG is more accurate. Its benefit is efficiency: it reaches 96.8% with 2.12 questions, 37% fewer than the variance rule (3.36) and 41% fewer than random selection (3.58). Fig. 7 fixes the question budget: with three questions, EIG reaches 96.1% versus 95.9% for the variance rule and 93.9% for random questions. Modelling false alarms as rarer than misses ("
+    },
+    {
+     "t": "λ",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " = 0.3",
+     "math": true
+    },
+    {
+     "t": ") saves 44% of questions relative to symmetric noise (2.12 vs. 3.79) at the same accuracy, at the cost of more confidently wrong answers (1.2% vs. 0.1%), a trade-off that can be tuned with "
+    },
+    {
+     "t": "λ",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " and the stopping threshold. Fig. 8 shows the motivating case: after “white dust on the leaf”, the first question asks whether insects are present; for whitefly two “yes” answers reach 0.93, whereas for powdery mildew the posterior rises steadily as alternatives are excluded and reaches 0.77 (“likely”) after six questions, because powdery mildew has few distinctive symptoms in the KG."
+    }
+   ]
+  },
+  {
+   "type": "figure",
+   "wide": false,
+   "number": "7",
+   "caption": [
+    {
+     "t": "Top-1 accuracy as a function of the maximum number of questions (85 cases "
+    },
+    {
+     "t": "×",
+     "math": true
+    },
+    {
+     "t": " 10 dialogues per point)."
+    }
+   ],
+   "items": [
+    {
+     "img": "assets/budget_curves.png"
+    }
+   ],
+   "layout": "stack"
+  },
+  {
+   "type": "figure",
+   "wide": false,
+   "number": "8",
+   "caption": [
+    {
+     "t": "Posterior during the dialogue for “"
+    },
+    {
+     "t": "இலையில் வெள்ளை தூள் போல இருக்கு",
+     "ta": true
+    },
+    {
+     "t": "” when the truth is (a) powdery mildew and (b) whitefly; answers are given above the axes. The dashed line is the stopping threshold."
+    }
+   ],
+   "items": [
+    {
+     "img": "assets/dialogue_trace.png"
+    }
+   ],
+   "layout": "stack"
+  },
+  {
+   "type": "h2",
+   "num": "D",
+   "runs": [
+    {
+     "t": "Out-of-scope problems"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "Twelve descriptions of problems absent from the KG (frost, hail, herbicide drift, nutrient deficiency, fruit cracking, sun-scald, damping-off, animal damage) were run 20 times each, with the simulated farmer answering “yes” with probability 0.15. The system abstained in 82.1% of runs and was confidently wrong in 6.3%; 66.7% of runs abstained because no symptom matched; in deployment such descriptions are queued for expert curation. Removing the "
+    },
+    {
+     "t": "unknown",
+     "sc": true
+    },
+    {
+     "t": " hypothesis changed these rates only slightly (80.8% and 6.7%), so in this setting abstention is driven mainly by the matching threshold and the low-confidence rule rather than by "
+    },
+    {
+     "t": "unknown",
+     "sc": true
+    },
+    {
+     "t": "."
+    }
+   ]
+  },
+  {
+   "type": "h2",
+   "num": "E",
+   "runs": [
+    {
+     "t": "Photo robustness and fusion"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "Fig. 9b evaluates the 900 disease images of the validation set, clean and with a field-like degradation (random 60–80% crop, Gaussian blur of radius 1.5–2.5, exposure "
+    },
+    {
+     "t": "×",
+     "math": true
+    },
+    {
+     "t": "0.45–0.70, colour cast, sensor noise, JPEG quality 20). On clean images the classifier reaches 97.6%, the photo-only posterior 97.2% and the photo combined with simulated dialogue 96.6% with 2.3 questions: when the photo is reliable, noisy answers occasionally overturn it. Under degradation the classifier collapses to 36.4%, the quality checks flag 46.2% of images (2.2% when clean) and lower the photo’s weight, and dialogue raises accuracy to 67.8% (+31.3 points) with 4.7 questions, even though no text description is used. The photo is therefore valuable when good, and the dialogue protects the farmer when it is not."
+    }
+   ]
+  },
+  {
+   "type": "figure",
+   "wide": true,
+   "number": "9",
+   "caption": [
+    {
+     "t": "Leaf-photo classifier. (a) Confusion matrix on the clean validation set. (b) Top-1 accuracy on 900 disease images, clean and with field-like degradation, for the classifier alone, the KG posterior given only the photo, and the photo combined with the information-gain dialogue."
+    }
+   ],
+   "items": [
+    {
+     "img": "assets/vision.png"
+    }
+   ],
+   "layout": "stack"
+  },
+  {
+   "type": "h2",
+   "num": "F",
+   "runs": [
+    {
+     "t": "Online learning"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "To test whether feedback repairs an imperfect graph, the true KG generates 1,500 simulated consultations while the system starts from a corrupted copy: 15% of symptom edges are set to 0.05 (knowledge gaps) and the rest are perturbed with Gaussian noise ("
+    },
+    {
+     "t": "σ",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " = 0.25",
+     "math": true
+    },
+    {
+     "t": "). A simulated farmer describes two present symptoms, answers questions truthfully, confirms correct diagnoses and picks the correct disease for 70% of wrong ones. Fig. 10 (five seeds) shows that the proposed rule raises accuracy from 81.2% in the first 100 consultations to 93.6% in the last 100 and reduces the mean absolute error of the 131 edge weights from 0.222 to 0.128. The prototype’s rule ("
+    },
+    {
+     "t": "±0.03",
+     "math": true
+    },
+    {
+     "t": " on the predicted disease’s edges after confirmation or rejection) reaches only 83.6% and "
+    },
+    {
+     "t": "increases",
+     "i": true
+    },
+    {
+     "t": " the weight error to 0.239, because rejections punish edges of the wrong disease without teaching the right one; without learning accuracy stays near 79%."
+    }
+   ]
+  },
+  {
+   "type": "figure",
+   "wide": false,
+   "number": "10",
+   "caption": [
+    {
+     "t": "Learning from feedback, starting from a corrupted KG (mean of five seeds; band: "
+    },
+    {
+     "t": "±1",
+     "math": true
+    },
+    {
+     "t": " s.d.). (a) Accuracy in windows of 100 consultations. (b) Mean absolute error of edge weights against the true graph."
+    }
+   ],
+   "items": [
+    {
+     "img": "assets/learning.png"
+    }
+   ],
+   "layout": "stack"
+  },
+  {
+   "type": "h2",
+   "num": "G",
+   "runs": [
+    {
+     "t": "Weather case study"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "Fig. 11 shows the risk models on live weather for four districts on 13 October 2026. The Nilgiris (Ooty), at a three-day mean of 15.3 "
+    },
+    {
+     "t": "°",
+     "math": true
+    },
+    {
+     "t": "C and 79% RH, has five Hutton late-blight periods in the past week with another forecast (risk 1.0) and 96 hours above 85% RH (leaf mold, 0.8). Krishnagiri, warm and dry, has 34 hot-dry hours (spider mite, 0.8), and Madurai five days above 33 "
+    },
+    {
+     "t": "°",
+     "math": true
+    },
+    {
+     "t": "C (blossom-end rot, 0.8). Coimbatore shows only medium risks: its two Hutton periods are damped by a 26.3 "
+    },
+    {
+     "t": "°",
+     "math": true
+    },
+    {
+     "t": "C mean temperature. These patterns are agronomically plausible but are not validated against observed outbreaks."
+    }
+   ]
+  },
+  {
+   "type": "figure",
+   "wide": false,
+   "number": "11",
+   "caption": [
+    {
+     "t": "Weather-driven risk scores (colour) and levels (H/M/L) for four Tamil Nadu districts, computed from seven days of hourly weather on 13 October 2026."
+    }
+   ],
+   "items": [
+    {
+     "img": "assets/weather_risk.png"
+    }
+   ],
+   "layout": "stack"
+  },
+  {
+   "type": "h2",
+   "num": "H",
+   "runs": [
+    {
+     "t": "Latency"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "On a 12-thread laptop CPU without a GPU (Table IV), concept matching takes 2.0 ms, one inference step including the information-gain search 0.84 ms, and a complete diagnosis request through the web API 3.7 ms (median). Photo classification takes 7.1 ms. The system therefore runs on commodity hardware, and the graph can be served from a small server."
+    }
+   ]
+  },
+  {
+   "type": "table",
+   "number": "IV",
+   "caption": [
+    {
+     "t": "Latency on a laptop CPU (milliseconds)"
+    }
+   ],
+   "aligns": [
+    "left",
+    "center",
+    "center"
+   ],
+   "rows": [
+    {
+     "cells": [
+      [
+       {
+        "t": "Operation"
+       }
+      ],
+      [
+       {
+        "t": "Median"
+       }
+      ],
+      [
+       {
+        "t": "95th percentile"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "Concept matching of one description"
+       }
+      ],
+      [
+       {
+        "t": "2.01"
+       }
+      ],
+      [
+       {
+        "t": "2.58"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "Inference step (posterior + EIG search)"
+       }
+      ],
+      [
+       {
+        "t": "0.84"
+       }
+      ],
+      [
+       {
+        "t": "0.87"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "Diagnosis API request (end to end)"
+       }
+      ],
+      [
+       {
+        "t": "3.65"
+       }
+      ],
+      [
+       {
+        "t": "4.18"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "Leaf-photo classification (ONNX)"
+       }
+      ],
+      [
+       {
+        "t": "7.12"
+       }
+      ],
+      [
+       {
+        "t": "8.09"
+       }
+      ]
+     ]
+    }
+   ],
+   "mid_rows": [
+    1
+   ]
+  },
+  {
+   "type": "h1",
+   "num": "XI",
+   "runs": [
+    {
+     "t": "Discussion and Limitations"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "The results support the central design choice: a curated, probabilistic KG that reasons over noisy evidence and asks targeted questions is robust where an image classifier alone is brittle, and it explains its answers in the farmer’s language. Several limitations qualify these findings."
+    }
+   ]
+  },
+  {
+   "type": "list",
+   "ordered": false,
+   "items": [
+    [
+     {
+      "t": "Evaluation data.",
+      "i": true
+     },
+     {
+      "t": " The test descriptions were written by the authors, and the simulated farmer answers according to the KG’s own probabilities; the results therefore measure the reasoning pipeline, not field accuracy. A field study with real farmer descriptions and agronomist-confirmed diagnoses is the necessary next step."
+     }
+    ],
+    [
+     {
+      "t": "Knowledge.",
+      "i": true
+     },
+     {
+      "t": " Edge weights are expert estimates seeded from a dataset and extension guidance; Tamil lay-terms cover common usage but not all regional dialects. The learning loop and the curation queue are designed to correct both, but their effect in the field remains to be measured."
+     }
+    ],
+    [
+     {
+      "t": "Photo model.",
+      "i": true
+     },
+     {
+      "t": " The classifier was trained on laboratory images of nine diseases; its validation accuracy is optimistic, and the degradation study approximates, but does not replace, real field photographs."
+     }
+    ],
+    [
+     {
+      "t": "Weather models.",
+      "i": true
+     },
+     {
+      "t": " The Hutton criteria and TOM-CAST were developed for temperate climates and the remaining risk models are heuristics; none has yet been validated against outbreaks in Tamil Nadu. Community outbreak data shown in this paper are simulated."
+     }
+    ],
+    [
+     {
+      "t": "LLM front end and advice.",
+      "i": true
+     },
+     {
+      "t": " The Gemini speech front end was not evaluated quantitatively. Dosages are taken from the cited dataset or general guidance and must be checked against product labels and local recommendations."
+     }
+    ]
+   ]
+  },
+  {
+   "type": "h1",
+   "num": "XII",
+   "runs": [
+    {
+     "t": "Conclusion"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "Tomato Doctor combines a probabilistic knowledge graph, concept-level understanding of Tamil, English and Tanglish, Bayesian evidence fusion, cost-aware information-gain questioning, weather-driven priors and spray planning, and confirmation-driven learning. In our evaluation it raises top-1 accuracy from 63.5% to 96.8% over the fuzzy-matching prototype with about two questions, keeps confidently wrong answers near 1%, recovers from degraded photographs through dialogue, and repairs a corrupted graph from farmer feedback. Future work will validate the system with farmers and agronomists in Tamil Nadu, calibrate the risk models against local outbreak records, extend the graph to further crops, and evaluate the speech front end on recorded farmer queries."
+    }
+   ]
+  },
+  {
+   "type": "h1",
+   "num": null,
+   "runs": [
+    {
+     "t": "Acknowledgment"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "The authors thank the farmers and agricultural extension staff who shared their vocabulary and experience."
+    }
+   ]
+  }
+ ],
+ "refs": [
+  {
+   "n": 1,
+   "runs": [
+    {
+     "t": "S. P. Mohanty, D. P. Hughes, and M. Salathé, “Using deep learning for image-based plant disease detection,” "
+    },
+    {
+     "t": "Front. Plant Sci.",
+     "i": true
+    },
+    {
+     "t": ", vol. 7, Art. no. 1419, 2016, doi: 10.3389/fpls.2016.01419."
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "runs": [
+    {
+     "t": "K. P. Ferentinos, “Deep learning models for plant disease detection and diagnosis,” "
+    },
+    {
+     "t": "Comput. Electron. Agric.",
+     "i": true
+    },
+    {
+     "t": ", vol. 145, pp. 311–318, 2018, doi: 10.1016/j.compag.2018.01.009."
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "runs": [
+    {
+     "t": "J. G. A. Barbedo, “Factors influencing the use of deep learning for plant disease recognition,” "
+    },
+    {
+     "t": "Biosyst. Eng.",
+     "i": true
+    },
+    {
+     "t": ", vol. 172, pp. 84–91, 2018, doi: 10.1016/j.biosystemseng.2018.05.013."
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "runs": [
+    {
+     "t": "D. P. Hughes and M. Salathé, “An open access repository of images on plant health to enable the development of mobile disease diagnostics,” 2015, "
+    },
+    {
+     "t": "arXiv:1511.08060",
+     "i": true
+    },
+    {
+     "t": "."
+    }
+   ]
+  },
+  {
+   "n": 5,
+   "runs": [
+    {
+     "t": "D. E. Heckerman, E. J. Horvitz, and B. N. Nathwani, “Toward normative expert systems: Part I. The Pathfinder project,” "
+    },
+    {
+     "t": "Methods Inf. Med.",
+     "i": true
+    },
+    {
+     "t": ", vol. 31, no. 2, pp. 90–105, 1992."
+    }
+   ]
+  },
+  {
+   "n": 6,
+   "runs": [
+    {
+     "t": "M. A. Shwe "
+    },
+    {
+     "t": "et al.",
+     "i": true
+    },
+    {
+     "t": ", “Probabilistic diagnosis using a reformulation of the INTERNIST-1/QMR knowledge base. I. The probabilistic model and inference algorithms,” "
+    },
+    {
+     "t": "Methods Inf. Med.",
+     "i": true
+    },
+    {
+     "t": ", vol. 30, no. 4, pp. 241–255, 1991."
+    }
+   ]
+  },
+  {
+   "n": 7,
+   "runs": [
+    {
+     "t": "D. V. Lindley, “On a measure of the information provided by an experiment,” "
+    },
+    {
+     "t": "Ann. Math. Statist.",
+     "i": true
+    },
+    {
+     "t": ", vol. 27, no. 4, pp. 986–1005, 1956."
+    }
+   ]
+  },
+  {
+   "n": 8,
+   "runs": [
+    {
+     "t": "A. Hogan "
+    },
+    {
+     "t": "et al.",
+     "i": true
+    },
+    {
+     "t": ", “Knowledge graphs,” "
+    },
+    {
+     "t": "ACM Comput. Surv.",
+     "i": true
+    },
+    {
+     "t": ", vol. 54, no. 4, Art. no. 71, 2021."
+    }
+   ]
+  },
+  {
+   "n": 9,
+   "runs": [
+    {
+     "t": "Y. Chen, J. Kuang, D. Cheng, J. Zheng, M. Gao, and A. Zhou, “AgriKG: An agricultural knowledge graph and its applications,” in "
+    },
+    {
+     "t": "Database Systems for Advanced Applications (DASFAA 2019)",
+     "i": true
+    },
+    {
+     "t": ", Lecture Notes in Computer Science, vol. 11448. Cham, Switzerland: Springer, 2019."
+    }
+   ]
+  },
+  {
+   "n": 10,
+   "runs": [
+    {
+     "t": "M. Jain, P. Kumar, I. Bhansali, Q. V. Liao, K. Truong, and S. Patel, “FarmChat: A conversational agent to answer farmer queries,” "
+    },
+    {
+     "t": "Proc. ACM Interact. Mob. Wearable Ubiquitous Technol.",
+     "i": true
+    },
+    {
+     "t": ", vol. 2, no. 4, Art. no. 170, Dec. 2018, doi: 10.1145/3287048."
+    }
+   ]
+  },
+  {
+   "n": 11,
+   "runs": [
+    {
+     "t": "D. Kakwani "
+    },
+    {
+     "t": "et al.",
+     "i": true
+    },
+    {
+     "t": ", “IndicNLPSuite: Monolingual corpora, evaluation benchmarks and pre-trained multilingual language models for Indian languages,” in "
+    },
+    {
+     "t": "Findings of the Association for Computational Linguistics: EMNLP 2020",
+     "i": true
+    },
+    {
+     "t": ", 2020."
+    }
+   ]
+  },
+  {
+   "n": 12,
+   "runs": [
+    {
+     "t": "A. Radford, J. W. Kim, T. Xu, G. Brockman, C. McLeavey, and I. Sutskever, “Robust speech recognition via large-scale weak supervision,” in "
+    },
+    {
+     "t": "Proc. Int. Conf. Mach. Learn. (ICML)",
+     "i": true
+    },
+    {
+     "t": ", 2023."
+    }
+   ]
+  },
+  {
+   "n": 13,
+   "runs": [
+    {
+     "t": "Gemini Team, Google, “Gemini: A family of highly capable multimodal models,” 2023, "
+    },
+    {
+     "t": "arXiv:2312.11805",
+     "i": true
+    },
+    {
+     "t": "."
+    }
+   ]
+  },
+  {
+   "n": 14,
+   "runs": [
+    {
+     "t": "L. Madden, S. P. Pennypacker, and A. A. MacNab, “FAST, a forecast system for "
+    },
+    {
+     "t": "Alternaria solani",
+     "i": true
+    },
+    {
+     "t": " on tomato,” "
+    },
+    {
+     "t": "Phytopathology",
+     "i": true
+    },
+    {
+     "t": ", vol. 68, pp. 1354–1358, 1978, doi: 10.1094/Phyto-68-1354."
+    }
+   ]
+  },
+  {
+   "n": 15,
+   "runs": [
+    {
+     "t": "K. Frost, A. Gevens, S. Jordan, and R. Groves, “Web-based pest and disease forecasting tool for enhanced processing vegetable crop management: Update on carrot foliar disease forecasting component,” in "
+    },
+    {
+     "t": "Proc. 2015 Wisconsin Crop Management Conf.",
+     "i": true
+    },
+    {
+     "t": ", vol. 54, 2015, pp. 83–85."
+    }
+   ]
+  },
+  {
+   "n": 16,
+   "runs": [
+    {
+     "t": "Agriculture and Horticulture Development Board (AHDB), “Development and implementation of a new national warning system for potato late blight in Great Britain (Hutton Criteria).” [Online]. Available: "
+    },
+    {
+     "t": "https://potatoes.ahdb.org.uk/development-and-implementation-of-a-new-national-warning-system-for-potato-late-blight-in-great-britain-hutton-criteria",
+     "tt": true,
+     "url": true
+    }
+   ]
+  },
+  {
+   "n": 17,
+   "runs": [
+    {
+     "t": "S. Jagtap, O. Shinde, M. Marade, R. Sawant, N. Sable, and P. Mahalle, “A comprehensive dataset of tomato plant diseases for national predictive analytics and crop health management,” Mendeley Data, V1, 2025, doi: 10.17632/ztncd79yhk.1."
+    }
+   ]
+  },
+  {
+   "n": 18,
+   "runs": [
+    {
+     "t": "Fungicide Resistance Action Committee, “FRAC Code List.” [Online]. Available: "
+    },
+    {
+     "t": "https://www.frac.info",
+     "tt": true,
+     "url": true
+    }
+   ]
+  },
+  {
+   "n": 19,
+   "runs": [
+    {
+     "t": "Insecticide Resistance Action Committee, “IRAC Mode of Action Classification Scheme.” [Online]. Available: "
+    },
+    {
+     "t": "https://irac-online.org",
+     "tt": true,
+     "url": true
+    }
+   ]
+  },
+  {
+   "n": 20,
+   "runs": [
+    {
+     "t": "“Rains and fungicide sprays,” Grape pathology extension. [Online]. Available: "
+    },
+    {
+     "t": "https://ext.grapepathology.org/rains-and-fungicide-sprays",
+     "tt": true,
+     "url": true
+    }
+   ]
+  },
+  {
+   "n": 21,
+   "runs": [
+    {
+     "t": "The Australian Wine Research Institute, “Agrochemical update: Using sulfur to protect vines, particularly under cool conditions,” eBulletin, Oct. 2021. [Online]. Available: "
+    },
+    {
+     "t": "https://www.awri.com.au/information_services/ebulletin/2021/10/13/agrochemical-update-october-2021-using-sulfur-to-protect-vines-particularly-under-cool-conditions/",
+     "tt": true,
+     "url": true
+    }
+   ]
+  },
+  {
+   "n": 22,
+   "runs": [
+    {
+     "t": "K. Spärck Jones, “A statistical interpretation of term specificity and its application in retrieval,” "
+    },
+    {
+     "t": "J. Documentation",
+     "i": true
+    },
+    {
+     "t": ", vol. 28, no. 1, pp. 11–21, 1972."
+    }
+   ]
+  },
+  {
+   "n": 23,
+   "runs": [
+    {
+     "t": "P. Zippenfenig, “Open-Meteo.com weather API,” Zenodo, 2023, doi: 10.5281/zenodo.7970649."
+    }
+   ]
+  },
+  {
+   "n": 24,
+   "runs": [
+    {
+     "t": "Agriculture Victoria, “A guide to estimating wind speed.” [Online]. Available: "
+    },
+    {
+     "t": "https://agriculture.vic.gov.au/farm-management/chemicals/spraying-agricultural-chemicals/managing-spray-drift/a-guide-to-estimating-wind-speed",
+     "tt": true,
+     "url": true
+    }
+   ]
+  },
+  {
+   "n": 25,
+   "runs": [
+    {
+     "t": "Neo4j, Inc., “Neo4j graph database.” [Online]. Available: "
+    },
+    {
+     "t": "https://neo4j.com",
+     "tt": true,
+     "url": true
+    }
+   ]
+  },
+  {
+   "n": 26,
+   "runs": [
+    {
+     "t": "A. Howard "
+    },
+    {
+     "t": "et al.",
+     "i": true
+    },
+    {
+     "t": ", “Searching for MobileNetV3,” in "
+    },
+    {
+     "t": "Proc. IEEE/CVF Int. Conf. Comput. Vis. (ICCV)",
+     "i": true
+    },
+    {
+     "t": ", 2019, pp. 1314–1324."
+    }
+   ]
+  },
+  {
+   "n": 27,
+   "runs": [
+    {
+     "t": "I. Loshchilov and F. Hutter, “Decoupled weight decay regularization,” in "
+    },
+    {
+     "t": "Proc. Int. Conf. Learn. Represent. (ICLR)",
+     "i": true
+    },
+    {
+     "t": ", 2019."
+    }
+   ]
+  },
+  {
+   "n": 28,
+   "runs": [
+    {
+     "t": "C. Szegedy, V. Vanhoucke, S. Ioffe, J. Shlens, and Z. Wojna, “Rethinking the Inception architecture for computer vision,” in "
+    },
+    {
+     "t": "Proc. IEEE Conf. Comput. Vis. Pattern Recognit. (CVPR)",
+     "i": true
+    },
+    {
+     "t": ", 2016, pp. 2818–2826."
+    }
+   ]
+  },
+  {
+   "n": 29,
+   "runs": [
+    {
+     "t": "C. Guo, G. Pleiss, Y. Sun, and K. Q. Weinberger, “On calibration of modern neural networks,” in "
+    },
+    {
+     "t": "Proc. Int. Conf. Mach. Learn. (ICML)",
+     "i": true
+    },
+    {
+     "t": ", 2017, pp. 1321–1330."
+    }
+   ]
+  },
+  {
+   "n": 30,
+   "runs": [
+    {
+     "t": "B. Efron and R. J. Tibshirani, "
+    },
+    {
+     "t": "An Introduction to the Bootstrap",
+     "i": true
+    },
+    {
+     "t": ". New York, NY, USA: Chapman & Hall, 1993."
+    }
+   ]
+  }
+ ],
+ "labels": {
+  "sec:overview": "III",
+  "fig:arch": "1",
+  "sec:kg": "IV",
+  "fig:schema": "2",
+  "tab:kg": "I",
+  "eq:beta": "1",
+  "tab:treat": "II",
+  "sec:nlu": "V",
+  "eq:cov": "2",
+  "fig:nlu": "3",
+  "sec:inference": "VI",
+  "eq:pos": "3",
+  "eq:neg": "4",
+  "eq:photo": "5",
+  "eq:post": "6",
+  "eq:eig": "7",
+  "alg:dialogue": "1",
+  "sec:advisory": "VII",
+  "sec:learning": "VIII",
+  "fig:expert": "4",
+  "sec:impl": "IX",
+  "fig:screens": "5",
+  "sec:eval": "X",
+  "tab:main": "III",
+  "fig:perdisease": "6",
+  "fig:budget": "7",
+  "fig:trace": "8",
+  "fig:vision": "9",
+  "fig:learning": "10",
+  "fig:weather": "11",
+  "tab:latency": "IV",
+  "sec:limits": "XI"
+ }
+}
