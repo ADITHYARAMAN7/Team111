@@ -1,8 +1,8 @@
 /* Service worker: makes the app installable and keeps the shell, styles,
    reference photos and fonts available on weak rural connections.
    Diagnosis itself (/api/*) always goes to the network. */
-const VERSION = "tomatodoc-v2.3.0";
-const SHELL = ["/", "/static/css/app.css?v=2.3.0", "/static/js/i18n.js?v=2.3.0", "/static/js/i18n_field.js?v=2.3.0", "/static/js/i18n_soil.js?v=2.3.0", "/static/js/i18n_myfield.js?v=2.3.0", "/static/js/app.js?v=2.3.0", "/static/img/icon.svg", "/manifest.webmanifest"];
+const VERSION = "tomatodoc-v2.4.0";
+const SHELL = ["/", "/static/css/app.css?v=2.4.0", "/static/js/i18n.js?v=2.4.0", "/static/js/i18n_field.js?v=2.4.0", "/static/js/i18n_soil.js?v=2.4.0", "/static/js/i18n_myfield.js?v=2.4.0", "/static/js/i18n_shell.js?v=2.4.0", "/static/js/app.js?v=2.4.0", "/static/img/icon.svg", "/manifest.webmanifest"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -29,6 +29,15 @@ self.addEventListener("fetch", (e) => {
   const cacheable = url.origin === location.origin ? url.pathname.startsWith("/static/")
     : /fonts\.(googleapis|gstatic)\.com$/.test(url.hostname);
   if (!cacheable) return;
+  // App code and styles: network first, so a new version is never hidden behind the
+  // cache; the cached copy is only used offline. Images, fonts, vendor libs: cache first.
+  if (url.origin === location.origin && /\.(js|css)$/.test(url.pathname) && !url.pathname.startsWith("/static/vendor/")) {
+    e.respondWith(fetch(req).then((res) => {
+      if (res.ok) { const copy = res.clone(); caches.open(VERSION).then((c) => c.put(req, copy)); }
+      return res;
+    }).catch(() => caches.match(req)));
+    return;
+  }
   e.respondWith(caches.match(req).then((hit) => hit || fetch(req).then((res) => {
     if (res.ok || res.type === "opaque") { const copy = res.clone(); caches.open(VERSION).then((c) => c.put(req, copy)); }
     return res;
