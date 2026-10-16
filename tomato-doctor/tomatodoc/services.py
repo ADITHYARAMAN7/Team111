@@ -24,7 +24,7 @@ from .vision import load_classifier
 log = logging.getLogger(__name__)
 SESSION_RE = re.compile(r"^[A-Za-z0-9_-]{8,64}$")
 URGENCY = {5: "urgent", 4: "high", 3: "normal", 2: "low", 1: "low"}
-PREVENT_MODES = {"contact", "systemic", "biological", "botanical", "contact_insect"}
+PREVENT_MODES = {"contact", "systemic", "biological", "botanical", "contact_insect", "nutrient"}  # nutrient: calcium vs blossom-end rot
 
 
 def _dicts(value, limit):

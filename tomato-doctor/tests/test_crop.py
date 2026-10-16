@@ -1,5 +1,5 @@
 """My field: crop stage, harvest safety (pre-harvest intervals), prevention alerts."""
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 import pytest
 
@@ -111,3 +111,27 @@ def test_phi_counts_from_the_spray_day_not_today():
     assert crop.phi_check(3, h, TODAY)["status"] == "ok"                     # spray today: safe by Fri
     late = crop.phi_check(3, h, spray_day=TODAY + timedelta(days=1))          # spray tomorrow: not safe by Fri
     assert late["status"] == "after_pick" and late["safe_from"] == "2026-10-17"
+
+
+def test_repeat_sprays_follow_picking_days(kg, monkeypatch):
+    start = datetime(2026, 10, 14, 8, 0)
+    monkeypatch.setattr(advisory, "next_spray_time", lambda w: start)
+    disease = {"id": "early_blight", "type": "fungal", "severity": 3}
+    h = {"picking": True, "every": 4, "next_pick": "2026-10-16", "days_to_pick": 2}
+    sched = advisory.plan(disease, kg.treatments_for("early_blight"), "severe", harvest=h)["schedule"]
+    assert len(sched) == 3
+    # copper (PHI 3) cannot wait for the picking in 2 days: pick first, and the rhythm restarts today
+    assert sched[0]["after_pick"]
+    picks = {start.date() + timedelta(days=4 * j) for j in range(12)}
+    for x in sched:
+        sd = datetime.fromisoformat(x["date"]).date()
+        assert sd in picks and x["after_pick"]                  # every spray follows a picking
+        assert x["phi"] is None or x["phi"] <= 4                # ...and is clear before the next one
+
+
+def test_warns_when_no_spray_fits_the_picking_interval(kg, monkeypatch):
+    monkeypatch.setattr(advisory, "next_spray_time", lambda w: datetime(2026, 10, 14, 8, 0))
+    disease = {"id": "leaf_curl_virus", "type": "viral", "severity": 4}
+    h = {"picking": True, "every": 4, "next_pick": "2026-10-16", "days_to_pick": 2}
+    notes = [n["code"] for n in advisory.plan(disease, kg.treatments_for("leaf_curl_virus"), "severe", harvest=h)["notes"]]
+    assert "phi_no_safe_option" in notes

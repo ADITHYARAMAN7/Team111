@@ -18,7 +18,7 @@ what was already sprayed, it produces:
                        every spray says from when picking is safe again
 Rules and thresholds are cited in the knowledge graph (meta.sources).
 """
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 from rapidfuzz import fuzz, process
 
@@ -208,7 +208,11 @@ def plan(disease, treatments, severity=None, extent=None, sprays=None, weather=N
     if level == "mild":
         sprayable = [t for t in sprayable if t["type"] != "chemical"] or sprayable
     if picking:
-        sprayable = [t for t in sprayable if phi_status(t) != "blocks_pick"] or sprayable
+        safe = [t for t in sprayable if phi_status(t) != "blocks_pick"]
+        if sprayable and not safe:              # every spray option outlasts the picking interval
+            notes.append({"code": "phi_no_safe_option", "phi": min(t["application"].get("phi_days") or 0 for t in sprayable),
+                          "every": harvest["every"]})
+        sprayable = safe or sprayable
     schedule = []
     if sprayable:
         first = suitability(weather, sprayable[0]["application"]).get("window") if weather else None
@@ -217,11 +221,26 @@ def plan(disease, treatments, severity=None, extent=None, sprays=None, weather=N
         day = start
         last_groups = set(used_groups)
         pool = list(sprayable)
+        # While fruit is picked, repeat sprays go right after a picking day, so the
+        # pre-harvest interval runs between two pickings. If the first spray needs the
+        # ripe fruit picked first (PHI longer than the days left), the rhythm restarts then.
+        anchor = every = None
+        if picking:
+            every = harvest["every"]
+            first_phi = phi_check(sprayable[0]["application"].get("phi_days"), harvest, spray_day=start.date())
+            anchor = start.date() if first_phi and first_phi["status"] == "after_pick" else date.fromisoformat(harvest["next_pick"])
         for k in range(rounds):
             pick = next((t for t in pool if not (_groups(t["application"].get("group")) & last_groups)), pool[0])
             phi = pick["application"].get("phi_days")
+            after_pick = False
+            if picking and k > 0:
+                gap = (day.date() - anchor).days
+                day = day + timedelta(days=(-gap) % every)        # next picking day on or after the due date
+                after_pick = True
+            elif picking and anchor == start.date():
+                after_pick = True                                 # pick the ripe fruit first, then spray
             schedule.append({"date": day.isoformat(timespec="minutes"), "treatment_id": pick["id"], "group": pick["application"].get("group"),
-                             "forecast_checked": k == 0 and bool(first), "phi": phi,
+                             "forecast_checked": k == 0 and bool(first), "phi": phi, "after_pick": after_pick,
                              "safe_from": (day + timedelta(days=phi)).date().isoformat() if phi is not None else None})
             last_groups = _groups(pick["application"].get("group"))
             day = day + timedelta(days=pick["application"]["interval_days"])
