@@ -5,12 +5,12 @@
     "with_unknown": {
       "abstain_rate": 0.8208,
       "no_symptom_matched_rate": 0.6667,
-      "confidently_wrong_rate": 0.0625
+      "confidently_wrong_rate": 0.0708
     },
     "no_unknown": {
-      "abstain_rate": 0.8083,
+      "abstain_rate": 0.8292,
       "no_symptom_matched_rate": 0.6667,
-      "confidently_wrong_rate": 0.0667
+      "confidently_wrong_rate": 0.0792
     }
   }
 }

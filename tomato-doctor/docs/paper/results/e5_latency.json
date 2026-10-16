@@ -1,19 +1,19 @@
 {
   "nlu": {
-    "median_ms": 2.01,
-    "p95_ms": 2.58
+    "median_ms": 2.07,
+    "p95_ms": 2.84
   },
   "inference_step": {
-    "median_ms": 0.84,
-    "p95_ms": 0.87
+    "median_ms": 0.89,
+    "p95_ms": 1.03
   },
   "api_diagnose": {
-    "median_ms": 3.65,
-    "p95_ms": 4.18
+    "median_ms": 4.23,
+    "p95_ms": 5.05
   },
   "photo": {
-    "median_ms": 7.12,
-    "p95_ms": 8.09
+    "median_ms": 9.04,
+    "p95_ms": 10.42
   },
   "cpu": "AMD64 Family 25 Model 80 Stepping 0, AuthenticAMD",
   "cores": 12,

@@ -1,0 +1,120 @@
+{
+  "n_cases": 85,
+  "n_runs": 20,
+  "neutral_soil": {
+    "ph": 6.8,
+    "ec": 0.4,
+    "oc": 0.62,
+    "n": 350,
+    "p": 18,
+    "k": 200,
+    "ca": 4.0
+  },
+  "conditions": {
+    "none": {
+      "all": {
+        "n": 85,
+        "desc_top1": 0.9294,
+        "top1": 0.9653,
+        "top1_ci95": [
+          0.9429,
+          0.9835
+        ],
+        "wrong_confident": 0.0112,
+        "avg_questions": 2.053
+      },
+      "linked": {
+        "n": 75,
+        "desc_top1": 0.92,
+        "top1": 0.9613,
+        "top1_ci95": [
+          0.9367,
+          0.9807
+        ],
+        "wrong_confident": 0.012,
+        "avg_questions": 2.145
+      },
+      "unlinked": {
+        "n": 10,
+        "desc_top1": 1,
+        "top1": 0.995,
+        "top1_ci95": [
+          0.985,
+          1.0
+        ],
+        "wrong_confident": 0.005,
+        "avg_questions": 1.365
+      }
+    },
+    "consistent": {
+      "all": {
+        "n": 85,
+        "desc_top1": 0.9412,
+        "top1": 0.97,
+        "top1_ci95": [
+          0.9506,
+          0.9865
+        ],
+        "wrong_confident": 0.0059,
+        "avg_questions": 1.971
+      },
+      "linked": {
+        "n": 75,
+        "desc_top1": 0.9333,
+        "top1": 0.9667,
+        "top1_ci95": [
+          0.9453,
+          0.9847
+        ],
+        "wrong_confident": 0.006,
+        "avg_questions": 2.051
+      },
+      "unlinked": {
+        "n": 10,
+        "desc_top1": 1,
+        "top1": 0.995,
+        "top1_ci95": [
+          0.985,
+          1.0
+        ],
+        "wrong_confident": 0.005,
+        "avg_questions": 1.365
+      }
+    },
+    "misleading": {
+      "all": {
+        "n": 85,
+        "desc_top1": 0.9176,
+        "top1": 0.9665,
+        "top1_ci95": [
+          0.9441,
+          0.9847
+        ],
+        "wrong_confident": 0.0094,
+        "avg_questions": 2.235
+      },
+      "linked": {
+        "n": 75,
+        "desc_top1": 0.9067,
+        "top1": 0.9627,
+        "top1_ci95": [
+          0.9387,
+          0.9813
+        ],
+        "wrong_confident": 0.0107,
+        "avg_questions": 2.317
+      },
+      "unlinked": {
+        "n": 10,
+        "desc_top1": 1,
+        "top1": 0.995,
+        "top1_ci95": [
+          0.985,
+          1.0
+        ],
+        "wrong_confident": 0.0,
+        "avg_questions": 1.62
+      }
+    }
+  }
+}

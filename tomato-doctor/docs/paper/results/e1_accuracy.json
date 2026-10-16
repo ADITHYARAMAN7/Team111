@@ -37,27 +37,27 @@
     {
       "id": "v1nlu_bayes_eig",
       "name": "v1 matching + Bayesian + EIG",
-      "top1": 0.8641,
+      "top1": 0.8535,
       "top1_ci95": [
-        0.82,
-        0.9035
+        0.8124,
+        0.8906
       ],
-      "top3": 0.9576,
+      "top3": 0.9465,
       "understood": 0.9176,
-      "wrong_confident": 0.0194,
-      "avg_questions": 4.188,
+      "wrong_confident": 0.0141,
+      "avg_questions": 4.146,
       "by_lang": {
         "ta": {
           "n": 34,
-          "top1": 0.8485
+          "top1": 0.8338
         },
         "en": {
           "n": 34,
-          "top1": 0.8647
+          "top1": 0.85
         },
         "tl": {
           "n": 17,
-          "top1": 0.8941
+          "top1": 0.9
         }
       }
     },
@@ -91,77 +91,50 @@
     {
       "id": "random",
       "name": "v2 + random questions",
-      "top1": 0.9512,
+      "top1": 0.9459,
       "top1_ci95": [
-        0.9247,
-        0.9729
+        0.9159,
+        0.9712
       ],
-      "top3": 0.9988,
+      "top3": 0.9982,
       "understood": 1.0,
-      "wrong_confident": 0.0053,
-      "avg_questions": 3.582,
+      "wrong_confident": 0.0076,
+      "avg_questions": 3.491,
       "by_lang": {
         "ta": {
           "n": 34,
-          "top1": 0.9485
+          "top1": 0.9412
         },
         "en": {
           "n": 34,
-          "top1": 0.9574
+          "top1": 0.9544
         },
         "tl": {
           "n": 17,
-          "top1": 0.9441
+          "top1": 0.9382
         }
       }
     },
     {
       "id": "variance",
       "name": "v2 + variance heuristic (v1 rule)",
-      "top1": 0.9629,
+      "top1": 0.9641,
       "top1_ci95": [
-        0.9388,
+        0.9406,
         0.9824
       ],
-      "top3": 0.9988,
+      "top3": 0.9994,
       "understood": 1.0,
-      "wrong_confident": 0.0088,
-      "avg_questions": 3.358,
+      "wrong_confident": 0.0106,
+      "avg_questions": 3.395,
       "by_lang": {
         "ta": {
           "n": 34,
-          "top1": 0.9691
+          "top1": 0.9618
         },
         "en": {
           "n": 34,
-          "top1": 0.9559
-        },
-        "tl": {
-          "n": 17,
-          "top1": 0.9647
-        }
-      }
-    },
-    {
-      "id": "eig",
-      "name": "v2 + EIG (proposed)",
-      "top1": 0.9676,
-      "top1_ci95": [
-        0.9453,
-        0.9853
-      ],
-      "top3": 0.9971,
-      "understood": 1.0,
-      "wrong_confident": 0.0118,
-      "avg_questions": 2.119,
-      "by_lang": {
-        "ta": {
-          "n": 34,
-          "top1": 0.9632
-        },
-        "en": {
-          "n": 34,
-          "top1": 0.9691
+          "top1": 0.9618
         },
         "tl": {
           "n": 17,
@@ -170,21 +143,75 @@
       }
     },
     {
-      "id": "eig_symmetric",
-      "name": "proposed, symmetric noise",
+      "id": "eig",
+      "name": "v2 + EIG (proposed)",
       "top1": 0.9653,
       "top1_ci95": [
-        0.9447,
-        0.9818
+        0.9429,
+        0.9835
       ],
-      "top3": 0.9965,
+      "top3": 0.9976,
       "understood": 1.0,
-      "wrong_confident": 0.0006,
-      "avg_questions": 3.794,
+      "wrong_confident": 0.0112,
+      "avg_questions": 2.053,
       "by_lang": {
         "ta": {
           "n": 34,
-          "top1": 0.9706
+          "top1": 0.9691
+        },
+        "en": {
+          "n": 34,
+          "top1": 0.9544
+        },
+        "tl": {
+          "n": 17,
+          "top1": 0.9794
+        }
+      }
+    },
+    {
+      "id": "eig_symmetric",
+      "name": "proposed, symmetric noise",
+      "top1": 0.9588,
+      "top1_ci95": [
+        0.9335,
+        0.9794
+      ],
+      "top3": 0.9971,
+      "understood": 1.0,
+      "wrong_confident": 0.0,
+      "avg_questions": 3.819,
+      "by_lang": {
+        "ta": {
+          "n": 34,
+          "top1": 0.95
+        },
+        "en": {
+          "n": 34,
+          "top1": 0.9662
+        },
+        "tl": {
+          "n": 17,
+          "top1": 0.9618
+        }
+      }
+    },
+    {
+      "id": "eig_no_unknown",
+      "name": "proposed, no UNKNOWN hypothesis",
+      "top1": 0.9647,
+      "top1_ci95": [
+        0.9465,
+        0.98
+      ],
+      "top3": 0.9976,
+      "understood": 1.0,
+      "wrong_confident": 0.0082,
+      "avg_questions": 2.038,
+      "by_lang": {
+        "ta": {
+          "n": 34,
+          "top1": 0.9647
         },
         "en": {
           "n": 34,
@@ -192,34 +219,7 @@
         },
         "tl": {
           "n": 17,
-          "top1": 0.9559
-        }
-      }
-    },
-    {
-      "id": "eig_no_unknown",
-      "name": "proposed, no UNKNOWN hypothesis",
-      "top1": 0.9659,
-      "top1_ci95": [
-        0.9429,
-        0.9847
-      ],
-      "top3": 0.9988,
-      "understood": 1.0,
-      "wrong_confident": 0.0124,
-      "avg_questions": 2.014,
-      "by_lang": {
-        "ta": {
-          "n": 34,
-          "top1": 0.9618
-        },
-        "en": {
-          "n": 34,
-          "top1": 0.9721
-        },
-        "tl": {
-          "n": 17,
-          "top1": 0.9618
+          "top1": 0.9647
         }
       }
     }
@@ -229,19 +229,19 @@
       "disease": "early_blight",
       "name": "Early Blight",
       "v1": 0.8,
-      "eig": 0.99
+      "eig": 0.95
     },
     {
       "disease": "late_blight",
       "name": "Late Blight",
       "v1": 0.6,
-      "eig": 0.98
+      "eig": 0.97
     },
     {
       "disease": "powdery_mildew",
       "name": "Powdery Mildew",
       "v1": 0.4,
-      "eig": 0.99
+      "eig": 0.98
     },
     {
       "disease": "whitefly",
@@ -253,7 +253,7 @@
       "disease": "leaf_curl_virus",
       "name": "Tomato Leaf Curl Virus",
       "v1": 0.6,
-      "eig": 0.99
+      "eig": 0.98
     },
     {
       "disease": "septoria_leaf_spot",
@@ -265,7 +265,7 @@
       "disease": "bacterial_spot",
       "name": "Bacterial Spot",
       "v1": 0.8,
-      "eig": 0.75
+      "eig": 0.79
     },
     {
       "disease": "fusarium_wilt",
@@ -277,31 +277,31 @@
       "disease": "bacterial_wilt",
       "name": "Bacterial Wilt",
       "v1": 0.8,
-      "eig": 0.99
+      "eig": 1.0
     },
     {
       "disease": "blossom_end_rot",
       "name": "Blossom End Rot",
       "v1": 0.4,
-      "eig": 0.96
+      "eig": 0.98
     },
     {
       "disease": "mosaic_virus",
       "name": "Tomato Mosaic Virus",
       "v1": 0.8,
-      "eig": 1.0
+      "eig": 0.99
     },
     {
       "disease": "spider_mite",
       "name": "Two-Spotted Spider Mite",
       "v1": 0.4,
-      "eig": 0.99
+      "eig": 1.0
     },
     {
       "disease": "fruit_borer",
       "name": "Fruit Borer",
       "v1": 0.6,
-      "eig": 0.97
+      "eig": 0.99
     },
     {
       "disease": "root_knot_nematode",
@@ -313,7 +313,7 @@
       "disease": "leaf_miner",
       "name": "Leaf Miner",
       "v1": 0.6,
-      "eig": 1.0
+      "eig": 0.99
     },
     {
       "disease": "leaf_mold",
@@ -325,7 +325,7 @@
       "disease": "target_spot",
       "name": "Target Spot",
       "v1": 0.0,
-      "eig": 0.89
+      "eig": 0.84
     }
   ],
   "top_confusions": [
@@ -335,22 +335,22 @@
     },
     {
       "pair": "target_spot->early_blight",
-      "count": 15
-    },
-    {
-      "pair": "early_blight->target_spot",
-      "count": 5
+      "count": 10
     },
     {
       "pair": "septoria_leaf_spot->target_spot",
       "count": 4
     },
     {
-      "pair": "bacterial_spot->septoria_leaf_spot",
-      "count": 2
+      "pair": "powdery_mildew->mosaic_virus",
+      "count": 3
     },
     {
-      "pair": "late_blight->root_knot_nematode",
+      "pair": "early_blight->septoria_leaf_spot",
+      "count": 1
+    },
+    {
+      "pair": "early_blight->target_spot",
       "count": 1
     }
   ]

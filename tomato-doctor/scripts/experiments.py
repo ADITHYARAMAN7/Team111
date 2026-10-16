@@ -13,6 +13,8 @@ E3  leaf-photo classifier: clean vs. degraded images, alone and fused with the d
 E4  online learning from farmer confirmations, starting from a corrupted graph
 E5  latency of one dialogue step
 E6  weather-driven risk case study for four Tamil Nadu districts (live weather)
+E7  field context: soil report + crop stage that agree with, or mislead about, the true problem
+E8  harvest safety: pre-harvest-interval conflicts of the spray plan with the farmer's picking rhythm
 """
 import copy
 import glob
@@ -24,12 +26,20 @@ import random
 import statistics
 import sys
 import time
+import zlib
+from datetime import datetime, timedelta
+
+# String hashing (set/dict iteration order) is randomised per process; fix it so that every
+# number in the paper is reproduced exactly on re-run.
+if os.environ.get("PYTHONHASHSEED") != "0":
+    import subprocess
+    sys.exit(subprocess.call([sys.executable] + sys.argv, env={**os.environ, "PYTHONHASHSEED": "0"}))
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, "scripts"))
 
-from tomatodoc import inference, risk, weather  # noqa: E402
+from tomatodoc import advisory, crop, inference, risk, soil, weather  # noqa: E402
 from tomatodoc.inference import CONFIDENT, MAX_QUESTIONS, UNKNOWN, DiagnosisEngine, report_likelihood  # noqa: E402
 from tomatodoc.kg.graph import PRIOR_STRENGTH, KnowledgeGraph, load_seed, seed_to_data  # noqa: E402
 from tomatodoc.learning import plan_updates  # noqa: E402
@@ -86,11 +96,11 @@ def choose_variance(engine, kg, post, observed):
     return best
 
 
-def dialogue(engine, kg, text_matches, truth, rng, strategy="eig", budget=MAX_QUESTIONS, photo=None):
+def dialogue(engine, kg, text_matches, truth, rng, strategy="eig", budget=MAX_QUESTIONS, photo=None, factors=None):
     answers = []
     while True:
         ev = engine.build_evidence(text_matches, answers)
-        post, _ = engine.posterior(ev, photo=photo)
+        post, _ = engine.posterior(ev, photo=photo, factors=factors)
         top_p = max(p for h, p in post.items() if h != UNKNOWN)
         if len(answers) >= budget or (ev or photo) and top_p >= CONFIDENT:
             break
@@ -109,7 +119,7 @@ def dialogue(engine, kg, text_matches, truth, rng, strategy="eig", budget=MAX_QU
             break
         answers.append({"symptom_id": s, "answer": answer(kg, truth, s, rng)})
     ev = engine.build_evidence(text_matches, answers)
-    post, _ = engine.posterior(ev, photo=photo)
+    post, _ = engine.posterior(ev, photo=photo, factors=factors)
     ranked = sorted(((h, p) for h, p in post.items() if h != UNKNOWN), key=lambda kv: -kv[1])
     return ranked, len(answers)
 
@@ -174,7 +184,7 @@ def e1():
                 inference.FALSE_ALARM = 1.0
             if m == "eig_no_unknown":
                 inference.UNKNOWN_PRIOR = 1e-9
-            rng = random.Random(hash((text, m)) & 0xFFFFFFFF)
+            rng = random.Random(zlib.crc32(f"{text}|{m}".encode("utf-8")))   # stable across runs
             for _ in range(N_RUNS if m != "text_only" else 1):
                 strategy = {"random": "random", "variance": "variance"}.get(m, "eig")
                 budget = 0 if m == "text_only" else MAX_QUESTIONS
@@ -519,8 +529,161 @@ def e6():
     save("e6_weather", out)
 
 
+# ------------------------------------------------------------------ E7
+NEUTRAL_SOIL = {"ph": 6.8, "ec": 0.4, "oc": 0.62, "n": 350, "p": 18, "k": 200, "ca": 4.0}
+LINKED = ["blossom_end_rot", "fusarium_wilt", "root_knot_nematode", "early_blight", "fruit_borer", "leaf_curl_virus"]
+TYPICAL_STAGE = {"blossom_end_rot": "fruiting", "fruit_borer": "fruiting", "early_blight": "harvest", "leaf_curl_virus": "vegetative"}
+
+
+def field_context(d):
+    """A plausible soil report + crop stage for a field where disease d occurs. Soil values
+    are changed only where the system's rules link soil to d; everything else is a typical,
+    unremarkable loam, so the context carries no information about unlinked diseases."""
+    v, texture = dict(NEUTRAL_SOIL), "loamy"
+    if d == "blossom_end_rot":
+        v.update(ca=1.1, ec=2.6)
+    elif d == "fusarium_wilt":
+        v.update(ph=5.6)
+        texture = "sandy"
+    elif d == "root_knot_nematode":
+        v.update(oc=0.40)
+        texture = "sandy"
+    elif d == "early_blight":
+        v.update(n=220)
+    elif d in soil.FOLIAR_LUSH | soil.SUCKING_PESTS:
+        v.update(n=620)
+    return soil.clean({"values": v, "texture": texture}), TYPICAL_STAGE.get(d, "flowering")
+
+
+def context_factors(kg, ctx):
+    soil_profile, stage = ctx
+    sf = {d: f for d, (f, _) in soil.disease_factors(soil_profile).items()}
+    stf = crop.stage_factors(stage)
+    return {d: sf.get(d, 1.0) * stf.get(d, 1.0) for d in kg.diseases}
+
+
+def e7():
+    """Does a consistent field profile help, and how much does a misleading one hurt?"""
+    print("E7 field context (soil report + crop stage)")
+    kg = fresh_kg()
+    matcher = SymptomMatcher(kg.layterm_list())
+    eng = DiagnosisEngine(kg)
+    conds = ["none", "consistent", "misleading"]
+    rows = {c: [] for c in conds}
+    for truth, lang, text in CASES:
+        tm = matcher.match(text)["matches"]
+        seed = zlib.crc32(text.encode("utf-8"))
+        decoy = random.Random(seed).choice([d for d in LINKED if d != truth])
+        ctxs = {"none": None, "consistent": context_factors(kg, field_context(truth)),
+                "misleading": context_factors(kg, field_context(decoy))}
+        for c in conds:
+            r = {"truth": truth, "linked": truth in LINKED or truth in (soil.FOLIAR_LUSH | soil.SUCKING_PESTS)}
+            ranked0, _ = dialogue(eng, kg, tm, truth, random.Random(seed), budget=0, factors=ctxs[c])
+            r["desc_top1"] = ranked0[0][0] == truth
+            rng = random.Random(zlib.crc32(f"{text}|eig".encode("utf-8")))   # same dialogues as E1 "eig"
+            t1, wc, qs = [], [], []
+            for _ in range(N_RUNS):
+                ranked2, nq = dialogue(eng, kg, tm, truth, rng, factors=ctxs[c])
+                t1.append(ranked2[0][0] == truth)
+                wc.append(ranked2[0][0] != truth and ranked2[0][1] >= CONFIDENT)
+                qs.append(nq)
+            r.update(top1=sum(t1) / len(t1), wrong=sum(wc) / len(wc), q=statistics.mean(qs))
+            rows[c].append(r)
+
+    def agg(rs):
+        return {"n": len(rs), "desc_top1": round(statistics.mean(r["desc_top1"] for r in rs), 4),
+                "top1": round(statistics.mean(r["top1"] for r in rs), 4),
+                "top1_ci95": bootstrap_ci([r["top1"] for r in rs]),
+                "wrong_confident": round(statistics.mean(r["wrong"] for r in rs), 4),
+                "avg_questions": round(statistics.mean(r["q"] for r in rs), 3)}
+    out = {"n_cases": len(CASES), "n_runs": N_RUNS, "neutral_soil": NEUTRAL_SOIL, "conditions": {}}
+    for c in conds:
+        out["conditions"][c] = {"all": agg(rows[c]),
+                                "linked": agg([r for r in rows[c] if r["linked"]]),
+                                "unlinked": agg([r for r in rows[c] if not r["linked"]])}
+        a = out["conditions"][c]["all"]
+        print(f"   {c:<11} desc-only={a['desc_top1']:.3f} dialogue={a['top1']:.3f} {a['top1_ci95']} "
+              f"Q={a['avg_questions']} wrongconf={a['wrong_confident']}  linked={out['conditions'][c]['linked']['top1']:.3f}")
+    save("e7_field_context", out)
+
+
+# ------------------------------------------------------------------ E8
+def e8():
+    """Harvest safety audit. For every disease x severity x picking interval x days to the
+    next picking, compare the first scheduled spray (and the whole schedule) of the
+    harvest-unaware plan with the harvest-aware plan."""
+    print("E8 harvest safety (pre-harvest intervals vs. picking rhythm)")
+    kg = fresh_kg()
+    day0 = datetime(2026, 10, 14, 8, 0)
+    saved = advisory.next_spray_time
+    advisory.next_spray_time = lambda w: day0          # deterministic spray day (no forecast)
+
+    def detail(d):
+        tr = []
+        for t in kg.treatments_for(d):
+            tr.append({**t, "application": t.get("application")})
+        return {"id": d, "type": kg.diseases[d]["type"], "severity": kg.diseases[d].get("severity", 3)}, tr
+
+    def picks(anchor, every, horizon=60):
+        return [anchor + j * every for j in range(horizon // every + 2)]
+
+    def conflicts(schedule, k, every):
+        """(any spray whose PHI overlaps the next picking after it, any PHI longer than the interval).
+        The farmer picks on schedule; when the plan says 'pick the ripe fruit first' for the
+        first spray, that extra picking happens before spraying and the rhythm restarts there."""
+        overlap = longer = False
+        ps = picks(0 if schedule and schedule[0].get("after_pick") else k, every)
+        for x in schedule:
+            if not x.get("phi"):
+                continue
+            sd = (datetime.fromisoformat(x["date"]).date() - day0.date()).days
+            nxt = min(p for p in ps if p > sd)                # a picking on the spray day happens first
+            if nxt < sd + x["phi"]:
+                overlap = True
+            if x["phi"] > every:
+                longer = True
+        return overlap, longer
+
+    stats = {"baseline": {"first_overlap": [], "first_longer": [], "sched_overlap": [], "sched_longer": [], "eff": []},
+             "aware": {"first_overlap": [], "first_longer": [], "sched_overlap": [], "sched_longer": [], "eff": []}}
+    n_scen, no_spray = 0, 0
+    for d in kg.diseases:
+        disease, treatments = detail(d)
+        if not any((t["application"] or {}).get("phi_days") is not None for t in treatments):
+            no_spray += 1
+            continue
+        for sev in ("mild", "moderate", "severe"):
+            base = advisory.plan(disease, treatments, sev)
+            for every in (3, 4, 5, 7):
+                for k in range(1, every + 1):
+                    h = {"picking": True, "every": every, "next_pick": (day0.date() + timedelta(days=k)).isoformat(), "days_to_pick": k}
+                    aware = advisory.plan(disease, treatments, sev, harvest=h)
+                    n_scen += 1
+                    for name, pl in (("baseline", base), ("aware", aware)):
+                        sch = pl["schedule"]
+                        if not sch:
+                            continue
+                        first = sch[0]
+                        first_next = every if first.get("after_pick") else k
+                        stats[name]["first_overlap"].append(bool(first.get("phi")) and first["phi"] > first_next)
+                        stats[name]["first_longer"].append(bool(first.get("phi")) and first["phi"] > every)
+                        o, lg = conflicts(sch, k, every)
+                        stats[name]["sched_overlap"].append(o)
+                        stats[name]["sched_longer"].append(lg)
+                        eff = next(t["efficacy"] for t in treatments if t["id"] == first["treatment_id"])
+                        stats[name]["eff"].append(eff)
+    advisory.next_spray_time = saved
+    out = {"scenarios": n_scen, "diseases_without_sprays": no_spray, "intervals": [3, 4, 5, 7],
+           "phi_days": {t: v["application"]["phi_days"] for t, v in kg.treatments.items() if (v.get("application") or {}).get("phi_days") is not None}}
+    for name, st in stats.items():
+        out[name] = {k: round(statistics.mean(v), 4) for k, v in st.items()}
+        print(f"   {name:<9} first spray overlaps next picking={out[name]['first_overlap']:.3f}  PHI>interval={out[name]['first_longer']:.3f}  "
+              f"schedule overlap={out[name]['sched_overlap']:.3f}  mean efficacy={out[name]['eff']:.3f}")
+    save("e8_harvest_safety", out)
+
+
 if __name__ == "__main__":
-    which = sys.argv[1:] or ["e1", "e1b", "e2", "e3", "e4", "e5", "e6"]
+    which = sys.argv[1:] or ["e1", "e1b", "e2", "e3", "e4", "e5", "e6", "e7", "e8"]
     t0 = time.time()
     for name in which:
         globals()[name]()

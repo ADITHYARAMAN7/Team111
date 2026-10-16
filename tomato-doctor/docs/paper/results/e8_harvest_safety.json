@@ -1,0 +1,43 @@
+{
+  "scenarios": 741,
+  "diseases_without_sprays": 4,
+  "intervals": [
+    3,
+    4,
+    5,
+    7
+  ],
+  "phi_days": {
+    "mancozeb_75wp": 5,
+    "copper_hydroxide": 3,
+    "copper_oxychloride": 3,
+    "cyazofamid": 3,
+    "azoxy_difeno": 5,
+    "azoxystrobin_sc": 5,
+    "neonicotinoid": 7,
+    "diamide": 5,
+    "calcium_spray": 0,
+    "pseudomonas_bacillus": 0,
+    "bacillus_subtilis": 0,
+    "wettable_sulfur": 1,
+    "neem_oil": 1,
+    "insecticidal_soap": 0,
+    "chilli_extract": 1,
+    "bt_spray": 0,
+    "water_jet": 0
+  },
+  "baseline": {
+    "first_overlap": 0.4049,
+    "first_longer": 0.1781,
+    "sched_overlap": 0.4926,
+    "sched_longer": 0.197,
+    "eff": 0.7782
+  },
+  "aware": {
+    "first_overlap": 0.0486,
+    "first_longer": 0.0486,
+    "sched_overlap": 0.0486,
+    "sched_longer": 0.0486,
+    "eff": 0.7695
+  }
+}
