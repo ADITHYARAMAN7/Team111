@@ -62,14 +62,15 @@
   function drawGraph() {
     const colors = { disease: "#c8432b", symptom: "#5c8f3a", treatment: "#b88a12", layterm: "#6f7fa8" };
     const showT = $("#showTreatments").checked;
-    const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    const th = document.documentElement.dataset.theme;
+    const dark = th ? th === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
     const nodes = graphData.nodes.filter((n) => showT || n.kind !== "treatment").map((n) => ({
       id: n.id, label: n.kind === "layterm" ? n.label : n.label.length > 34 ? n.label.slice(0, 32) + "…" : n.label,
       title: `${n.kind}: ${n.label}${n.label_ta ? "\n" + n.label_ta : ""}`, group: n.kind,
       color: { background: colors[n.kind], border: colors[n.kind], highlight: { background: "#1f3a22", border: "#1f3a22" } },
       shape: n.kind === "disease" ? "dot" : n.kind === "treatment" ? "diamond" : n.kind === "layterm" ? "box" : "dot",
       size: n.kind === "disease" ? 22 : n.kind === "symptom" ? 11 : 9,
-      font: { color: dark ? "#eef0e6" : "#1f2a1c", size: n.kind === "disease" ? 16 : 12, face: "Karla, Noto Sans Tamil" },
+      font: { color: dark ? "#eef0e6" : "#1f2a1c", size: n.kind === "disease" ? 16 : 12, face: "Manrope, Noto Sans Tamil" },
     }));
     const ids = new Set(nodes.map((n) => n.id));
     const edges = graphData.edges.filter((e) => ids.has(e.from) && ids.has(e.to)).map((e) => ({
@@ -84,6 +85,32 @@
       interaction: { hover: true, tooltipDelay: 120 },
     });
     network.on("click", (p) => { if (p.nodes.length) network.selectNodes([p.nodes[0], ...network.getConnectedNodes(p.nodes[0])]); });
+  }
+
+  // Full screen: the browser Fullscreen API on the graph + toolbar; where that is not
+  // available (e.g. iPhone Safari) the same container is pinned over the page instead.
+  const wrap = () => $("#graphWrap");
+  const fsElement = () => document.fullscreenElement || document.webkitFullscreenElement;
+  const isFull = () => fsElement() === wrap() || wrap().classList.contains("pseudo-full");
+  function syncFullUi() {
+    const on = isFull();
+    wrap().classList.toggle("is-full", on);
+    document.body.classList.toggle("graph-full", wrap().classList.contains("pseudo-full"));
+    $("#graphFull").setAttribute("aria-pressed", String(on));
+    $("#graphFull").title = on ? "Exit full screen (Esc)" : "Full screen (F)";
+    $("#graphFullLabel").textContent = on ? "Exit full screen" : "Full screen";
+    if (network) requestAnimationFrame(() => { network.setSize("100%", "100%"); network.redraw(); network.fit({ animation: { duration: 300 } }); });
+  }
+  async function toggleFull() {
+    const el = wrap();
+    if (isFull()) {
+      if (fsElement()) await (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+      else el.classList.remove("pseudo-full");
+    } else {
+      const req = el.requestFullscreen || el.webkitRequestFullscreen;
+      try { if (!req) throw new Error("no fullscreen api"); await req.call(el); } catch { el.classList.add("pseudo-full"); }
+    }
+    syncFullUi();
   }
 
   // ------------------------------------------------------------ outbreaks
@@ -245,6 +272,15 @@
     }
     if (b.dataset.accept) { const [d, s] = b.dataset.accept.split("|"); await api("/api/expert/suggestions/accept", { d, s, weight: 0.3 }); return learning(); }
     if (b.dataset.reject) { const [d, s] = b.dataset.reject.split("|"); await api("/api/expert/suggestions/reject", { d, s }); return learning(); }
+  });
+  $("#graphFull").addEventListener("click", toggleFull);
+  document.addEventListener("fullscreenchange", syncFullUi);
+  document.addEventListener("webkitfullscreenchange", syncFullUi);
+  document.addEventListener("keydown", (e) => {
+    const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName);
+    if (e.key === "Escape" && wrap().classList.contains("pseudo-full")) { wrap().classList.remove("pseudo-full"); syncFullUi(); }
+    else if ((e.key === "f" || e.key === "F") && !typing && !e.ctrlKey && !e.metaKey && !e.altKey
+             && !$("[data-panel=graph]").classList.contains("hidden")) { e.preventDefault(); toggleFull(); }
   });
   $("#showLayterms").addEventListener("change", graph);
   $("#showTreatments").addEventListener("change", drawGraph);
