@@ -179,21 +179,28 @@ disease that has no such edge become *suggested edges* for expert review.
 
 ## Evaluation
 
-`python scripts/evaluate.py` → `docs/evaluation.md`. 85 farmer descriptions
-written independently of the lay-terms, each followed by 20 simulated noisy
-dialogues.
+85 farmer descriptions written independently of the lay-terms, each followed by 20 simulated
+noisy dialogues (`python scripts/experiments.py`, seeds fixed; full results and ablations in
+the paper, `docs/paper/`).
 
 | Metric | v1 prototype | v2 + random questions | **v2** |
 |---|---:|---:|---:|
 | Top-1 accuracy, description only | 63.5 % | 92.9 % | 92.9 % |
-| Top-1 accuracy after dialogue | 63.5 % | 94.6 % | **96.8 %** |
-| Confidently wrong | 10.6 % | 0.5 % | 0.8 % |
-| Avg. follow-up questions | — | 3.54 | **2.10** |
+| Top-1 accuracy after dialogue | 63.5 % | 94.6 % | **96.5 %** |
+| Confidently wrong | 10.6 % | 0.8 % | 1.1 % |
+| Avg. follow-up questions | — | 3.49 | **2.05** |
+
+Field profile (soil report + crop stage, E7): a consistent profile halves confidently wrong
+answers (1.1 % → 0.6 %); a misleading one costs no accuracy after dialogue. Harvest safety
+(E8, 741 picking scenarios): spray schedules that clash with the next picking fall from
+49.3 % to 4.9 %.
 
 The test sentences were written by the authors and the simulated farmer
 answers from the graph's own probabilities, so this measures the reasoning
 pipeline, not field accuracy. Weakest pair: Bacterial Spot vs Target Spot,
 which genuinely share early symptoms; a photo resolves most of these.
+`python scripts/evaluate.py` writes a quick benchmark to `docs/evaluation.md`, shown in the
+expert console.
 
 ## Project layout
 
@@ -222,7 +229,7 @@ tomato/   PlantVillage tomato images (train/val)   legacy/  the v1 prototype
 ## Development
 
 ```bash
-python -m pytest                                      # 71 tests
+python -m pytest                                      # 111 tests (3 need Neo4j)
 TEST_NEO4J_URI=bolt://localhost:7687 TEST_NEO4J_PASSWORD=... python -m pytest tests/test_neo4j.py
 python scripts/train_vision.py                        # retrain photo model (needs torch)
 ```

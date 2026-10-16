@@ -19,3 +19,7 @@ __pycache__/
 # leaf-photo dataset (PlantVillage, ~206 MB) - see tomato/README.md
 tomato/train/
 tomato/val/
+
+# Word build by-products (docs/paper/word/build.sh)
+docs/paper/word/draft.docx
+docs/paper/word/tikz/*.pdf
