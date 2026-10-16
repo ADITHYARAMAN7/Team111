@@ -1,7 +1,7 @@
 {
  "title": [
   {
-   "t": "Tomato Doctor: A Tamil-First Conversational Crop-Disease Diagnosis System on a Probabilistic Knowledge Graph with Information-Gain Questioning and Weather-Aware Advisory"
+   "t": "Tomato Doctor: Tamil-First Conversational Diagnosis and Field-Aware Treatment Planning for Tomato on a Probabilistic Knowledge Graph"
   }
  ],
  "blocks": [
@@ -9,21 +9,14 @@
    "type": "abstract",
    "runs": [
     {
-     "t": "Smallholder tomato growers describe crop problems in colloquial, mixed-script language, often without a usable photograph, while most digital diagnosis tools are image classifiers trained on laboratory photographs. We present "
+     "t": "Tomato growers in Tamil Nadu usually describe a crop problem in their own words, often in colloquial Tamil mixed with English, and often without a usable photograph. Most digital tools, however, are image classifiers trained on laboratory photographs. We present "
     },
     {
      "t": "Tomato Doctor",
      "i": true
     },
     {
-     "t": ", a Tamil-first diagnosis system that reasons over a probabilistic knowledge graph (KG) of 17 diseases and pests, 45 observable symptoms, 247 Tamil, English and Tanglish lay-terms and 30 cited treatments. A concept-level language layer with Tamil stem matching, negation scope and IDF-weighted phrase coverage turns free text into reliability-weighted symptom evidence; a Bayesian engine with an explicit "
-    },
-    {
-     "t": "unknown",
-     "sc": true
-    },
-    {
-     "t": " hypothesis fuses that evidence with a calibrated leaf-photo classifier and a weather-driven prior, and asks the follow-up question with the highest expected information gain. Confirmed outcomes update Beta-distributed KG edge weights, and an advisory layer turns local hourly weather into spray windows, resistance-aware rotation and a dated schedule. On 85 held-out farmer descriptions with simulated noisy dialogues, top-1 accuracy rises from 63.5% (95% CI 52.9–74.1) for the fuzzy-matching prototype to 96.8% (94.5–98.5), while confidently wrong answers fall from 10.6% to 1.2%; information-gain questioning needs 2.1 questions on average, 37% fewer than a weight-variance heuristic at equal accuracy. Under field-like photo degradation the classifier alone drops to 36.4%, whereas fusing the same photo with the dialogue recovers 67.8%. Starting from a deliberately corrupted graph, confirmation-driven learning raises accuracy from 81.2% to 93.6% over 1,500 simulated consultations and nearly halves the mean edge-weight error, whereas the prototype’s update rule increases it. A request costs 3.7 ms on a laptop CPU."
+     "t": ", a diagnosis and advisory system built on a probabilistic knowledge graph (KG) of 17 diseases and pests, 45 symptoms, 247 Tamil, English and Tanglish lay-terms and 30 cited treatments. A concept-level language layer turns free text into reliability-weighted evidence. A Bayesian engine combines this evidence with a calibrated leaf-photo classifier and a prior built from local weather, an optional soil-test report and the crop stage, and it asks the follow-up question with the highest expected information gain. Treatment plans account for rain, wind and heat, rotate resistance groups and respect pre-harvest intervals while fruit is being picked. On 85 held-out farmer descriptions with simulated dialogues, top-1 accuracy rises from 63.5% for our earlier fuzzy-matching prototype to 96.5%, and confidently wrong answers fall from 10.6% to 1.1%. The system needs 2.05 questions on average, 40% fewer than a weight-variance heuristic at the same accuracy. When the leaf photo is degraded, the classifier alone reaches 36.4%, while the photo combined with dialogue reaches 67.8%. A consistent field profile halves confidently wrong answers, and a misleading one costs no accuracy after dialogue. Harvest-aware planning cuts spray schedules that clash with the next picking from 49.3% to 4.9%. A diagnosis request takes 4.2 ms on a laptop CPU."
     }
    ]
   },
@@ -31,7 +24,7 @@
    "type": "keywords",
    "runs": [
     {
-     "t": "Knowledge graphs, plant disease diagnosis, Bayesian inference, expected information gain, low-resource languages, Tamil, decision support systems, precision agriculture."
+     "t": "Knowledge graphs, plant disease diagnosis, Bayesian inference, expected information gain, Tamil, low-resource languages, soil testing, pre-harvest interval, decision support systems."
     }
    ]
   },
@@ -48,7 +41,7 @@
    "type": "p",
    "runs": [
     {
-     "t": "Early, correct identification of a crop disease decides whether a farmer sprays the right product at the right time or loses part of a harvest. Deep convolutional networks recognise diseases in curated leaf photographs with high accuracy [1], [2], yet their accuracy falls sharply on images taken in the field, with cluttered backgrounds, multiple symptoms and variable lighting [2], [3]. Moreover, an image-only tool assumes that the farmer can and will produce a clear photograph, and it cannot use the most informative signal the farmer already has: what they saw, said in their own words."
+     "t": "A tomato grower who notices spots on the lower leaves has to decide quickly what the problem is and what to spray. A wrong guess costs money and, with fungicides and insecticides, can leave residues on fruit that is about to be sold. Convolutional networks recognise plant diseases from curated leaf photographs with high accuracy [1], [2], but their accuracy drops sharply on photographs taken in the field, where backgrounds are cluttered, lighting varies and several symptoms occur together [2], [3]. An image-only tool also assumes that the farmer can take a clear photograph, and it ignores the most informative evidence the farmer already holds: what they have seen, in their own words."
     }
    ]
   },
@@ -56,21 +49,14 @@
    "type": "p",
    "runs": [
     {
-     "t": "For Tamil-speaking growers that description is colloquial, agglutinative and frequently code-mixed with English or written in Latin script (“Tanglish”), e.g. "
+     "t": "For Tamil-speaking growers that description is colloquial and agglutinative, and it is often mixed with English or typed in Latin script (“Tanglish”), for example "
     },
     {
      "t": "இலையில் வெள்ளை தூள் போல இருக்கு",
      "ta": true
     },
     {
-     "t": " (“white dust-like stuff on the leaf”). Such descriptions are also genuinely ambiguous: “white dust” fits both powdery mildew and a whitefly infestation, two problems with entirely different treatments. A useful system must therefore (i) understand informal multilingual text robustly, (ii) recognise when the evidence is insufficient and ask the "
-    },
-    {
-     "t": "one",
-     "i": true
-    },
-    {
-     "t": " question that best separates the remaining candidates, (iii) remain usable when the photograph is poor, (iv) adapt treatment advice to the local weather that determines both disease pressure and whether a spray will wash off, and (v) improve as farmers confirm or correct its answers."
+     "t": " (“something like white powder on the leaf”). Such a sentence is also ambiguous. “White powder” fits powdery mildew and a whitefly infestation equally well, and the two need entirely different treatments. A useful assistant must therefore understand informal multilingual text, notice when the evidence is not enough, and ask the one question that best separates the remaining candidates. It should still work when the photograph is poor. Its advice should reflect the conditions of the particular field: the weather that drives disease pressure and decides whether a spray will wash off, the soil, the stage of the crop, and whether fruit is being picked this week. Finally, it should improve as farmers confirm or correct its answers."
     }
    ]
   },
@@ -78,7 +64,7 @@
    "type": "p",
    "runs": [
     {
-     "t": "A first prototype of this project stored diseases, symptoms, Tamil lay-terms and treatments in a Neo4j graph, matched farmer text to lay-terms with whole-phrase fuzzy matching and summed edge weights to rank diseases. Analysing it revealed failure modes that motivate this work: shared filler words caused spurious matches, negation was ignored, answers to follow-up questions did not influence the ranking, and a single rejection decayed edge weights for all future users."
+     "t": "Our first prototype stored diseases, symptoms, Tamil lay-terms and treatments in a Neo4j graph, matched farmer text to lay-terms by whole-phrase fuzzy matching and ranked diseases by summed edge weights. Working with it exposed four problems. Common filler words produced spurious matches. Negation was ignored. Answers to follow-up questions did not change the ranking. A single rejection lowered edge weights for every later user. This paper describes the system we built to address these problems and the field-level advice we added on top of it."
     }
    ]
   },
@@ -86,7 +72,7 @@
    "type": "p",
    "runs": [
     {
-     "t": "This paper makes the following contributions:"
+     "t": "Our contributions are:"
     }
    ]
   },
@@ -103,7 +89,7 @@
       "b": true
      },
      {
-      "t": " whose symptom and lay-term edges are Beta posteriors, with cited treatments annotated by mode of action, FRAC/IRAC resistance group, rain-fastness, heat limit and dose (Section IV)."
+      "t": " whose symptom and lay-term edges are Beta posteriors, with cited treatments annotated by mode of action, FRAC/IRAC resistance group, rain-fastness, heat limit, dose and pre-harvest interval (Section IV)."
      }
     ],
     [
@@ -111,18 +97,11 @@
       "t": "A "
      },
      {
-      "t": "concept-level multilingual symptom matcher",
+      "t": "concept-level symptom matcher",
       "b": true
      },
      {
-      "t": " for Tamil, English and Tanglish with stem matching, negation scope and IDF-weighted coverage, plus an LLM front end that is "
-     },
-     {
-      "t": "constrained to the KG’s vocabulary",
-      "i": true
-     },
-     {
-      "t": " for speech (Section V)."
+      "t": " for Tamil, English and Tanglish with stem matching, negation scope and IDF-weighted coverage, and a speech front end in which a large language model may only choose identifiers that exist in the KG (Section V)."
      }
     ],
     [
@@ -141,7 +120,16 @@
       "sc": true
      },
      {
-      "t": " hypothesis, tempered photo-likelihood fusion and cost-aware expected-information-gain questioning (Section VI)."
+      "t": " hypothesis, tempered fusion of photo likelihoods and cost-aware expected-information-gain questioning (Section VI)."
+     }
+    ],
+    [
+     {
+      "t": "Weather-aware advisory",
+      "b": true
+     },
+     {
+      "t": ": published disease forecasters as a prior and an early warning, spray-window planning, severity-adaptive and resistance-aware plans, and community outbreak alerts (Section VII)."
      }
     ],
     [
@@ -149,11 +137,11 @@
       "t": "A "
      },
      {
-      "t": "weather- and location-aware advisory layer",
+      "t": "field profile",
       "b": true
      },
      {
-      "t": ": published disease-forecast models (Hutton criteria, TOM-CAST) as a data-driven prior, spray-window planning, severity-adaptive and resistance-aware treatment plans, and community outbreak alerts (Section VII)."
+      "t": " that adds an optional soil-test report and the crop stage to the prior, gives soil-specific root-cause advice and a fertiliser plan, and schedules sprays so that pre-harvest intervals fit the farmer’s picking rhythm (Section VIII)."
      }
     ],
     [
@@ -162,7 +150,7 @@
       "b": true
      },
      {
-      "t": " that only learns from verified outcomes (Section VIII), and an evaluation with ablations, a photo-robustness study, a learning simulation and a live weather case study (Section X)."
+      "t": " (Section IX) and an evaluation with ablations, a photo-robustness study, a learning simulation, a field-context study, a harvest-safety audit and a live weather case study (Section XI)."
      }
     ]
    ]
@@ -189,7 +177,7 @@
    "type": "p",
    "runs": [
     {
-     "t": "The PlantVillage collection [4] enabled convolutional models that reach high accuracy on held-out laboratory images [1], [2]. The same studies, and a dedicated analysis of influencing factors [3], report substantial degradation under field conditions caused by background, illumination, symptom variability and co-occurring disorders. We use such a classifier as one source of evidence and quantify how fusion with dialogue changes its behaviour under degradation."
+     "t": "The PlantVillage collection [4] made it possible to train convolutional models that reach high accuracy on held-out laboratory images [1], [2]. The same studies, and an analysis of the factors that limit such models [3], report large losses under field conditions caused by background, illumination, symptom variability and co-occurring disorders. We use a classifier of this kind as one source of evidence and measure how fusing it with dialogue changes its behaviour when the photograph is poor."
     }
    ]
   },
@@ -206,7 +194,7 @@
    "type": "p",
    "runs": [
     {
-     "t": "Normative expert systems such as Pathfinder [5] and the probabilistic reformulation of INTERNIST-1/QMR [6] represent diagnosis as Bayesian inference over findings; Pathfinder additionally chooses the next finding to observe by its expected value of information, and the expected information gain of an experiment goes back to Lindley [7]. We adapt this line of work to an agricultural KG whose findings arrive through noisy language understanding rather than structured entry, and model that noise explicitly."
+     "t": "Normative expert systems such as Pathfinder [5] and the probabilistic reformulation of INTERNIST-1/QMR [6] treat diagnosis as Bayesian inference over findings. Pathfinder also chooses the next finding to observe by its expected value of information, an idea that goes back to Lindley’s measure of the information provided by an experiment [7]. We carry this approach over to an agricultural KG in which findings arrive through imperfect language understanding rather than structured entry, and we model that imperfection explicitly."
     }
    ]
   },
@@ -223,14 +211,7 @@
    "type": "p",
    "runs": [
     {
-     "t": "Knowledge graphs organise entities and typed relations for retrieval and reasoning [8]. AgriKG [9] extracts agricultural entities from web text into a graph for entity retrieval and question answering. FarmChat [10] showed that a speech-based conversational agent built from Kisan Call Centre logs can meet the information needs of low-literate farmers in India. Our system differs in that the KG is "
-    },
-    {
-     "t": "probabilistic",
-     "i": true
-    },
-    {
-     "t": " and drives an adaptive diagnostic dialogue, and in that weights change with verified field outcomes."
+     "t": "Knowledge graphs organise entities and typed relations for retrieval and reasoning [8]. AgriKG [9] extracts agricultural entities from web text into a graph that supports entity retrieval and question answering. FarmChat [10] showed that a speech-based agent built from Kisan Call Centre logs can serve the information needs of low-literate farmers in India. In our system the KG is probabilistic, it drives an adaptive diagnostic dialogue, and its weights change with verified field outcomes."
     }
    ]
   },
@@ -247,7 +228,7 @@
    "type": "p",
    "runs": [
     {
-     "t": "IndicNLPSuite [11] provides corpora and multilingual models for Indian languages, and large-scale weakly supervised speech recognition [12] and multimodal large language models [13] now transcribe Tamil speech. Colloquial agricultural symptom descriptions remain a low-resource domain, which motivates our lightweight, inspectable concept lexicon and the use of an LLM only as a constrained entity linker."
+     "t": "IndicNLPSuite [11] provides corpora and multilingual models for Indian languages, and recent speech recognisers [12] and multimodal language models [13] can transcribe Tamil speech. Colloquial descriptions of crop symptoms remain a low-resource domain, which is why we keep the core matcher as a small, inspectable concept lexicon and use a language model only as a constrained entity linker."
     }
    ]
   },
@@ -256,7 +237,7 @@
    "num": "E",
    "runs": [
     {
-     "t": "Weather-driven disease forecasting"
+     "t": "Weather, soil and crop context in disease management"
     }
    ]
   },
@@ -264,7 +245,7 @@
    "type": "p",
    "runs": [
     {
-     "t": "Disease forecasters convert weather into infection risk: FAST [14] and its TOM-CAST derivative accumulate daily disease-severity values (DSVs) from leaf wetness and temperature for early blight [15]; the Smith Period and the more sensitive Hutton Criteria flag late-blight risk from consecutive warm, humid days [16]. We use these models, together with rules derived from a tomato disease dataset [17], as a prior for diagnosis and as an early warning."
+     "t": "Disease forecasters convert weather into infection risk. FAST [14] and its TOM-CAST derivative accumulate daily disease-severity values from leaf wetness and temperature for early blight [15], and the Hutton criteria flag late-blight risk from runs of warm, humid days [16]. Soil conditions also shift the odds of particular problems. Blossom-end rot is a calcium-related disorder that low soil calcium and salinity make more likely [17], [18]. Raising soil pH and supplying nitrate rather than ammonium nitrogen suppresses Fusarium wilt [19]. Nitrogen and potassium supply change the susceptibility of crops to many pathogens [20]. In India, soil tests are reported against the rating classes of the national Soil Health Card scheme [21]–[23]. Finally, every registered pesticide carries a pre-harvest interval, the minimum time between the last application and harvest [24]. We are not aware of a farmer-facing diagnosis system that combines these signals with conversational diagnosis, and we use them both in the prior and in the treatment plan."
     }
    ]
   },
@@ -281,7 +262,14 @@
    "type": "p",
    "runs": [
     {
-     "t": "Fig. 1 shows the architecture. A Tamil-first progressive web application collects free text, voice, a leaf photograph, location, and optional tapped symptoms, severity, extent and previously sprayed products. Four extractors turn these inputs into evidence: the concept matcher (Section V), an LLM entity linker for speech, a leaf-photo classifier, and a field-context service that fetches hourly weather and nearby outbreak reports. The reasoning core maintains a posterior over diseases (Section VI); while no hypothesis is confident it asks the most informative question, otherwise it returns a diagnosis with an evidence-level explanation and a weather-aware treatment plan (Section VII). Farmer confirmations and expert curation close the loop (Section VIII)."
+     "t": "Fig. 1 shows the architecture. A Tamil-first web application collects free text, voice, a leaf photograph and, if the farmer chooses, tapped symptoms, severity, the share of affected plants and products already sprayed. On first use the application asks the browser for the farmer’s location. An optional "
+    },
+    {
+     "t": "field profile",
+     "i": true
+    },
+    {
+     "t": " records the transplanting date, the picking rhythm and a soil-test report. Four extractors turn these inputs into evidence: the concept matcher (Section V), a language-model entity linker for speech, the leaf-photo classifier, and a field-context service that fetches hourly weather and nearby outbreak reports and converts the field profile into prior factors. The reasoning core maintains a posterior over diseases (Section VI). While no hypothesis is confident it asks the most informative question. Otherwise it returns a diagnosis with an evidence-level explanation and a treatment plan that reflects the weather, the soil and the harvest (Sections VII and VIII). Farmer confirmations and expert curation close the loop (Section IX)."
     }
    ]
   },
@@ -291,7 +279,7 @@
    "number": "1",
    "caption": [
     {
-     "t": "Architecture of Tomato Doctor. Black arrows carry evidence and decisions; red arrows form the dialogue and learning loops; dashed arrows carry weather and community outbreak reports. The knowledge graph is stored in Neo4j or in an embedded store and is mirrored in memory for inference."
+     "t": "Architecture of Tomato Doctor. Black arrows carry evidence and decisions, red arrows form the dialogue and learning loops, and dashed arrows carry weather and community outbreak reports. The knowledge graph is stored in Neo4j or in an embedded store and is mirrored in memory for inference."
     }
    ],
    "items": [
@@ -323,7 +311,7 @@
    "type": "p",
    "runs": [
     {
-     "t": "The KG schema is shown in Fig. 2 and its contents in Table I. A "
+     "t": "Fig. 2 shows the schema and Table I the contents. A "
     },
     {
      "t": "Disease",
@@ -388,21 +376,21 @@
      "math": true
     },
     {
-     "t": ". Each symptom carries a farmer-facing question in Tamil and English, the plant part, and an "
+     "t": ". Each symptom carries a question for the farmer in Tamil and English, the plant part, and an "
     },
     {
      "t": "observation cost",
      "i": true
     },
     {
-     "t": " for destructive checks (cutting a stem: 0.10; the stem-ooze test: 0.15; uprooting a plant: 0.25). "
+     "t": " for checks that damage the plant (cutting a stem: 0.10; the stem-ooze test: 0.15; uprooting a plant: 0.25). "
     },
     {
      "t": "LayTerm",
      "i": true
     },
     {
-     "t": " nodes hold colloquial phrases in Tamil script, English and Tanglish linked to symptoms by "
+     "t": " nodes hold colloquial phrases in Tamil script, English and Tanglish and link to symptoms through "
     },
     {
      "t": "LAYTERM_MAPS_TO",
@@ -423,7 +411,7 @@
      "i": true
     },
     {
-     "t": ". Diseases link to "
+     "t": ". Diseases also link to "
     },
     {
      "t": "Treatment",
@@ -437,14 +425,14 @@
      "sf": true
     },
     {
-     "t": ", efficacy), reference photographs ("
+     "t": ", with an efficacy), to reference photographs ("
     },
     {
      "t": "CONFIRMED_BY",
      "sf": true
     },
     {
-     "t": ") and "
+     "t": ") and to "
     },
     {
      "t": "SeasonCondition",
@@ -458,7 +446,7 @@
      "sf": true
     },
     {
-     "t": ", boost)."
+     "t": ", with a boost)."
     }
    ]
   },
@@ -482,7 +470,7 @@
      "sf": true
     },
     {
-     "t": " weights are Beta posteriors that are updated by confirmed field outcomes."
+     "t": " weights are Beta posteriors that confirmed field outcomes update."
     }
    ],
    "items": [
@@ -698,7 +686,7 @@
    "type": "p",
    "runs": [
     {
-     "t": "Symptoms, favourable conditions and treatments for nine diseases are drawn from a tomato disease dataset compiled from more than 40 authoritative sources [17]; the remaining entries are standard extension guidance and are labelled as such in the graph and the user interface. Of the 30 treatments, 21 cite the dataset. Tamil lay-terms were written by the authors, including the 28 phrases of the original prototype, and the graph grows at run time through expert curation (Section VIII). A referential-integrity validator checks the graph before every load."
+     "t": "Symptoms, favourable conditions and treatments for nine diseases come from a tomato disease dataset compiled from more than 40 authoritative sources [25]. The remaining entries follow standard extension guidance and are labelled as such in the graph and in the interface. Of the 30 treatments, 21 cite the dataset. We wrote the Tamil lay-terms ourselves, starting from the 28 phrases of the prototype, and the graph grows at run time through expert curation (Section IX). A referential-integrity check validates the graph before every load."
     }
    ]
   },
@@ -810,7 +798,7 @@
      "math": true
     },
     {
-     "t": " and prior strength "
+     "t": " and a prior strength of "
     },
     {
      "t": "K",
@@ -851,14 +839,14 @@
      "i": true
     },
     {
-     "t": ", keeping weights in "
+     "t": ". Weights therefore stay in "
     },
     {
      "t": "(0, 1)",
      "math": true
     },
     {
-     "t": ", reversible and auditable."
+     "t": ", and every change can be traced and reversed."
     }
    ]
   },
@@ -875,14 +863,14 @@
    "type": "p",
    "runs": [
     {
-     "t": "Every sprayable treatment carries the attributes required for weather-aware advice (Table II): mode (contact, systemic, biological, botanical), FRAC/IRAC group [18], [19], dry hours needed before rain, maximum application temperature, preferred time of day, a numeric dose and a repeat interval. Rain-fastness of contact protectants is set conservatively to 4 h, since reported drying times range from 1.5–2 h to 6 h on product labels and mancozeb deposits are partly washed off by moderate rain [20]; the 32 "
+     "t": "Each sprayable treatment carries the attributes that weather- and harvest-aware advice needs (Table II): its mode (contact, systemic, biological, botanical), its FRAC or IRAC group [26], [27], the dry hours it needs before rain, its maximum application temperature, a preferred time of day, a numeric dose, a repeat interval and a pre-harvest interval (PHI). We set the rain-fastness of contact protectants to a conservative 4 h, because reported drying times range from 1.5–2 h to 6 h on product labels and moderate rain partly washes off mancozeb deposits [28]. The 32 "
     },
     {
      "t": "°",
      "math": true
     },
     {
-     "t": "C limit for sulfur follows reported phytotoxicity above that temperature [21]."
+     "t": "C limit for sulfur follows reported phytotoxicity above that temperature [29]. PHIs are deliberately conservative defaults, at or above the typical tomato label interval for each product type [24], because intervals differ between brands; the interface states that the label on the pack is final."
     }
    ]
   },
@@ -895,6 +883,7 @@
     }
    ],
    "aligns": [
+    "left",
     "left",
     "left",
     "left",
@@ -941,6 +930,11 @@
        {
         "t": "Dose"
        }
+      ],
+      [
+       {
+        "t": "PHI"
+       }
       ]
      ]
     },
@@ -981,6 +975,11 @@
       [
        {
         "t": "3 g/L"
+       }
+      ],
+      [
+       {
+        "t": "5 d"
        }
       ]
      ]
@@ -1023,6 +1022,57 @@
        {
         "t": "200 mL/ac"
        }
+      ],
+      [
+       {
+        "t": "5 d"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "Copper hydroxide"
+       }
+      ],
+      [
+       {
+        "t": "contact"
+       }
+      ],
+      [
+       {
+        "t": "M1"
+       }
+      ],
+      [
+       {
+        "t": "4 h"
+       }
+      ],
+      [
+       {
+        "t": "35 "
+       },
+       {
+        "t": "°",
+        "math": true
+       },
+       {
+        "t": "C"
+       }
+      ],
+      [
+       {
+        "t": "2 g/L"
+       }
+      ],
+      [
+       {
+        "t": "3 d"
+       }
       ]
      ]
     },
@@ -1063,6 +1113,11 @@
       [
        {
         "t": "2 g/L"
+       }
+      ],
+      [
+       {
+        "t": "1 d"
        }
       ]
      ]
@@ -1116,51 +1171,10 @@
         "math": true,
         "sup": true
        }
-      ]
-     ]
-    },
-    {
-     "cells": [
-      [
-       {
-        "t": "Neem oil"
-       }
       ],
       [
        {
-        "t": "botanical"
-       }
-      ],
-      [
-       {
-        "t": "–"
-       }
-      ],
-      [
-       {
-        "t": "3 h"
-       }
-      ],
-      [
-       {
-        "t": "32 "
-       },
-       {
-        "t": "°",
-        "math": true
-       },
-       {
-        "t": "C"
-       }
-      ],
-      [
-       {
-        "t": "5 mL/L"
-       },
-       {
-        "t": "‡",
-        "math": true,
-        "sup": true
+        "t": "0 d"
        }
       ]
      ]
@@ -1178,7 +1192,7 @@
         "sup": true
        },
        {
-        "t": "IRAC code. Dry: rain-free hours needed after spraying. "
+        "t": "IRAC code. Dry: rain-free hours needed after spraying. PHI: pre-harvest interval. "
        },
        {
         "t": "‡",
@@ -1218,7 +1232,7 @@
    "type": "p",
    "runs": [
     {
-     "t": "Tamil, English and Tanglish surface forms map to 95 language-independent concepts through a lexicon of 944 forms (e.g. "
+     "t": "Tamil, English and Tanglish surface forms map to 95 language-independent concepts through a lexicon of 944 forms (for example "
     },
     {
      "t": "தூள்",
@@ -1239,25 +1253,21 @@
      "i": true
     },
     {
-     "t": ", "
+     "t": " and "
     },
     {
      "t": "podi",
      "i": true
     },
     {
-     "t": " "
-    },
-    {
-     "t": "→ ",
-     "math": true
+     "t": " all map to "
     },
     {
      "t": "powder",
      "sc": true
     },
     {
-     "t": "). Because Tamil is agglutinative ("
+     "t": "). Tamil is agglutinative ("
     },
     {
      "t": "இலை",
@@ -1278,14 +1288,14 @@
      "ta": true
     },
     {
-     "t": "), a Tamil token matches the longest lexicon stem it begins with when the remaining suffix has at most eight code points; Latin tokens match exactly or by a stem with at most four trailing characters, with a typo-tolerant fallback (normalised edit similarity "
+     "t": "), so a Tamil token matches the longest lexicon stem it begins with, provided the remaining suffix has at most eight code points. Latin tokens match exactly or through a stem followed by at most four characters, with a typo-tolerant fallback (normalised edit similarity "
     },
     {
      "t": "≥ 0.88",
      "math": true
     },
     {
-     "t": ") for tokens of five or more characters. Multi-word forms are matched first, which also lets fixed negative idioms such as "
+     "t": ") for tokens of five or more characters. Multi-word forms are matched first. This lets fixed negative idioms such as "
     },
     {
      "t": "காய் பிடிக்கலை",
@@ -1309,7 +1319,7 @@
    "type": "p",
    "runs": [
     {
-     "t": "Text is split into clauses at punctuation and contrastive conjunctions ("
+     "t": "Text is split into clauses at punctuation and at contrastive conjunctions ("
     },
     {
      "t": "ஆனா",
@@ -1323,7 +1333,7 @@
      "i": true
     },
     {
-     "t": "). Tamil negators follow what they negate, so "
+     "t": "). Tamil negators follow the words they negate, so "
     },
     {
      "t": "இல்லை",
@@ -1337,7 +1347,7 @@
      "ta": true
     },
     {
-     "t": " negate the preceding content words; English negators ("
+     "t": " negate the preceding content words. English negators ("
     },
     {
      "t": "no",
@@ -1358,7 +1368,7 @@
      "i": true
     },
     {
-     "t": ") negate up to three following words. Negated concepts form a separate bag that yields "
+     "t": ") negate up to three following words. Negated concepts are collected separately and produce "
     },
     {
      "t": "absent",
@@ -1382,7 +1392,7 @@
    "type": "p",
    "runs": [
     {
-     "t": "Every lay-term phrase "
+     "t": "Each lay-term phrase "
     },
     {
      "t": "p",
@@ -1390,7 +1400,7 @@
      "i": true
     },
     {
-     "t": " is processed into a concept set "
+     "t": " is reduced to a concept set "
     },
     {
      "t": "C",
@@ -1404,7 +1414,7 @@
      "i": true
     },
     {
-     "t": ". Concepts are weighted by inverse document frequency over all phrases [22], "
+     "t": ". Concepts are weighted by their inverse document frequency over all phrases [30], "
     },
     {
      "t": "w",
@@ -1455,7 +1465,7 @@
      "sc": true
     },
     {
-     "t": ") dominate frequent ones ("
+     "t": ") outweigh frequent ones ("
     },
     {
      "t": "leaf",
@@ -1477,7 +1487,7 @@
      "i": true
     },
     {
-     "t": " the concepts found in the input and "
+     "t": " the set of concepts found in the input and "
     },
     {
      "t": "σ",
@@ -1551,7 +1561,7 @@
      "i": true
     },
     {
-     "t": " the most informative half of its concepts reaches the same coverage. The second condition prevents generic words from matching a specific phrase (“green leaves on the plant” must not match “green caterpillar on the plant”). When the input’s negated concepts account for at least a quarter of the phrase weight, the match yields "
+     "t": " the most informative half of its concepts reaches the same coverage. The second condition stops generic words from matching a specific phrase: “green leaves on the plant” must not match “green caterpillar on the plant”. When negated concepts account for at least a quarter of the phrase weight, the match produces "
     },
     {
      "t": "absent",
@@ -1600,14 +1610,14 @@
    "number": "3",
    "caption": [
     {
-     "t": "Worked example. The Tamil input contains a synonym of the lay-term ("
+     "t": "Worked example. The Tamil input uses a synonym of the lay-term ("
     },
     {
      "t": "தூள்",
      "ta": true
     },
     {
-     "t": " vs. "
+     "t": " instead of "
     },
     {
      "t": "பொடி",
@@ -1621,7 +1631,7 @@
      "sc": true
     },
     {
-     "t": ") and a negated clause. The concept matcher produces one present and one absent symptom, and the posterior favours powdery mildew. All values are produced by the implementation."
+     "t": ") and contains a negated clause. The matcher returns one present and one absent symptom, and the posterior favours powdery mildew. All values come from the implementation."
     }
    ],
    "items": [
@@ -1636,7 +1646,7 @@
    "num": "D",
    "runs": [
     {
-     "t": "Speech and LLM entity linking"
+     "t": "Speech and constrained entity linking"
     }
    ]
   },
@@ -1644,35 +1654,28 @@
    "type": "p",
    "runs": [
     {
-     "t": "For voice input, the recording is converted to 16 kHz mono WAV in the browser and sent to a multimodal LLM (Gemini [13]) with a JSON schema whose symptom and treatment fields are "
+     "t": "For voice input, the browser converts the recording to 16 kHz mono WAV and sends it to a multimodal language model (Gemini [13]) together with a JSON schema in which the symptom and treatment fields are "
     },
     {
      "t": "enumerations of KG identifiers",
      "i": true
     },
     {
-     "t": ". The model returns a verbatim transcript, linked symptoms with a confidence and the quoted words, severity, the estimated share of affected plants, duration, crop stage and products already sprayed; it is explicitly instructed not to diagnose. The output is validated (unknown identifiers dropped, numbers clamped), the transcript is also passed through the concept matcher, and LLM-linked symptoms are used only where the matcher found nothing. The LLM thus widens recall without being able to introduce a disease or a dosage that is not in the curated graph. Without an API key the system falls back to browser speech recognition, and severity and extent are still extracted from plain words (e.g. "
+     "t": ". The model returns a verbatim transcript, the linked symptoms with a confidence and the quoted words, severity, the estimated share of affected plants, duration, crop stage and products already sprayed. It is told explicitly not to diagnose. We validate the output (unknown identifiers are dropped and numbers are clamped), pass the transcript through the concept matcher as well, and use the model’s links only for symptoms the matcher did not find. The model can therefore widen recall, but it cannot introduce a disease or a dose that is not in the curated graph. Without an API key the system falls back to the browser’s speech recognition, and severity and extent are still read from plain words ("
     },
     {
      "t": "கொஞ்சம்",
      "ta": true
     },
     {
-     "t": ", “a little” "
+     "t": ", “a little”, becomes "
     },
     {
-     "t": "→ ",
-     "math": true
-    },
-    {
-     "t": "mild). This component is implemented and unit-tested with recorded responses but was "
-    },
-    {
-     "t": "not",
+     "t": "mild",
      "i": true
     },
     {
-     "t": " part of the quantitative evaluation."
+     "t": "). This component is implemented and unit-tested against recorded responses but is not part of the quantitative evaluation."
     }
    ]
   },
@@ -1712,7 +1715,7 @@
      "sc": true
     },
     {
-     "t": " hypothesis (“a problem not in the graph”) with "
+     "t": " hypothesis (“a problem that is not in the graph”) with "
     },
     {
      "t": "θ",
@@ -1749,7 +1752,7 @@
      "i": true
     },
     {
-     "t": " is a report that symptom "
+     "t": " reports that symptom "
     },
     {
      "t": "s",
@@ -1777,7 +1780,7 @@
      "i": true
     },
     {
-     "t": ": for text "
+     "t": ". For text, "
     },
     {
      "t": "c",
@@ -1798,7 +1801,7 @@
      "math": true
     },
     {
-     "t": "; for answers "
+     "t": "; for answers, "
     },
     {
      "t": "c",
@@ -1817,7 +1820,7 @@
      "math": true
     },
     {
-     "t": " (no); for tapped symptoms "
+     "t": " (no); for tapped symptoms, "
     },
     {
      "t": "c",
@@ -1829,7 +1832,7 @@
      "math": true
     },
     {
-     "t": "; for LLM links "
+     "t": "; for links from the language model, "
     },
     {
      "t": "c",
@@ -1881,7 +1884,7 @@
      "i": true
     },
     {
-     "t": ", or a leak value of 0.02 when the KG has no edge, the report likelihood is"
+     "t": ", or a leak value of 0.02 when the KG has no edge, the likelihood of a report is"
     }
    ]
   },
@@ -1911,7 +1914,7 @@
      "math": true
     },
     {
-     "t": " makes false alarms rarer than misses: farmers overlook symptoms more often than they invent a specific one. A weak language match therefore moves the posterior only slightly, which bounds the damage of matching errors."
+     "t": " makes false alarms rarer than misses: farmers overlook symptoms more often than they report a specific one that is not there. A weak language match therefore moves the posterior only a little, which limits the damage a matching error can do."
     }
    ]
   },
@@ -1928,39 +1931,20 @@
    "type": "p",
    "runs": [
     {
-     "t": "The prior is "
-    },
+     "t": "The prior combines the season or the local weather with the optional field profile:"
+    }
+   ]
+  },
+  {
+   "type": "equation",
+   "num": "5",
+   "omml": "<m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">P</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">h</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">∝</m:t></m:r><m:sSub><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">f</m:t></m:r></m:e><m:sub><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">h</m:t></m:r></m:sub></m:sSub><m:sSub><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">σ</m:t></m:r></m:e><m:sub><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">h</m:t></m:r></m:sub></m:sSub><m:sSub><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">γ</m:t></m:r></m:e><m:sub><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">h</m:t></m:r></m:sub></m:sSub><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">,</m:t></m:r>"
+  },
+  {
+   "type": "p",
+   "runs": [
     {
-     "t": "P",
-     "math": true,
-     "i": true
-    },
-    {
-     "t": "(",
-     "math": true
-    },
-    {
-     "t": "h",
-     "math": true,
-     "i": true
-    },
-    {
-     "t": ") ∝ ",
-     "math": true
-    },
-    {
-     "t": "f",
-     "math": true,
-     "i": true
-    },
-    {
-     "t": "h",
-     "math": true,
-     "sub": true,
-     "i": true
-    },
-    {
-     "t": " with "
+     "t": "with "
     },
     {
      "t": "f",
@@ -1978,7 +1962,40 @@
      "math": true
     },
     {
-     "t": " and, for a disease, either a calendar-season boost "
+     "t": " and "
+    },
+    {
+     "t": "σ",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "unknown",
+     "math": true,
+     "sub": true,
+     "sc": true
+    },
+    {
+     "t": " = ",
+     "math": true
+    },
+    {
+     "t": "γ",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "unknown",
+     "math": true,
+     "sub": true,
+     "sc": true
+    },
+    {
+     "t": " = 1",
+     "math": true
+    },
+    {
+     "t": ". For a disease, "
     },
     {
      "t": "f",
@@ -1992,7 +2009,10 @@
      "i": true
     },
     {
-     "t": " = 1 + ",
+     "t": " is either a calendar-season boost "
+    },
+    {
+     "t": "1 + ",
      "math": true
     },
     {
@@ -2014,13 +2034,41 @@
      "sf": true
     },
     {
-     "t": " edges or, when the location is known, the weather-driven factor of Section VII. A leaf photo enters as a tempered likelihood"
+     "t": " edges or, once the location is known, the weather-driven factor of Section VII. The soil factor "
+    },
+    {
+     "t": "σ",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "d",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": " and the crop-stage factor "
+    },
+    {
+     "t": "γ",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "d",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": " are described in Section VIII; both equal 1 when the farmer has not filled in a field profile. A leaf photo enters as a tempered likelihood"
     }
    ]
   },
   {
    "type": "equation",
-   "num": "5",
+   "num": "6",
    "omml": "<m:sSub><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">L</m:t></m:r></m:e><m:sub><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">img</m:t></m:r></m:sub></m:sSub><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">d</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">=</m:t></m:r><m:d><m:dPr><m:begChr m:val=\"{\"/><m:endChr m:val=\"\"/></m:dPr><m:e><m:eqArr><m:e><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">max</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:sSub><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">p</m:t></m:r></m:e><m:sub><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">d</m:t></m:r></m:sub></m:sSub><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">,</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">0</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">.</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">0</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">2</m:t></m:r><m:sSup><m:e><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r></m:e><m:sup><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">τ</m:t></m:r></m:sup></m:sSup><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">&amp;</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\"> </m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">d</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\"> in the classifier’s classes</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">,</m:t></m:r></m:e><m:e><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">0</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">.</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">0</m:t></m:r><m:sSup><m:e><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">5</m:t></m:r></m:e><m:sup><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">τ</m:t></m:r></m:sup></m:sSup><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">&amp;</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\"> </m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">otherwise,</m:t></m:r></m:e></m:eqArr></m:e></m:d>"
   },
   {
@@ -2053,7 +2101,7 @@
      "math": true
     },
     {
-     "t": ", reduced to 0.25 when a quality check fails or "
+     "t": ". The exponent drops to 0.25 when a quality check fails or "
     },
     {
      "t": "max",
@@ -2087,7 +2135,7 @@
   },
   {
    "type": "equation",
-   "num": "6",
+   "num": "7",
    "omml": "<m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">P</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">h</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">|</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">E</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">∝</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">P</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">h</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r><m:sSub><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">L</m:t></m:r></m:e><m:sub><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">img</m:t></m:r></m:sub></m:sSub><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">h</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r><m:nary><m:naryPr><m:chr m:val=\"∏\"/><m:limLoc m:val=\"undOvr\"/><m:supHide m:val=\"1\"/></m:naryPr><m:sub><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">e</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">∈</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">E</m:t></m:r></m:sub><m:sup/><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">P</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">e</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">|</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">h</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r></m:e></m:nary><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">.</m:t></m:r>"
   },
   {
@@ -2141,7 +2189,7 @@
      "math": true
     },
     {
-     "t": " and "
+     "t": " and let "
     },
     {
      "t": "π",
@@ -2155,7 +2203,7 @@
      "i": true
     },
     {
-     "t": " the posterior after answer "
+     "t": " be the posterior after the answer "
     },
     {
      "t": "a",
@@ -2167,20 +2215,20 @@
      "math": true
     },
     {
-     "t": " with reliability 0.92. The expected information gain is"
+     "t": " given with reliability 0.92. The expected information gain is"
     }
    ]
   },
   {
    "type": "equation",
-   "num": "7",
+   "num": "8",
    "omml": "<m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">EIG</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">s</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">=</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">H</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">π</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">−</m:t></m:r><m:nary><m:naryPr><m:chr m:val=\"∑\"/><m:limLoc m:val=\"undOvr\"/><m:supHide m:val=\"1\"/></m:naryPr><m:sub><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">a</m:t></m:r></m:sub><m:sup/><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">P</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">a</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">|</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">E</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">H</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:sSup><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">π</m:t></m:r></m:e><m:sup><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">a</m:t></m:r></m:sup></m:sSup><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r></m:e></m:nary><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">,</m:t></m:r>"
   },
   {
    "type": "p",
    "runs": [
     {
-     "t": "with "
+     "t": "where "
     },
     {
      "t": "H",
@@ -2188,7 +2236,7 @@
      "i": true
     },
     {
-     "t": " the Shannon entropy in bits [7], and the next question maximises "
+     "t": " is the Shannon entropy in bits [7]. The next question maximises "
     },
     {
      "t": "EIG(",
@@ -2214,7 +2262,7 @@
      "math": true
     },
     {
-     "t": ". Dialogue stops when the best disease reaches 0.85, after six questions, or when no question offers more than 0.03 bits (Algorithm 1). The farmer may also answer “not sure” or ask for the result at any time."
+     "t": ". The dialogue stops when the best disease reaches 0.85, after six questions, or when no question offers more than 0.03 bits (Algorithm 1). The farmer can also answer “not sure” or ask for the result at any point."
     }
    ]
   },
@@ -2244,7 +2292,7 @@
        "i": true
       },
       {
-       "t": ", optional photo, location, tapped symptoms"
+       "t": ", optional photo, location, field profile, tapped symptoms"
       }
      ],
      "comment": null
@@ -2344,12 +2392,12 @@
        "sc": true
       },
       {
-       "t": "(location, weather, outbreaks)"
+       "t": "(weather, outbreaks, soil, crop stage)"
       }
      ],
      "comment": [
       {
-       "t": "Sec. VII"
+       "t": "Eq. (5)"
       }
      ]
     },
@@ -2488,7 +2536,7 @@
        "math": true
       },
       {
-       "t": " by (6)"
+       "t": " by (7)"
       }
      ],
      "comment": null
@@ -2975,7 +3023,7 @@
    "type": "p",
    "runs": [
     {
-     "t": "For the top disease "
+     "t": "For the leading disease "
     },
     {
      "t": "d",
@@ -3001,7 +3049,7 @@
      "sub": true
     },
     {
-     "t": ", each evidence item is shown with its log-likelihood ratio "
+     "t": ", each piece of evidence is shown with its log-likelihood ratio "
     },
     {
      "t": "log ",
@@ -3072,7 +3120,7 @@
      "math": true
     },
     {
-     "t": ", labelled as supporting or contradicting, together with the farmer’s own words, the lay-term it matched and the KG weight "
+     "t": " and labelled as supporting or contradicting, together with the farmer’s own words, the lay-term it matched and the KG weight "
     },
     {
      "t": "θ",
@@ -3110,7 +3158,20 @@
      "sub": true
     },
     {
-     "t": " are listed as things to check next."
+     "t": " are listed as things to check next. When the soil report raised the prior of "
+    },
+    {
+     "t": "d",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "1",
+     "math": true,
+     "sub": true
+    },
+    {
+     "t": ", the result names the soil findings responsible."
     }
    ]
   },
@@ -3136,35 +3197,21 @@
    "type": "p",
    "runs": [
     {
-     "t": "Given a location (GPS or a district, always rounded to a 0.05"
+     "t": "The application requests the farmer’s location when it opens; a farmer who declines can pick a district instead. Locations are always rounded to a 0.05"
     },
     {
      "t": "°",
      "math": true
     },
     {
-     "t": " grid of about 5 km), the system retrieves seven days of hourly history and three days of forecast [23]. Relative humidity "
-    },
-    {
-     "t": "≥ ",
-     "math": true
-    },
-    {
-     "t": "90% serves as the leaf-wetness proxy, as in operational TOM-CAST implementations [15]. "
+     "t": " grid (about 5 km). For that grid cell the system retrieves seven days of hourly history and three days of forecast [31]. Relative humidity of at least 90% serves as the leaf-wetness proxy, as in operational TOM-CAST implementations [15]. "
     },
     {
      "t": "Late blight",
      "i": true
     },
     {
-     "t": " uses the Hutton criteria [16]: a day qualifies when the minimum temperature is "
-    },
-    {
-     "t": "≥ ",
-     "math": true
-    },
-    {
-     "t": "10 "
+     "t": " uses the Hutton criteria [16]: a day qualifies when the minimum temperature is at least 10 "
     },
     {
      "t": "°",
@@ -3178,7 +3225,7 @@
      "math": true
     },
     {
-     "t": "90%; with "
+     "t": "90%. With "
     },
     {
      "t": "P",
@@ -3194,7 +3241,7 @@
      "i": true
     },
     {
-     "t": " the qualifying days and "
+     "t": " the number of qualifying days and "
     },
     {
      "t": "F",
@@ -3202,13 +3249,13 @@
      "i": true
     },
     {
-     "t": " an indicator of a forecast pair,"
+     "t": " an indicator for a forecast pair,"
     }
    ]
   },
   {
    "type": "equation",
-   "num": "8",
+   "num": "9",
    "omml": "<m:sSub><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">r</m:t></m:r></m:e><m:sub><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">LB</m:t></m:r></m:sub></m:sSub><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">=</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">min</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">1</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">,</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">0</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">.</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">4</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">5</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">P</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">+</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">0</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">.</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">1</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">5</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">H</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">+</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">0</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">.</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">3</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">F</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">g</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">(</m:t></m:r><m:acc><m:accPr><m:chr m:val=\"&#772;\"/></m:accPr><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">T</m:t></m:r></m:e></m:acc><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">)</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/></w:rPr><m:t xml:space=\"preserve\">,</m:t></m:r>"
   },
   {
@@ -3223,7 +3270,7 @@
      "i": true
     },
     {
-     "t": " is 1 for a mean temperature of 12–23 "
+     "t": " equals 1 for a mean temperature of 12–23 "
     },
     {
      "t": "°",
@@ -3237,7 +3284,7 @@
      "math": true
     },
     {
-     "t": "C as the fastest-spread range [17]) and decreases linearly to 0.1 at 30 "
+     "t": "C as the range of fastest spread [25]) and falls linearly to 0.1 at 30 "
     },
     {
      "t": "°",
@@ -3277,7 +3324,7 @@
      "math": true
     },
     {
-     "t": ". Eleven further diseases use transparent rules that count hours meeting favourable temperature and humidity conditions (e.g. "
+     "t": ". Eleven further diseases use simple rules that count the hours meeting favourable temperature and humidity conditions (for example "
     },
     {
      "t": "T",
@@ -3303,7 +3350,7 @@
      "math": true
     },
     {
-     "t": "50% for spider mites), taken from [17] where the dataset covers the disease (septoria, leaf mold, target spot, spider mite, leaf miner, leaf curl virus) and from general guidance otherwise; they are capped at 0.8 so that heuristics never claim the certainty of the published models. Four diseases without a weather signal (fruit borer, root-knot nematode, Fusarium wilt, mosaic virus) receive no model. Risks are shown as a weekly early warning, and replace the calendar season in the prior as "
+     "t": "50% for spider mites). The rules come from [25] where the dataset covers the disease (septoria, leaf mold, target spot, spider mite, leaf miner, leaf curl virus) and from general guidance otherwise, and they are capped at 0.8 so that a heuristic never claims the certainty of a published model. Four diseases without a weather signal (fruit borer, root-knot nematode, Fusarium wilt, mosaic virus) have no model. The risks appear as a weekly early warning and replace the calendar season in the prior as "
     },
     {
      "t": "f",
@@ -3332,7 +3379,7 @@
      "i": true
     },
     {
-     "t": ", with unmodelled diseases receiving the mean factor."
+     "t": "; diseases without a model receive the mean factor."
     }
    ]
   },
@@ -3349,7 +3396,7 @@
    "type": "p",
    "runs": [
     {
-     "t": "Confirmed diagnoses with a location become reports. For a farmer, the count "
+     "t": "Confirmed diagnoses that have a location become outbreak reports. For a given farmer, the number "
     },
     {
      "t": "n",
@@ -3393,7 +3440,7 @@
      "math": true
     },
     {
-     "t": " and triggers an alert; an expert map shows all reports."
+     "t": " and triggers an alert. An expert map shows all reports."
     }
    ]
   },
@@ -3410,21 +3457,21 @@
    "type": "p",
    "runs": [
     {
-     "t": "An hour is suitable for a product when it falls in the product’s application hours (daylight, or 16:00–19:00 for UV-sensitive biologicals and oils), it is not raining, no hour within the product’s rain-fast period has "
+     "t": "An hour suits a product when it falls inside the product’s application hours (daylight, or 16:00–19:00 for UV-sensitive biologicals and oils), when it is not raining, when no hour within the product’s rain-fast period has "
     },
     {
      "t": "≥ ",
      "math": true
     },
     {
-     "t": "0.3 mm of rain or "
+     "t": "0.3 mm of rain or a rain probability of "
     },
     {
      "t": "≥ ",
      "math": true
     },
     {
-     "t": "60% rain probability, the wind is below 20 km/h [24], the temperature is below the product limit, and RH is below 97%. The earliest run of at least two suitable hours in the next 72 h is reported, with a caution for wind of 15–20 km/h. Every treatment is labelled "
+     "t": "60%, when the wind is below 20 km/h [32], when the temperature is below the product’s limit, and when RH is below 97%. The earliest run of at least two suitable hours in the next 72 h is reported, with a caution when the wind is between 15 and 20 km/h. Each treatment is labelled "
     },
     {
      "t": "OK now",
@@ -3462,7 +3509,7 @@
    "type": "p",
    "runs": [
     {
-     "t": "Treatments are ranked by efficacy adjusted for severity (mild: cultural "
+     "t": "Treatments are ranked by efficacy, adjusted for severity (mild: cultural "
     },
     {
      "t": "+0.3",
@@ -3518,20 +3565,611 @@
      "math": true
     },
     {
-     "t": ") and for resistance (a product sharing a FRAC/IRAC group with a recently sprayed one: "
-    },
-    {
-     "t": "−0.4",
-     "math": true
-    },
-    {
-     "t": "). Previously sprayed products named by the farmer are fuzzy-matched to KG treatments; the plan states when to switch groups and when a product does not target the diagnosed problem, and that viral diseases have no cure. The share of affected plants sets the scope (below 10%: treat or remove those plants; below 40%: the patch; otherwise the field). A dated schedule alternates resistance groups at the products’ repeat intervals and is exported as an iCalendar file; a calculator converts doses to a 16 L knapsack tank and to the farmer’s area in cents or acres."
+     "t": ") and for resistance management (a product that shares a FRAC or IRAC group with one sprayed recently loses 0.4). Products the farmer has already sprayed are fuzzy-matched to KG treatments. The plan says when to switch resistance group, when a product does not target the diagnosed problem, and that viral diseases have no cure. The share of affected plants sets the scope: below 10%, treat or remove those plants; below 40%, treat the patch; otherwise treat the field. A dated schedule alternates resistance groups at each product’s repeat interval and can be exported as a calendar file, and a calculator converts doses to a 16 L knapsack tank and to the farmer’s area in cents or acres."
     }
    ]
   },
   {
    "type": "h1",
    "num": "VIII",
+   "runs": [
+    {
+     "t": "Field Profile: Soil, Crop Stage and Harvest"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "The field profile is optional. It is stored on the farmer’s device and sent to the server only with the requests that use it. It holds the transplanting date, the variety type, the area, whether fruit is being picked and how often, and a soil-test report (Fig. 4)."
+    }
+   ]
+  },
+  {
+   "type": "h2",
+   "num": "A",
+   "runs": [
+    {
+     "t": "Reading a soil-test report"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "A farmer can type the values of a report or upload it. Reports that are PDFs with a text layer, such as a downloaded Soil Health Card, are parsed locally: each line is searched for a known parameter label in English, an abbreviation or Tamil, followed by a number within the plausible range for that parameter, and values reported as P"
+    },
+    {
+     "t": "2",
+     "math": true,
+     "sub": true
+    },
+    {
+     "t": "O"
+    },
+    {
+     "t": "5",
+     "math": true,
+     "sub": true
+    },
+    {
+     "t": " or K"
+    },
+    {
+     "t": "2",
+     "math": true,
+     "sub": true
+    },
+    {
+     "t": "O are converted to elemental P and K. Photographs and scanned reports are read by the multimodal model under a JSON schema with one numeric field per parameter. The model is told to copy values, never to estimate them, and every value it returns passes the same range checks as typed input. Fourteen parameters are supported: pH, electrical conductivity (EC), organic carbon, available N, P, K and S, the micronutrients Zn, Fe, Mn, Cu and B, and exchangeable Ca and Mg. Each is rated with the classes printed on the Soil Health Card [21]–[23], for example available N below 280 kg/ha as low and above 560 kg/ha as high."
+    }
+   ]
+  },
+  {
+   "type": "h2",
+   "num": "B",
+   "runs": [
+    {
+     "t": "Soil and crop-stage factors in the prior"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "Table III lists the rules that turn the field profile into the factors "
+    },
+    {
+     "t": "σ",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "d",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": " and "
+    },
+    {
+     "t": "γ",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "d",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": " of (5). We kept to links that are documented in the literature or in standard extension guidance, and we kept the factors small: the product of soil factors for a disease is capped at 2, so a soil report can at most double a prior and the symptoms still decide the diagnosis. The crop stage follows from the days after transplanting: establishment from day 0, vegetative growth from day 20, flowering from day 35, fruit set from day 55 and harvest from day 70. These boundaries are our approximation for a transplanted crop of 135–150 days, and the farmer can override the stage. Its main effect is to make fruit problems unlikely before there is fruit."
+    }
+   ]
+  },
+  {
+   "type": "table",
+   "number": "III",
+   "caption": [
+    {
+     "t": "Field-profile rules used in the prior"
+    }
+   ],
+   "aligns": [
+    "left",
+    "left",
+    "left"
+   ],
+   "rows": [
+    {
+     "cells": [
+      [
+       {
+        "t": "Field condition"
+       }
+      ],
+      [
+       {
+        "t": "Problems affected"
+       }
+      ],
+      [
+       {
+        "t": "Factor"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "Exch. Ca "
+       },
+       {
+        "t": "< ",
+        "math": true
+       },
+       {
+        "t": "1.5 cmol/kg"
+       }
+      ],
+      [
+       {
+        "t": "blossom-end rot [17]"
+       }
+      ],
+      [
+       {
+        "t": "×",
+        "math": true
+       },
+       {
+        "t": "1.5"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "EC 1–2 / "
+       },
+       {
+        "t": "> ",
+        "math": true
+       },
+       {
+        "t": "2 dS/m"
+       }
+      ],
+      [
+       {
+        "t": "blossom-end rot [18]"
+       }
+      ],
+      [
+       {
+        "t": "×",
+        "math": true
+       },
+       {
+        "t": "1.2 / 1.4"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "pH "
+       },
+       {
+        "t": "< ",
+        "math": true
+       },
+       {
+        "t": "5.5"
+       }
+      ],
+      [
+       {
+        "t": "blossom-end rot"
+       }
+      ],
+      [
+       {
+        "t": "×",
+        "math": true
+       },
+       {
+        "t": "1.2"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "pH "
+       },
+       {
+        "t": "< ",
+        "math": true
+       },
+       {
+        "t": "6.0"
+       }
+      ],
+      [
+       {
+        "t": "Fusarium wilt [19]"
+       }
+      ],
+      [
+       {
+        "t": "×",
+        "math": true
+       },
+       {
+        "t": "1.3"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "Sandy texture"
+       }
+      ],
+      [
+       {
+        "t": "Fusarium wilt; root-knot nematode"
+       }
+      ],
+      [
+       {
+        "t": "×",
+        "math": true
+       },
+       {
+        "t": "1.15; 1.4"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "Organic carbon "
+       },
+       {
+        "t": "< ",
+        "math": true
+       },
+       {
+        "t": "0.5%"
+       }
+      ],
+      [
+       {
+        "t": "root-knot nematode"
+       }
+      ],
+      [
+       {
+        "t": "×",
+        "math": true
+       },
+       {
+        "t": "1.15"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "Available N low / K low"
+       }
+      ],
+      [
+       {
+        "t": "early blight [20]"
+       }
+      ],
+      [
+       {
+        "t": "×",
+        "math": true
+       },
+       {
+        "t": "1.2 / 1.1"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "Available N high"
+       }
+      ],
+      [
+       {
+        "t": "6 foliar diseases, 3 sucking pests [20]"
+       }
+      ],
+      [
+       {
+        "t": "×",
+        "math": true
+       },
+       {
+        "t": "1.15"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "Establishment, vegetative"
+       }
+      ],
+      [
+       {
+        "t": "blossom-end rot; fruit borer; leaf curl"
+       }
+      ],
+      [
+       {
+        "t": "×",
+        "math": true
+       },
+       {
+        "t": "0.2–0.3; 0.4–0.5; 1.2–1.25"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "Flowering"
+       }
+      ],
+      [
+       {
+        "t": "blossom-end rot; fruit borer"
+       }
+      ],
+      [
+       {
+        "t": "×",
+        "math": true
+       },
+       {
+        "t": "0.8; 1.15"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "Fruit set, harvest"
+       }
+      ],
+      [
+       {
+        "t": "blossom-end rot; fruit borer; early blight"
+       }
+      ],
+      [
+       {
+        "t": "×",
+        "math": true
+       },
+       {
+        "t": "1.2–1.3; 1.2–1.3; 1.1–1.25"
+       }
+      ]
+     ]
+    },
+    {
+     "note": true,
+     "cells": [
+      [
+       {
+        "t": "Rules without a citation follow general extension guidance. The product of soil factors is capped at 2."
+       }
+      ]
+     ]
+    }
+   ],
+   "mid_rows": [
+    1
+   ]
+  },
+  {
+   "type": "h2",
+   "num": "C",
+   "runs": [
+    {
+     "t": "Root-cause advice and fertiliser plan"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "Once a diagnosis is made, the soil report is checked against it. For blossom-end rot with low calcium the plan recommends gypsum in the root zone and a calcium spray on young fruit, and adds liming when the soil is acidic and irrigation advice when it is saline. For Fusarium wilt on acidic soil it recommends liming to pH 6.5–7.0 and nitrate rather than ammonium nitrogen [19]. When available nitrogen is already high and the diagnosis is a foliar disease or a sucking pest, it advises against further urea. On strongly acidic soil it warns that repeated copper sprays accumulate. The profile also yields a fertiliser plan for the whole crop. Starting from the regional recommendation for tomato (150:100:50 kg/ha N:P"
+    },
+    {
+     "t": "2",
+     "math": true,
+     "sub": true
+    },
+    {
+     "t": "O"
+    },
+    {
+     "t": "5",
+     "math": true,
+     "sub": true
+    },
+    {
+     "t": ":K"
+    },
+    {
+     "t": "2",
+     "math": true,
+     "sub": true
+    },
+    {
+     "t": "O for varieties and 200:250:250 for hybrids [33]), each nutrient is raised by 25% when the soil test rates it low and lowered by 25% when it rates it high. The result is converted to kilograms of urea, single super phosphate and potash per acre, split into a basal dose and a top dressing on day 30, with sulphate of potash in place of muriate of potash on saline soil and soil or foliar doses for deficient micronutrients."
+    }
+   ]
+  },
+  {
+   "type": "h2",
+   "num": "D",
+   "runs": [
+    {
+     "t": "Harvest-safe spray planning"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "Tomato is picked every few days for several weeks, so a spray whose pre-harvest interval reaches past the next picking forces the farmer either to harvest fruit that is not yet safe or to skip a picking. Let a product with interval "
+    },
+    {
+     "t": "φ",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " be sprayed on day "
+    },
+    {
+     "t": "t",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "s",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": ", let the next picking fall on day "
+    },
+    {
+     "t": "t",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": "p",
+     "math": true,
+     "sub": true,
+     "i": true
+    },
+    {
+     "t": ", and let "
+    },
+    {
+     "t": "Δ",
+     "math": true,
+     "i": true
+    },
+    {
+     "t": " be the farmer’s picking interval. We classify the spray as"
+    }
+   ]
+  },
+  {
+   "type": "equation",
+   "num": "10",
+   "omml": "<m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">status</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">=</m:t></m:r><m:d><m:dPr><m:begChr m:val=\"{\"/><m:endChr m:val=\"\"/></m:dPr><m:e><m:eqArr><m:e><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">safe</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">&amp;</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\"> </m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">φ</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">≤</m:t></m:r><m:sSub><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">t</m:t></m:r></m:e><m:sub><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">p</m:t></m:r></m:sub></m:sSub><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">−</m:t></m:r><m:sSub><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">t</m:t></m:r></m:e><m:sub><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">s</m:t></m:r></m:sub></m:sSub><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">,</m:t></m:r></m:e><m:e><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">pick first</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">&amp;</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\"> </m:t></m:r><m:sSub><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">t</m:t></m:r></m:e><m:sub><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">p</m:t></m:r></m:sub></m:sSub><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">−</m:t></m:r><m:sSub><m:e><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">t</m:t></m:r></m:e><m:sub><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">s</m:t></m:r></m:sub></m:sSub><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">&lt;</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">φ</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">≤</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">Δ</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">,</m:t></m:r></m:e><m:e><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">blocks picking</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">&amp;</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\"> </m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">φ</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">&gt;</m:t></m:r><m:r><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">Δ</m:t></m:r><m:r><m:rPr><m:sty m:val=\"p\"/></m:rPr><w:rPr><w:rFonts w:ascii=\"Cambria Math\" w:hAnsi=\"Cambria Math\"/><w:sz w:val=\"18\"/><w:szCs w:val=\"18\"/></w:rPr><m:t xml:space=\"preserve\">.</m:t></m:r></m:e></m:eqArr></m:e></m:d>"
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "Pick first",
+     "i": true
+    },
+    {
+     "t": " means the farmer harvests the ripe fruit before spraying, which keeps the usual interval. While fruit is being picked, products that would block picking lose 0.5 in the ranking and "
+    },
+    {
+     "t": "pick first",
+     "i": true
+    },
+    {
+     "t": " products lose 0.05. When the best product overall blocks picking and a safer one exists, the plan names the product it moved down and explains why. Repeat sprays in the schedule are placed on the first picking day after the product’s repeat interval, after that day’s harvest, so each interval runs between two pickings. Every scheduled spray shows the date from which picking is safe again. If every sprayable option for a disease blocks picking, the plan says so and points to the non-chemical measures."
+    }
+   ]
+  },
+  {
+   "type": "h2",
+   "num": "E",
+   "runs": [
+    {
+     "t": "Prevention alerts"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "When the weather risk of a disease is high, the home screen proposes a preventive spray from the graph before any symptom appears. Protectants and biological products are preferred, products that would block picking are excluded, and the alert gives the dose, the next spray window and the date from which picking is safe again."
+    }
+   ]
+  },
+  {
+   "type": "figure",
+   "wide": false,
+   "number": "4",
+   "caption": [
+    {
+     "t": "The field profile: crop stage from the transplanting date, picking rhythm and a soil-test report rated against Soil Health Card classes. All entries are optional."
+    }
+   ],
+   "items": [
+    {
+     "img": "../figures/screens/d5_field.png"
+    }
+   ],
+   "layout": "stack"
+  },
+  {
+   "type": "h1",
+   "num": "IX",
    "runs": [
     {
      "t": "Learning from Farmer Feedback"
@@ -3542,7 +4180,7 @@
    "type": "p",
    "runs": [
     {
-     "t": "After a diagnosis the farmer confirms it, picks the correct disease from reference photos, rejects it, or is unsure. Only confirmed or corrected outcomes update weights: a bare rejection tells us that the answer was wrong, not which answer is right, and decaying the predicted disease’s edges on rejection, as the prototype did, penalises edges that may be correct. For the true disease "
+     "t": "After a diagnosis the farmer can confirm it, pick the correct disease from reference photographs, reject it, or say they are unsure. Only confirmed or corrected outcomes update weights. A bare rejection tells us that the answer was wrong but not which answer is right, and lowering the edges of the predicted disease on rejection, as the prototype did, penalises edges that may well be correct. For the true disease "
     },
     {
      "t": "d",
@@ -3584,7 +4222,7 @@
      "math": true
     },
     {
-     "t": ". If "
+     "t": ". If the edge "
     },
     {
      "t": "(",
@@ -3665,7 +4303,7 @@
      "i": true
     },
     {
-     "t": " for expert review. For a text match through lay-term "
+     "t": " for an expert to review. For a text match through lay-term "
     },
     {
      "t": "l",
@@ -3720,7 +4358,7 @@
      "sup": true
     },
     {
-     "t": " and "
+     "t": ", and "
     },
     {
      "t": "β",
@@ -3734,17 +4372,17 @@
      "i": true
     },
     {
-     "t": " otherwise. Descriptions that matched nothing are queued in an expert console, where mapping one to a symptom creates a new LayTerm node immediately; Fig. 4 shows the console."
+     "t": " grows otherwise. Descriptions that matched nothing are queued in an expert console, where mapping one to a symptom immediately creates a new LayTerm node. Fig. 5 shows the console."
     }
    ]
   },
   {
    "type": "figure",
    "wide": false,
-   "number": "4",
+   "number": "5",
    "caption": [
     {
-     "t": "Expert console. Edge thickness encodes the KG weight; the console also lists unmatched farmer phrases for curation and the drift of every learned edge weight."
+     "t": "Expert console. Edge thickness encodes the KG weight. The console also lists unmatched farmer phrases for curation and the drift of every learned edge weight."
     }
    ],
    "items": [
@@ -3769,7 +4407,7 @@
   },
   {
    "type": "h1",
-   "num": "IX",
+   "num": "X",
    "runs": [
     {
      "t": "Implementation"
@@ -3780,7 +4418,7 @@
    "type": "p",
    "runs": [
     {
-     "t": "The back end is a Python/Flask service. The KG is stored in Neo4j [25] (tested with Neo4j 5.26; AuraDB is supported) or in an embedded store that combines the curated JSON seed with learned state in SQLite; both produce the same in-memory graph, and the service falls back to the embedded store when Neo4j is unreachable. Learned "
+     "t": "The back end is a Python/Flask service. The KG is stored either in Neo4j [34] (tested with Neo4j 5.26; AuraDB is supported) or in an embedded store that combines the curated JSON seed with learned state in SQLite. Both produce the same in-memory graph, and the service falls back to the embedded store when Neo4j cannot be reached. Learned values of "
     },
     {
      "t": "α",
@@ -3788,8 +4426,7 @@
      "i": true
     },
     {
-     "t": ", ",
-     "math": true
+     "t": " and "
     },
     {
      "t": "β",
@@ -3797,7 +4434,7 @@
      "i": true
     },
     {
-     "t": " are written back onto the Neo4j relationships. The front end is a framework-free progressive web application with Tamil and English interfaces, read-aloud, tap-to-pick symptoms, a disease library, history, sharing and a service worker for weak connectivity (Fig. 5)."
+     "t": " are written back to the Neo4j relationships."
     }
    ]
   },
@@ -3805,7 +4442,15 @@
    "type": "p",
    "runs": [
     {
-     "t": "The leaf classifier uses a frozen ImageNet MobileNetV3-Large backbone [26] on a 10-class PlantVillage tomato subset [4] (9 diseases and healthy; 1,000 training and 100 validation images per class). Pooled 960-d features of the training images and their mirror images (20,000 vectors) train a 960–256–10 MLP head with dropout 0.3, AdamW [27] (learning rate "
+     "t": "The front end is a framework-free web application designed for desktop use, with sidebar navigation, a two-column diagnosis workspace that keeps the field conditions in view, and a result page that places the diagnosis and treatments beside the spray plan, soil advice and dose calculator (Fig. 6 and Fig. 7). The same pages collapse to a single column on a phone. The interface is available in Tamil and English, in light and dark themes, with read-aloud, tap-to-pick symptoms, a disease library, a consultation history and sharing; a service worker keeps the interface usable on weak connections."
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "The leaf classifier uses a frozen ImageNet MobileNetV3-Large backbone [35] on a 10-class PlantVillage tomato subset [4] (nine diseases and healthy leaves; 1,000 training and 100 validation images per class). Pooled 960-dimensional features of the training images and their mirror images (20,000 vectors) train a 960–256–10 MLP head with dropout 0.3, AdamW [36] (learning rate "
     },
     {
      "t": "2×10",
@@ -3829,7 +4474,7 @@
      "sup": true
     },
     {
-     "t": ", cosine schedule, 40 epochs), label smoothing 0.05 [28] and Gaussian feature noise. A softmax temperature ("
+     "t": ", cosine schedule, 40 epochs), label smoothing of 0.05 [37] and Gaussian feature noise. A softmax temperature ("
     },
     {
      "t": "T",
@@ -3841,7 +4486,7 @@
      "math": true
     },
     {
-     "t": ") is fitted on the validation set [29], and the network is exported to ONNX (12.9 MB) for CPU inference. Validation accuracy is 97.6% (Fig. 9a); because the epoch and the temperature were selected on the same 1,000 images, this figure is optimistic. Lightweight checks flag dark, over-exposed, blurred and leafless photographs."
+     "t": ") is fitted on the validation set [38], and the network is exported to ONNX (12.9 MB) for CPU inference. Validation accuracy is 97.6% (Fig. 11a). Because the epoch and the temperature were chosen on the same 1,000 images, this figure is optimistic. Simple checks flag dark, over-exposed, blurred and leafless photographs."
     }
    ]
   },
@@ -3849,58 +4494,71 @@
    "type": "p",
    "runs": [
     {
-     "t": "The implementation comprises about 3,000 lines of Python, a test suite of 71 tests (including Neo4j integration tests), and reproducible scripts for training, evaluation, figures and screenshots."
+     "t": "The implementation has about 5,000 lines of Python and 2,300 lines of JavaScript, 111 automated tests (three of which need a Neo4j instance), and scripts that reproduce the model, every experiment, every chart and every screenshot in this paper."
     }
    ]
   },
   {
    "type": "figure",
    "wide": true,
-   "number": "5",
+   "number": "6",
    "caption": [
     {
-     "t": "The farmer application on a phone (location: the Nilgiris). (a) Live weather, a weekly risk list led by late blight (Hutton criteria) and outbreak alerts, which are marked as simulated in this demonstration. (b) A question that separates leaf mold from early blight, asked in Tamil with an English subtitle. (c) A confident late-blight diagnosis. (d) Severity-adaptive plan citing the local weather evidence, and a schedule that alternates FRAC groups."
+     "t": "The desktop application (location: the Nilgiris). (a) The farmer’s description, local weather, outbreak reports (marked as simulated in this demonstration) and a preventive late-blight spray whose pre-harvest interval is checked against the picking rhythm. (b) A follow-up question that separates leaf mold from early blight, with the reason it was chosen."
     }
    ],
    "items": [
     {
      "subcaption": [
       {
-       "t": "Field conditions"
+       "t": "Diagnosis workspace in Tamil, with live field conditions and a prevention alert"
       }
      ],
-     "img": "../figures/screens/a_field_top.png"
+     "img": "../figures/screens/d1_home.png"
     },
     {
      "subcaption": [
       {
-       "t": "Information-gain question"
+       "t": "An information-gain question beside the ranked candidate diseases"
       }
      ],
-     "img": "../figures/screens/b_question.png"
+     "img": "../figures/screens/d2_consult.png"
+    }
+   ],
+   "layout": "row"
+  },
+  {
+   "type": "figure",
+   "wide": true,
+   "number": "7",
+   "caption": [
+    {
+     "t": "Result page for a late-blight case at harvest stage. (a) The diagnosis, urgency, reference photographs and the weather evidence. (b) The plan moves a product with a 5-day interval below safer options for a farmer who picks every four days, and places each repeat spray right after a picking."
+    }
+   ],
+   "items": [
+    {
+     "subcaption": [
+      {
+       "t": "Diagnosis with reference photographs and spray timing"
+      }
+     ],
+     "img": "../figures/screens/d3_result.png"
     },
     {
      "subcaption": [
       {
-       "t": "Diagnosis"
+       "t": "Treatments and a harvest-aware spray schedule"
       }
      ],
-     "img": "../figures/screens/c_hero.png"
-    },
-    {
-     "subcaption": [
-      {
-       "t": "Weather-aware plan"
-      }
-     ],
-     "img": "../figures/screens/d_plan.png"
+     "img": "../figures/screens/d4_plan.png"
     }
    ],
    "layout": "row"
   },
   {
    "type": "h1",
-   "num": "X",
+   "num": "XI",
    "runs": [
     {
      "t": "Evaluation"
@@ -3924,14 +4582,14 @@
      "i": true
     },
     {
-     "t": " 85 farmer descriptions, five per disease (two Tamil, two English, one Tanglish: 34/34/17), were written independently of the KG lay-terms, using different wording, partial descriptions and multiple symptoms. "
+     "t": " We wrote 85 farmer descriptions, five per disease (two in Tamil, two in English and one in Tanglish, giving 34/34/17), independently of the KG lay-terms. They use different wording, partial descriptions and several symptoms. "
     },
     {
      "t": "Simulated farmer.",
      "i": true
     },
     {
-     "t": " Questions are answered “yes” with probability "
+     "t": " A question is answered “yes” with probability "
     },
     {
      "t": "θ",
@@ -3970,7 +4628,7 @@
      "sup": true
     },
     {
-     "t": ", or 0.02 when no edge exists, so answers are noisy; each case is run 20 times. We report top-1 and top-3 accuracy, the rate of "
+     "t": ", or 0.02 when there is no edge, so answers are noisy. Each case is run 20 times with fixed random seeds, so the accuracy figures below can be reproduced exactly. We report top-1 and top-3 accuracy, the rate of "
     },
     {
      "t": "confidently wrong",
@@ -3984,14 +4642,14 @@
      "math": true
     },
     {
-     "t": "; for the prototype, a non-ambiguous wrong answer), the mean number of questions, and 95% bootstrap confidence intervals over cases (2,000 resamples) [30]. "
+     "t": "; for the prototype, a wrong answer that was not marked as ambiguous), the mean number of questions, and 95% bootstrap confidence intervals over cases (2,000 resamples) [39]. "
     },
     {
      "t": "Baselines and ablations",
      "i": true
     },
     {
-     "t": " (Table III) all use the same KG: the prototype (whole-phrase fuzzy matching with a 0.55 threshold and additive scoring; its follow-up answers did not affect the ranking, so its final answer equals its text-only answer); the prototype’s matcher with our engine; our matcher without questions; random questions; the prototype’s question rule (prefer a symptom absent for one of the top-3 candidates, else the largest weight variance) with answers fed back; and the full system with symmetric noise ("
+     "t": " (Table IV) all use the same KG: the prototype (whole-phrase fuzzy matching with a threshold of 0.55 and additive scoring; its follow-up answers did not affect the ranking, so its final answer equals its text-only answer); the prototype’s matcher with our engine; our matcher without questions; random questions; the prototype’s question rule (prefer a symptom absent for one of the top three candidates, otherwise the one with the largest weight variance) with answers fed back; and the full system with symmetric noise ("
     },
     {
      "t": "λ",
@@ -4016,7 +4674,7 @@
   },
   {
    "type": "table",
-   "number": "III",
+   "number": "IV",
    "caption": [
     {
      "t": "Diagnostic accuracy on 85 held-out descriptions (20 simulated dialogues each)"
@@ -4102,22 +4760,22 @@
       ],
       [
        {
-        "t": "86.4 [82.0, 90.4]"
+        "t": "85.4 [81.2, 89.1]"
        }
       ],
       [
        {
-        "t": "95.8"
+        "t": "94.6"
        }
       ],
       [
        {
-        "t": "1.9"
+        "t": "1.4"
        }
       ],
       [
        {
-        "t": "4.19"
+        "t": "4.15"
        }
       ]
      ]
@@ -4160,22 +4818,22 @@
       ],
       [
        {
-        "t": "95.1 [92.5, 97.3]"
+        "t": "94.6 [91.6, 97.1]"
        }
       ],
       [
        {
-        "t": "99.9"
+        "t": "99.8"
        }
       ],
       [
        {
-        "t": "0.5"
+        "t": "0.8"
        }
       ],
       [
        {
-        "t": "3.58"
+        "t": "3.49"
        }
       ]
      ]
@@ -4189,7 +4847,7 @@
       ],
       [
        {
-        "t": "96.3 [93.9, 98.2]"
+        "t": "96.4 [94.1, 98.2]"
        }
       ],
       [
@@ -4199,12 +4857,12 @@
       ],
       [
        {
-        "t": "0.9"
+        "t": "1.1"
        }
       ],
       [
        {
-        "t": "3.36"
+        "t": "3.40"
        }
       ]
      ]
@@ -4225,26 +4883,26 @@
       ],
       [
        {
-        "t": "96.8",
+        "t": "96.5",
         "b": true
        },
        {
-        "t": " [94.5, 98.5]"
+        "t": " [94.3, 98.4]"
        }
       ],
       [
        {
-        "t": "99.7"
+        "t": "99.8"
        }
       ],
       [
        {
-        "t": "1.2"
+        "t": "1.1"
        }
       ],
       [
        {
-        "t": "2.12",
+        "t": "2.05",
         "b": true
        }
       ]
@@ -4259,7 +4917,7 @@
       ],
       [
        {
-        "t": "96.5 [94.5, 98.2]"
+        "t": "95.9 [93.4, 97.9]"
        }
       ],
       [
@@ -4269,12 +4927,12 @@
       ],
       [
        {
-        "t": "0.1"
+        "t": "0.0"
        }
       ],
       [
        {
-        "t": "3.79"
+        "t": "3.82"
        }
       ]
      ]
@@ -4292,22 +4950,22 @@
       ],
       [
        {
-        "t": "96.6 [94.3, 98.5]"
+        "t": "96.5 [94.7, 98.0]"
        }
       ],
       [
        {
-        "t": "99.9"
+        "t": "99.8"
        }
       ],
       [
        {
-        "t": "1.2"
+        "t": "0.8"
        }
       ],
       [
        {
-        "t": "2.01"
+        "t": "2.04"
        }
       ]
      ]
@@ -4356,28 +5014,14 @@
    "type": "p",
    "runs": [
     {
-     "t": "Table III shows that the language layer is the largest single improvement: replacing whole-phrase fuzzy matching with concept-level matching raises description-only accuracy from 63.5% to 92.9%, and the prototype’s matcher remains the bottleneck even when paired with our engine (86.4%). The prototype understood 91.8% of inputs and was confidently wrong on 10.6%; the motivating “white dust” sentence illustrates why: shared filler words gave weight to unrelated ring-spot lay-terms, and a negated clause was ignored entirely (Fig. 3). Dialogue adds 3.9 points, and every configuration built on our matcher is confidently wrong on at most 1.2% of runs. Accuracy is balanced across languages: 96.3% for Tamil, 96.9% for English and 97.4% for Tanglish inputs (prototype: 67.6%, 52.9% and 76.5%). Per disease (Fig. 6), the remaining errors concentrate on bacterial spot (75%) and target spot (89%); the most frequent confusions are bacterial spot "
-    },
-    {
-     "t": "→ ",
-     "math": true
-    },
-    {
-     "t": "target spot and target spot "
-    },
-    {
-     "t": "→ ",
-     "math": true
-    },
-    {
-     "t": "early blight, three diseases that genuinely share small dark, ring-forming lesions with yellow halos in the dataset [17]."
+     "t": "The language layer accounts for the largest single gain in Table IV. Replacing whole-phrase fuzzy matching with concept-level matching raises description-only accuracy from 63.5% to 92.9%, and the prototype’s matcher stays the bottleneck even when it feeds our engine (85.4%). The prototype understood 91.8% of the inputs and was confidently wrong on 10.6% of them. The motivating “white powder” sentence shows why: shared filler words gave weight to unrelated ring-spot lay-terms, and the negated clause was ignored altogether (Fig. 3). Dialogue adds 3.6 points, and every configuration built on our matcher is confidently wrong on at most 1.1% of runs. Accuracy is similar across languages: 96.9% for Tamil, 95.4% for English and 97.9% for Tanglish inputs, against 67.6%, 52.9% and 76.5% for the prototype. Per disease (Fig. 8), the remaining errors are concentrated on bacterial spot (79%) and target spot (84%). The most frequent confusions are bacterial spot taken for target spot and target spot taken for early blight; in the dataset [25] all three produce small dark lesions with rings and yellow halos."
     }
    ]
   },
   {
    "type": "figure",
    "wide": false,
-   "number": "6",
+   "number": "8",
    "caption": [
     {
      "t": "Top-1 accuracy per disease after dialogue (five descriptions per disease; 20 dialogues each for the proposed system)."
@@ -4403,7 +5047,7 @@
    "type": "p",
    "runs": [
     {
-     "t": "The accuracy differences between EIG, the variance rule and random questions lie within each other’s confidence intervals, so we do not claim that EIG is more accurate. Its benefit is efficiency: it reaches 96.8% with 2.12 questions, 37% fewer than the variance rule (3.36) and 41% fewer than random selection (3.58). Fig. 7 fixes the question budget: with three questions, EIG reaches 96.1% versus 95.9% for the variance rule and 93.9% for random questions. Modelling false alarms as rarer than misses ("
+     "t": "The accuracies of EIG, the variance rule and random questions lie within each other’s confidence intervals, so we do not claim that EIG is more accurate. Its advantage is efficiency: it reaches 96.5% with 2.05 questions, 40% fewer than the variance rule (3.40) and 41% fewer than random selection (3.49). Fig. 9 fixes the question budget instead. With three questions, EIG reaches 96.1%, the variance rule 95.9% and random questions 93.9%. Treating false alarms as rarer than misses ("
     },
     {
      "t": "λ",
@@ -4415,7 +5059,7 @@
      "math": true
     },
     {
-     "t": ") saves 44% of questions relative to symmetric noise (2.12 vs. 3.79) at the same accuracy, at the cost of more confidently wrong answers (1.2% vs. 0.1%), a trade-off that can be tuned with "
+     "t": ") saves 46% of the questions relative to symmetric noise (2.05 against 3.82) at similar accuracy, at the price of more confidently wrong answers (1.1% against 0.0%); "
     },
     {
      "t": "λ",
@@ -4423,14 +5067,14 @@
      "i": true
     },
     {
-     "t": " and the stopping threshold. Fig. 8 shows the motivating case: after “white dust on the leaf”, the first question asks whether insects are present; for whitefly two “yes” answers reach 0.93, whereas for powdery mildew the posterior rises steadily as alternatives are excluded and reaches 0.77 (“likely”) after six questions, because powdery mildew has few distinctive symptoms in the KG."
+     "t": " and the stopping threshold control this trade-off. Fig. 10 shows the motivating case. After “white powder on the leaf” the first question asks whether insects are present. When the truth is whitefly, two “yes” answers take its posterior to 0.93. When the truth is powdery mildew, the posterior rises steadily as alternatives are excluded and reaches 0.77 (reported as “likely”) after six questions, because powdery mildew has few distinctive symptoms in the KG."
     }
    ]
   },
   {
    "type": "figure",
    "wide": false,
-   "number": "7",
+   "number": "9",
    "caption": [
     {
      "t": "Top-1 accuracy as a function of the maximum number of questions (85 cases "
@@ -4453,7 +5097,7 @@
   {
    "type": "figure",
    "wide": false,
-   "number": "8",
+   "number": "10",
    "caption": [
     {
      "t": "Posterior during the dialogue for “"
@@ -4463,7 +5107,7 @@
      "ta": true
     },
     {
-     "t": "” when the truth is (a) powdery mildew and (b) whitefly; answers are given above the axes. The dashed line is the stopping threshold."
+     "t": "” when the truth is (a) powdery mildew and (b) whitefly; the answers are shown above the axes. The dashed line is the stopping threshold."
     }
    ],
    "items": [
@@ -4486,14 +5130,14 @@
    "type": "p",
    "runs": [
     {
-     "t": "Twelve descriptions of problems absent from the KG (frost, hail, herbicide drift, nutrient deficiency, fruit cracking, sun-scald, damping-off, animal damage) were run 20 times each, with the simulated farmer answering “yes” with probability 0.15. The system abstained in 82.1% of runs and was confidently wrong in 6.3%; 66.7% of runs abstained because no symptom matched; in deployment such descriptions are queued for expert curation. Removing the "
+     "t": "We ran twelve descriptions of problems that are not in the KG (frost, hail, herbicide drift, nutrient deficiency, fruit cracking, sun-scald, damping-off and animal damage) 20 times each, with the simulated farmer answering “yes” with probability 0.15. The system abstained in 82.1% of the runs and was confidently wrong in 7.1%. In 66.7% of the runs it abstained because no symptom matched; in deployment such descriptions go to the curation queue. Without the "
     },
     {
      "t": "unknown",
      "sc": true
     },
     {
-     "t": " hypothesis changed these rates only slightly (80.8% and 6.7%), so in this setting abstention is driven mainly by the matching threshold and the low-confidence rule rather than by "
+     "t": " hypothesis the rates were 82.9% and 7.9%, so in this setting abstention comes mainly from the matching threshold and the low-confidence rule rather than from "
     },
     {
      "t": "unknown",
@@ -4517,21 +5161,14 @@
    "type": "p",
    "runs": [
     {
-     "t": "Fig. 9b evaluates the 900 disease images of the validation set, clean and with a field-like degradation (random 60–80% crop, Gaussian blur of radius 1.5–2.5, exposure "
-    },
-    {
-     "t": "×",
-     "math": true
-    },
-    {
-     "t": "0.45–0.70, colour cast, sensor noise, JPEG quality 20). On clean images the classifier reaches 97.6%, the photo-only posterior 97.2% and the photo combined with simulated dialogue 96.6% with 2.3 questions: when the photo is reliable, noisy answers occasionally overturn it. Under degradation the classifier collapses to 36.4%, the quality checks flag 46.2% of images (2.2% when clean) and lower the photo’s weight, and dialogue raises accuracy to 67.8% (+31.3 points) with 4.7 questions, even though no text description is used. The photo is therefore valuable when good, and the dialogue protects the farmer when it is not."
+     "t": "Fig. 11b uses the 900 disease images of the validation set, both clean and with a field-like degradation (a random 60–80% crop, Gaussian blur of radius 1.5–2.5, exposure scaled by 0.45–0.70, a colour cast, sensor noise and JPEG quality 20). On clean images the classifier reaches 97.6%, the posterior given only the photo 97.2%, and the photo combined with simulated dialogue 96.6% with 2.3 questions: when the photo is reliable, noisy answers occasionally overturn it. Under degradation the classifier falls to 36.4%. The quality checks flag 46.2% of the degraded images (2.2% of the clean ones) and reduce the photo’s weight, and dialogue raises accuracy to 67.8% (+31.3 points) with 4.7 questions, without any text description. A good photo is therefore valuable, and when the photo is poor the dialogue protects the farmer from a confident mistake."
     }
    ]
   },
   {
    "type": "figure",
    "wide": true,
-   "number": "9",
+   "number": "11",
    "caption": [
     {
      "t": "Leaf-photo classifier. (a) Confusion matrix on the clean validation set. (b) Top-1 accuracy on 900 disease images, clean and with field-like degradation, for the classifier alone, the KG posterior given only the photo, and the photo combined with the information-gain dialogue."
@@ -4557,7 +5194,7 @@
    "type": "p",
    "runs": [
     {
-     "t": "To test whether feedback repairs an imperfect graph, the true KG generates 1,500 simulated consultations while the system starts from a corrupted copy: 15% of symptom edges are set to 0.05 (knowledge gaps) and the rest are perturbed with Gaussian noise ("
+     "t": "To test whether feedback can repair an imperfect graph, we let the true KG generate 1,500 simulated consultations while the system starts from a corrupted copy: 15% of the symptom edges are set to 0.05 (gaps in knowledge) and the others are perturbed with Gaussian noise ("
     },
     {
      "t": "σ",
@@ -4569,28 +5206,28 @@
      "math": true
     },
     {
-     "t": "). A simulated farmer describes two present symptoms, answers questions truthfully, confirms correct diagnoses and picks the correct disease for 70% of wrong ones. Fig. 10 (five seeds) shows that the proposed rule raises accuracy from 81.2% in the first 100 consultations to 93.6% in the last 100 and reduces the mean absolute error of the 131 edge weights from 0.222 to 0.128. The prototype’s rule ("
+     "t": "). The simulated farmer describes two present symptoms, answers questions truthfully, confirms correct diagnoses and picks the right disease for 70% of the wrong ones. Over five seeds (Fig. 12), the proposed rule raises accuracy from 81.2% in the first 100 consultations to 93.6% in the last 100 and lowers the mean absolute error of the 131 edge weights from 0.222 to 0.128. The prototype’s rule ("
     },
     {
      "t": "±0.03",
      "math": true
     },
     {
-     "t": " on the predicted disease’s edges after confirmation or rejection) reaches only 83.6% and "
+     "t": " on the predicted disease’s edges after a confirmation or a rejection) reaches only 83.6% and "
     },
     {
-     "t": "increases",
+     "t": "raises",
      "i": true
     },
     {
-     "t": " the weight error to 0.239, because rejections punish edges of the wrong disease without teaching the right one; without learning accuracy stays near 79%."
+     "t": " the weight error to 0.239, because rejections punish the edges of the wrong disease without teaching the right one. Without learning, accuracy stays near 79%."
     }
    ]
   },
   {
    "type": "figure",
    "wide": false,
-   "number": "10",
+   "number": "12",
    "caption": [
     {
      "t": "Learning from feedback, starting from a corrupted KG (mean of five seeds; band: "
@@ -4600,7 +5237,7 @@
      "math": true
     },
     {
-     "t": " s.d.). (a) Accuracy in windows of 100 consultations. (b) Mean absolute error of edge weights against the true graph."
+     "t": " s.d.). (a) Accuracy in windows of 100 consultations. (b) Mean absolute error of the edge weights against the true graph."
     }
    ],
    "items": [
@@ -4615,6 +5252,356 @@
    "num": "G",
    "runs": [
     {
+     "t": "Field context"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "The field-profile rules can help only when the soil and the crop stage agree with the true problem, and they could hurt when they do not. We therefore ran the 85 cases under three conditions with the same dialogues as in Table IV. "
+    },
+    {
+     "t": "No context",
+     "i": true
+    },
+    {
+     "t": " is the setting of Table IV. In the "
+    },
+    {
+     "t": "consistent",
+     "i": true
+    },
+    {
+     "t": " condition, each case receives a plausible profile for its true disease: a typical loam (pH 6.8, EC 0.4 dS/m, organic carbon 0.62%, medium N, P and K, adequate calcium) in which only the values that Table III links to that disease are changed, and the crop stage at which the problem usually appears. In the "
+    },
+    {
+     "t": "misleading",
+     "i": true
+    },
+    {
+     "t": " condition, each case receives the consistent profile of a different, randomly chosen soil- or stage-linked disorder. Table V shows that a consistent profile raises description-only accuracy by 1.2 points, saves 4% of the questions and halves the confidently wrong answers. A misleading profile lowers description-only accuracy by 1.1 points, but the dialogue recovers it completely, at a cost of 0.18 extra questions per case. The gains are modest because the descriptions already carry most of the information, and the differences in accuracy after dialogue lie within the confidence intervals. The bounded factors do what they were designed to do: they shift the questioning without overriding the symptoms."
+    }
+   ]
+  },
+  {
+   "type": "table",
+   "number": "V",
+   "caption": [
+    {
+     "t": "Effect of the field profile (soil report and crop stage)"
+    }
+   ],
+   "aligns": [
+    "left",
+    "center",
+    "center",
+    "center",
+    "center"
+   ],
+   "rows": [
+    {
+     "cells": [
+      [
+       {
+        "t": "Profile"
+       }
+      ],
+      [
+       {
+        "t": "Desc. only"
+       }
+      ],
+      [
+       {
+        "t": "Dialogue [95% CI]"
+       }
+      ],
+      [
+       {
+        "t": "Wrong"
+       },
+       {
+        "t": "*",
+        "math": true,
+        "sup": true
+       }
+      ],
+      [
+       {
+        "t": "Qs."
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "No context"
+       }
+      ],
+      [
+       {
+        "t": "92.9"
+       }
+      ],
+      [
+       {
+        "t": "96.5 [94.3, 98.4]"
+       }
+      ],
+      [
+       {
+        "t": "1.1"
+       }
+      ],
+      [
+       {
+        "t": "2.05"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "Consistent"
+       }
+      ],
+      [
+       {
+        "t": "94.1"
+       }
+      ],
+      [
+       {
+        "t": "97.0 [95.1, 98.7]"
+       }
+      ],
+      [
+       {
+        "t": "0.6"
+       }
+      ],
+      [
+       {
+        "t": "1.97"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "Misleading"
+       }
+      ],
+      [
+       {
+        "t": "91.8"
+       }
+      ],
+      [
+       {
+        "t": "96.7 [94.4, 98.5]"
+       }
+      ],
+      [
+       {
+        "t": "0.9"
+       }
+      ],
+      [
+       {
+        "t": "2.24"
+       }
+      ]
+     ]
+    },
+    {
+     "note": true,
+     "cells": [
+      [
+       {
+        "t": "Top-1 accuracy in %. Desc. only: description without questions. "
+       },
+       {
+        "t": "*",
+        "math": true,
+        "sup": true
+       },
+       {
+        "t": "Confidently wrong, as in Table IV."
+       }
+      ]
+     ]
+    }
+   ],
+   "mid_rows": [
+    1
+   ]
+  },
+  {
+   "type": "h2",
+   "num": "H",
+   "runs": [
+    {
+     "t": "Harvest safety"
+    }
+   ]
+  },
+  {
+   "type": "p",
+   "runs": [
+    {
+     "t": "We audited the spray plans for every disease that has at least one sprayable treatment (13 of 17), every severity, picking intervals of 3, 4, 5 and 7 days and every possible number of days until the next picking, which gives 741 scenarios. For each scenario we compared the plan produced without harvest information with the harvest-aware plan of Section VIII. The farmer is assumed to pick on schedule and to follow a "
+    },
+    {
+     "t": "pick first",
+     "i": true
+    },
+    {
+     "t": " instruction when the plan gives one. A spray "
+    },
+    {
+     "t": "clashes",
+     "i": true
+    },
+    {
+     "t": " with the harvest when its pre-harvest interval reaches past the next picking after it. Table VI shows that the harvest-unaware plan would make the first spray clash in 40.5% of the scenarios and at least one spray in the schedule clash in 49.3%. The harvest-aware plan reduces both to 4.9%. Every remaining clash is leaf curl virus at picking intervals of three to five days: its only sprayable option in the graph, an insecticide against the whitefly vector, has a 7-day interval, and in those cases the plan states the conflict explicitly. The mean efficacy of the first product sprayed falls by less than one point (0.78 to 0.77), so harvest safety costs very little treatment strength."
+    }
+   ]
+  },
+  {
+   "type": "table",
+   "number": "VI",
+   "caption": [
+    {
+     "t": "Pre-harvest-interval conflicts in 741 picking scenarios"
+    }
+   ],
+   "aligns": [
+    "left",
+    "center",
+    "center"
+   ],
+   "rows": [
+    {
+     "cells": [
+      [
+       {
+        "t": "Measure"
+       }
+      ],
+      [
+       {
+        "t": "Harvest-unaware"
+       }
+      ],
+      [
+       {
+        "t": "Harvest-aware"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "First spray clashes with the next picking (%)"
+       }
+      ],
+      [
+       {
+        "t": "40.5"
+       }
+      ],
+      [
+       {
+        "t": "4.9"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "Any scheduled spray clashes (%)"
+       }
+      ],
+      [
+       {
+        "t": "49.3"
+       }
+      ],
+      [
+       {
+        "t": "4.9"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "Schedule needs PHI "
+       },
+       {
+        "t": "> ",
+        "math": true
+       },
+       {
+        "t": "picking interval (%)"
+       }
+      ],
+      [
+       {
+        "t": "19.7"
+       }
+      ],
+      [
+       {
+        "t": "4.9"
+       }
+      ]
+     ]
+    },
+    {
+     "cells": [
+      [
+       {
+        "t": "Mean efficacy of the first product"
+       }
+      ],
+      [
+       {
+        "t": "0.78"
+       }
+      ],
+      [
+       {
+        "t": "0.77"
+       }
+      ]
+     ]
+    }
+   ],
+   "mid_rows": [
+    1
+   ]
+  },
+  {
+   "type": "h2",
+   "num": "I",
+   "runs": [
+    {
      "t": "Weather case study"
     }
    ]
@@ -4623,35 +5610,35 @@
    "type": "p",
    "runs": [
     {
-     "t": "Fig. 11 shows the risk models on live weather for four districts on 13 October 2026. The Nilgiris (Ooty), at a three-day mean of 15.3 "
+     "t": "Fig. 13 shows the risk models on live weather for four districts on 13 October 2026. The Nilgiris (Ooty), with a three-day mean of 15.3 "
     },
     {
      "t": "°",
      "math": true
     },
     {
-     "t": "C and 79% RH, has five Hutton late-blight periods in the past week with another forecast (risk 1.0) and 96 hours above 85% RH (leaf mold, 0.8). Krishnagiri, warm and dry, has 34 hot-dry hours (spider mite, 0.8), and Madurai five days above 33 "
+     "t": "C and 79% RH, had five Hutton late-blight periods in the past week and another in the forecast (risk 1.0), and 96 hours above 85% RH (leaf mold, 0.8). Krishnagiri, warm and dry, had 34 hot, dry hours (spider mite, 0.8), and Madurai five days above 33 "
     },
     {
      "t": "°",
      "math": true
     },
     {
-     "t": "C (blossom-end rot, 0.8). Coimbatore shows only medium risks: its two Hutton periods are damped by a 26.3 "
+     "t": "C (blossom-end rot, 0.8). Coimbatore showed only medium risks, because a mean temperature of 26.3 "
     },
     {
      "t": "°",
      "math": true
     },
     {
-     "t": "C mean temperature. These patterns are agronomically plausible but are not validated against observed outbreaks."
+     "t": "C damped its two Hutton periods. These patterns are agronomically plausible, but we have not yet compared them with observed outbreaks."
     }
    ]
   },
   {
    "type": "figure",
    "wide": false,
-   "number": "11",
+   "number": "13",
    "caption": [
     {
      "t": "Weather-driven risk scores (colour) and levels (H/M/L) for four Tamil Nadu districts, computed from seven days of hourly weather on 13 October 2026."
@@ -4666,7 +5653,7 @@
   },
   {
    "type": "h2",
-   "num": "H",
+   "num": "J",
    "runs": [
     {
      "t": "Latency"
@@ -4677,13 +5664,13 @@
    "type": "p",
    "runs": [
     {
-     "t": "On a 12-thread laptop CPU without a GPU (Table IV), concept matching takes 2.0 ms, one inference step including the information-gain search 0.84 ms, and a complete diagnosis request through the web API 3.7 ms (median). Photo classification takes 7.1 ms. The system therefore runs on commodity hardware, and the graph can be served from a small server."
+     "t": "On a 12-thread laptop CPU without a GPU (Table VII), concept matching takes 2.1 ms, one inference step including the information-gain search 0.9 ms, and a complete diagnosis request through the web API 4.2 ms (median). Classifying a photo takes 9.0 ms. The system therefore runs comfortably on commodity hardware, and a small server can host the graph for many users."
     }
    ]
   },
   {
    "type": "table",
-   "number": "IV",
+   "number": "VII",
    "caption": [
     {
      "t": "Latency on a laptop CPU (milliseconds)"
@@ -4723,12 +5710,12 @@
       ],
       [
        {
-        "t": "2.01"
+        "t": "2.07"
        }
       ],
       [
        {
-        "t": "2.58"
+        "t": "2.84"
        }
       ]
      ]
@@ -4742,12 +5729,12 @@
       ],
       [
        {
-        "t": "0.84"
+        "t": "0.89"
        }
       ],
       [
        {
-        "t": "0.87"
+        "t": "1.03"
        }
       ]
      ]
@@ -4761,12 +5748,12 @@
       ],
       [
        {
-        "t": "3.65"
+        "t": "4.23"
        }
       ],
       [
        {
-        "t": "4.18"
+        "t": "5.05"
        }
       ]
      ]
@@ -4780,12 +5767,12 @@
       ],
       [
        {
-        "t": "7.12"
+        "t": "9.04"
        }
       ],
       [
        {
-        "t": "8.09"
+        "t": "10.42"
        }
       ]
      ]
@@ -4797,7 +5784,7 @@
   },
   {
    "type": "h1",
-   "num": "XI",
+   "num": "XII",
    "runs": [
     {
      "t": "Discussion and Limitations"
@@ -4808,7 +5795,7 @@
    "type": "p",
    "runs": [
     {
-     "t": "The results support the central design choice: a curated, probabilistic KG that reasons over noisy evidence and asks targeted questions is robust where an image classifier alone is brittle, and it explains its answers in the farmer’s language. Several limitations qualify these findings."
+     "t": "The results support the central design decision. A curated, probabilistic KG that reasons over imperfect evidence and asks targeted questions holds up where an image classifier alone fails, it explains its answers in the farmer’s language, and the same graph carries the information needed to make advice specific to a field. Several limitations qualify these findings."
     }
    ]
   },
@@ -4822,7 +5809,7 @@
       "i": true
      },
      {
-      "t": " The test descriptions were written by the authors, and the simulated farmer answers according to the KG’s own probabilities; the results therefore measure the reasoning pipeline, not field accuracy. A field study with real farmer descriptions and agronomist-confirmed diagnoses is the necessary next step."
+      "t": " We wrote the test descriptions ourselves, and the simulated farmer answers according to the KG’s own probabilities. The results therefore measure the reasoning pipeline rather than accuracy in the field. A field study with real farmer descriptions and diagnoses confirmed by agronomists is the necessary next step."
      }
     ],
     [
@@ -4831,7 +5818,16 @@
       "i": true
      },
      {
-      "t": " Edge weights are expert estimates seeded from a dataset and extension guidance; Tamil lay-terms cover common usage but not all regional dialects. The learning loop and the curation queue are designed to correct both, but their effect in the field remains to be measured."
+      "t": " Edge weights are expert estimates seeded from a dataset and from extension guidance, and the Tamil lay-terms cover common usage but not every regional dialect. The learning loop and the curation queue are meant to correct both, but their effect in the field has not yet been measured."
+     }
+    ],
+    [
+     {
+      "t": "Field profile.",
+      "i": true
+     },
+     {
+      "t": " The soil and stage rules come from the cited literature and from general guidance, and the field-context study uses constructed profiles. The fertiliser plan follows a regional blanket recommendation and should give way to the recommendation printed on a farmer’s own Soil Health Card. Pre-harvest intervals are conservative defaults that an agronomist should review, and the label on the product remains the authority. Reading reports from photographs depends on the language model and was not evaluated."
      }
     ],
     [
@@ -4840,7 +5836,7 @@
       "i": true
      },
      {
-      "t": " The classifier was trained on laboratory images of nine diseases; its validation accuracy is optimistic, and the degradation study approximates, but does not replace, real field photographs."
+      "t": " The classifier was trained on laboratory images of nine diseases; its validation accuracy is optimistic, and the degradation study approximates real field photographs without replacing them."
      }
     ],
     [
@@ -4849,23 +5845,23 @@
       "i": true
      },
      {
-      "t": " The Hutton criteria and TOM-CAST were developed for temperate climates and the remaining risk models are heuristics; none has yet been validated against outbreaks in Tamil Nadu. Community outbreak data shown in this paper are simulated."
+      "t": " The Hutton criteria and TOM-CAST were developed for temperate climates, the other risk models are heuristics, and none has yet been checked against outbreaks in Tamil Nadu. The community outbreak data shown in this paper are simulated."
      }
     ],
     [
      {
-      "t": "LLM front end and advice.",
+      "t": "Speech front end and doses.",
       "i": true
      },
      {
-      "t": " The Gemini speech front end was not evaluated quantitatively. Dosages are taken from the cited dataset or general guidance and must be checked against product labels and local recommendations."
+      "t": " The speech front end was not evaluated quantitatively. Doses come from the cited dataset or from general guidance and must be checked against product labels and local recommendations."
      }
     ]
    ]
   },
   {
    "type": "h1",
-   "num": "XII",
+   "num": "XIII",
    "runs": [
     {
      "t": "Conclusion"
@@ -4876,7 +5872,7 @@
    "type": "p",
    "runs": [
     {
-     "t": "Tomato Doctor combines a probabilistic knowledge graph, concept-level understanding of Tamil, English and Tanglish, Bayesian evidence fusion, cost-aware information-gain questioning, weather-driven priors and spray planning, and confirmation-driven learning. In our evaluation it raises top-1 accuracy from 63.5% to 96.8% over the fuzzy-matching prototype with about two questions, keeps confidently wrong answers near 1%, recovers from degraded photographs through dialogue, and repairs a corrupted graph from farmer feedback. Future work will validate the system with farmers and agronomists in Tamil Nadu, calibrate the risk models against local outbreak records, extend the graph to further crops, and evaluate the speech front end on recorded farmer queries."
+     "t": "Tomato Doctor combines a probabilistic knowledge graph, concept-level understanding of Tamil, English and Tanglish, Bayesian fusion of text, answers and photographs, cost-aware information-gain questioning, and confirmation-driven learning, and it turns a diagnosis into a plan that fits the weather, the soil, the crop stage and the harvest. In our evaluation it raises top-1 accuracy from 63.5% to 96.5% over the fuzzy-matching prototype with about two questions, keeps confidently wrong answers near 1%, recovers from degraded photographs through dialogue, repairs a corrupted graph from farmer feedback, and cuts harvest clashes in spray schedules from about one in two to one in twenty. The next steps are to test the system with farmers and agronomists in Tamil Nadu, to calibrate the risk models and the soil rules against local records, to evaluate the speech front end on recorded farmer queries, and to extend the graph to other crops."
     }
    ]
   },
@@ -5169,12 +6165,135 @@
    "n": 17,
    "runs": [
     {
-     "t": "S. Jagtap, O. Shinde, M. Marade, R. Sawant, N. Sable, and P. Mahalle, “A comprehensive dataset of tomato plant diseases for national predictive analytics and crop health management,” Mendeley Data, V1, 2025, doi: 10.17632/ztncd79yhk.1."
+     "t": "L. C. Ho and P. J. White, “A cellular hypothesis for the induction of blossom-end rot in tomato fruit,” "
+    },
+    {
+     "t": "Ann. Bot.",
+     "i": true
+    },
+    {
+     "t": ", vol. 95, no. 4, pp. 571–581, 2005."
     }
    ]
   },
   {
    "n": 18,
+   "runs": [
+    {
+     "t": "M. C. Saure, “Blossom-end rot of tomato ("
+    },
+    {
+     "t": "Lycopersicon esculentum",
+     "i": true
+    },
+    {
+     "t": " Mill.)—a calcium- or a stress-related disorder?” "
+    },
+    {
+     "t": "Sci. Hortic.",
+     "i": true
+    },
+    {
+     "t": ", vol. 90, no. 3–4, pp. 193–208, 2001."
+    }
+   ]
+  },
+  {
+   "n": 19,
+   "runs": [
+    {
+     "t": "J. P. Jones and S. S. Woltz, “Fusarium-incited diseases of tomato and potato and their control,” in "
+    },
+    {
+     "t": "Fusarium: Diseases, Biology, and Taxonomy",
+     "i": true
+    },
+    {
+     "t": ", P. E. Nelson, T. A. Toussoun, and R. J. Cook, Eds. University Park, PA, USA: Pennsylvania State Univ. Press, 1981, pp. 157–168."
+    }
+   ]
+  },
+  {
+   "n": 20,
+   "runs": [
+    {
+     "t": "C. Dordas, “Role of nutrients in controlling plant diseases in sustainable agriculture. A review,” "
+    },
+    {
+     "t": "Agron. Sustain. Dev.",
+     "i": true
+    },
+    {
+     "t": ", vol. 28, no. 1, pp. 33–46, 2008."
+    }
+   ]
+  },
+  {
+   "n": 21,
+   "runs": [
+    {
+     "t": "Department of Agriculture and Farmers Welfare, Government of India, “Soil Health Card.” [Online]. Available: "
+    },
+    {
+     "t": "https://soilhealth.dac.gov.in",
+     "tt": true,
+     "url": true
+    }
+   ]
+  },
+  {
+   "n": 22,
+   "runs": [
+    {
+     "t": "G. R. Muhr, N. P. Datta, H. Sankarasubramoney, V. K. Leley, and R. L. Donahue, "
+    },
+    {
+     "t": "Soil Testing in India",
+     "i": true
+    },
+    {
+     "t": ", 2nd ed. New Delhi, India: USAID Mission to India, 1965."
+    }
+   ]
+  },
+  {
+   "n": 23,
+   "runs": [
+    {
+     "t": "W. L. Lindsay and W. A. Norvell, “Development of a DTPA soil test for zinc, iron, manganese, and copper,” "
+    },
+    {
+     "t": "Soil Sci. Soc. Am. J.",
+     "i": true
+    },
+    {
+     "t": ", vol. 42, no. 3, pp. 421–428, 1978."
+    }
+   ]
+  },
+  {
+   "n": 24,
+   "runs": [
+    {
+     "t": "Central Insecticides Board and Registration Committee, Government of India, “Major uses of pesticides (registered under the Insecticides Act, 1968).” [Online]. Available: "
+    },
+    {
+     "t": "https://ppqs.gov.in/divisions/cib-rc/major-uses-of-pesticides",
+     "tt": true,
+     "url": true
+    }
+   ]
+  },
+  {
+   "n": 25,
+   "runs": [
+    {
+     "t": "S. Jagtap, O. Shinde, M. Marade, R. Sawant, N. Sable, and P. Mahalle, “A comprehensive dataset of tomato plant diseases for national predictive analytics and crop health management,” Mendeley Data, V1, 2025, doi: 10.17632/ztncd79yhk.1."
+    }
+   ]
+  },
+  {
+   "n": 26,
    "runs": [
     {
      "t": "Fungicide Resistance Action Committee, “FRAC Code List.” [Online]. Available: "
@@ -5187,7 +6306,7 @@
    ]
   },
   {
-   "n": 19,
+   "n": 27,
    "runs": [
     {
      "t": "Insecticide Resistance Action Committee, “IRAC Mode of Action Classification Scheme.” [Online]. Available: "
@@ -5200,7 +6319,7 @@
    ]
   },
   {
-   "n": 20,
+   "n": 28,
    "runs": [
     {
      "t": "“Rains and fungicide sprays,” Grape pathology extension. [Online]. Available: "
@@ -5213,7 +6332,7 @@
    ]
   },
   {
-   "n": 21,
+   "n": 29,
    "runs": [
     {
      "t": "The Australian Wine Research Institute, “Agrochemical update: Using sulfur to protect vines, particularly under cool conditions,” eBulletin, Oct. 2021. [Online]. Available: "
@@ -5226,7 +6345,7 @@
    ]
   },
   {
-   "n": 22,
+   "n": 30,
    "runs": [
     {
      "t": "K. Spärck Jones, “A statistical interpretation of term specificity and its application in retrieval,” "
@@ -5241,7 +6360,7 @@
    ]
   },
   {
-   "n": 23,
+   "n": 31,
    "runs": [
     {
      "t": "P. Zippenfenig, “Open-Meteo.com weather API,” Zenodo, 2023, doi: 10.5281/zenodo.7970649."
@@ -5249,7 +6368,7 @@
    ]
   },
   {
-   "n": 24,
+   "n": 32,
    "runs": [
     {
      "t": "Agriculture Victoria, “A guide to estimating wind speed.” [Online]. Available: "
@@ -5262,7 +6381,20 @@
    ]
   },
   {
-   "n": 25,
+   "n": 33,
+   "runs": [
+    {
+     "t": "Tamil Nadu Agricultural University, “Tomato: crop production,” TNAU Agritech Portal, Horticulture. [Online]. Available: "
+    },
+    {
+     "t": "https://agritech.tnau.ac.in/horticulture/horti_vegetables_tomato.html",
+     "tt": true,
+     "url": true
+    }
+   ]
+  },
+  {
+   "n": 34,
    "runs": [
     {
      "t": "Neo4j, Inc., “Neo4j graph database.” [Online]. Available: "
@@ -5275,7 +6407,7 @@
    ]
   },
   {
-   "n": 26,
+   "n": 35,
    "runs": [
     {
      "t": "A. Howard "
@@ -5297,7 +6429,7 @@
    ]
   },
   {
-   "n": 27,
+   "n": 36,
    "runs": [
     {
      "t": "I. Loshchilov and F. Hutter, “Decoupled weight decay regularization,” in "
@@ -5312,7 +6444,7 @@
    ]
   },
   {
-   "n": 28,
+   "n": 37,
    "runs": [
     {
      "t": "C. Szegedy, V. Vanhoucke, S. Ioffe, J. Shlens, and Z. Wojna, “Rethinking the Inception architecture for computer vision,” in "
@@ -5327,7 +6459,7 @@
    ]
   },
   {
-   "n": 29,
+   "n": 38,
    "runs": [
     {
      "t": "C. Guo, G. Pleiss, Y. Sun, and K. Q. Weinberger, “On calibration of modern neural networks,” in "
@@ -5342,7 +6474,7 @@
    ]
   },
   {
-   "n": 30,
+   "n": 39,
    "runs": [
     {
      "t": "B. Efron and R. J. Tibshirani, "
@@ -5371,24 +6503,32 @@
   "sec:inference": "VI",
   "eq:pos": "3",
   "eq:neg": "4",
-  "eq:photo": "5",
-  "eq:post": "6",
-  "eq:eig": "7",
+  "eq:prior": "5",
+  "eq:photo": "6",
+  "eq:post": "7",
+  "eq:eig": "8",
   "alg:dialogue": "1",
   "sec:advisory": "VII",
-  "sec:learning": "VIII",
-  "fig:expert": "4",
-  "sec:impl": "IX",
-  "fig:screens": "5",
-  "sec:eval": "X",
-  "tab:main": "III",
-  "fig:perdisease": "6",
-  "fig:budget": "7",
-  "fig:trace": "8",
-  "fig:vision": "9",
-  "fig:learning": "10",
-  "fig:weather": "11",
-  "tab:latency": "IV",
-  "sec:limits": "XI"
+  "sec:field": "VIII",
+  "tab:fieldrules": "III",
+  "eq:phi": "10",
+  "fig:field": "4",
+  "sec:learning": "IX",
+  "fig:expert": "5",
+  "sec:impl": "X",
+  "fig:screens1": "6",
+  "fig:screens2": "7",
+  "sec:eval": "XI",
+  "tab:main": "IV",
+  "fig:perdisease": "8",
+  "fig:budget": "9",
+  "fig:trace": "10",
+  "fig:vision": "11",
+  "fig:learning": "12",
+  "tab:field": "V",
+  "tab:phi": "VI",
+  "fig:weather": "13",
+  "tab:latency": "VII",
+  "sec:limits": "XII"
  }
 }
