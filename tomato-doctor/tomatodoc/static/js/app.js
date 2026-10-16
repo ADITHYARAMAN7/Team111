@@ -11,6 +11,7 @@
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* private mode */ } },
   };
   const pct = (p) => Math.round(p * 100);
+  const daysText = (n) => (n === 1 ? t("days_1") : t("days_n", { n }));
   const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : "s" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10));
 
   let L = store.get("lang", "ta");
@@ -66,6 +67,14 @@
     clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.add("hidden"), ms);
   }
 
+  const THEMES = ["auto", "light", "dark"];
+  function applyTheme() {
+    const th = store.get("theme", "auto");
+    if (th === "auto") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = th;
+    $("#themeIcon").setAttribute("href", th === "light" ? "#i-sun" : th === "dark" ? "#i-moon" : "#i-contrast");
+    $("#themeBtn").title = t("theme_" + th);
+    $("#themeBtn").setAttribute("aria-label", t("theme_" + th));
+  }
   function applyI18n() {
     document.documentElement.lang = L;
     document.body.classList.toggle("lang-ta", L === "ta");
@@ -78,9 +87,19 @@
   }
 
   const VIEWS = ["home", "consult", "result", "library", "disease", "history", "field"];
+  const NAV_OF = { home: "home", consult: "home", result: "home", field: "field", library: "library", disease: "library", history: "history" };
+  const TITLE_OF = { home: "nav_diagnose", consult: "page_consult", result: "page_result", field: "nav_field",
+    library: "nav_library", disease: "page_disease", history: "nav_history" };
+  function updateShell() {
+    const v = S.view || "home";
+    $$("[data-nav-item]").forEach((b) => b.classList.toggle("active", b.dataset.navItem === NAV_OF[v]));
+    $("#crumbTitle").textContent = t(TITLE_OF[v]);
+    document.body.dataset.view = v;
+  }
   function show(view) {
     if (view !== S.view) { S.prevView = S.view; S.view = view; }
     VIEWS.forEach((v) => $(`#view-${v}`).classList.toggle("hidden", v !== view));
+    updateShell();
     window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
   }
   function navigate(hash) { if (location.hash === `#${hash}`) route(); else location.hash = hash; }
@@ -154,7 +173,18 @@
     $("#locLabel").textContent = locLabel();
     renderFieldChip();
     if (S.view === "field") $("#fieldLocLabel").textContent = S.location ? locLabel() : t("field_loc_none");
-    renderAttachments(); renderField(); renderSegs(); renderSprays(); renderAiBox();
+    renderAttachments(); renderField(); renderSegs(); renderSprays(); renderAiBox(); renderKgCard();
+  }
+  function renderKgCard() {
+    if (!META) return;
+    const k = META.kg, acc = META.vision && META.vision.val_accuracy;
+    const stat = (v, label) => `<div class="stat"><b>${esc(v)}</b><span>${esc(t(label))}</span></div>`;
+    $("#kgCard").innerHTML = `<p class="eyebrow">${esc(t("kg_title"))}</p>
+      <p class="muted small">${esc(t("kg_sub"))}</p>
+      <div class="stats">${stat(k.diseases, "stat_diseases")}${stat(k.layterms, "stat_phrases")}${stat(k.treatments, "stat_treatments")}
+        ${acc ? stat(`${(acc * 100).toFixed(1)}%`, "stat_photo") : ""}</div>
+      <p class="kg-langs">${icon("leaf")}<span>${esc(t("kg_langs"))}</span></p>
+      ${!S.location && !S.locState ? `<button class="kg-loc" data-act="loc-pick">${icon("pin")}<span>${esc(t("kg_loc_cta"))}</span>${icon("arrow")}</button>` : ""}`;
   }
   function renderAttachments() {
     const parts = [];
@@ -291,10 +321,11 @@
   }
   function outbreakLines(ob) {
     if (!ob || !ob.diseases.length) return "";
-    return ob.diseases.slice(0, 3).map((o) => `<p class="outbreak">${icon("alert")} ${esc(t("outbreak_alert", { n: o.n, d: loc(o, "name"), km: ob.radius_km, days: ob.days }))}
+    return ob.diseases.slice(0, 3).map((o) => `<p class="outbreak">${icon("alert")} ${esc(t("outbreak_alert", { n: o.n, d: loc(o, "name"), km: ob.radius_km, days: ob.days, cases: o.n === 1 ? "case" : "cases" }))}
       ${o.simulated ? `<small>${esc(t("outbreak_sim"))}</small>` : ""}</p>`).join("");
   }
   function renderField() {
+    renderKgCard();
     const box = $("#fieldCard");
     if (!S.location) {
       const st = S.locState;
@@ -552,7 +583,7 @@
             ${L === "ta" ? `<p class="tr-alt">${esc(tr.name_en)}</p>` : ""}
             <p class="dose">${esc(loc(tr, "dosage"))}</p>
             ${tr.application && tr.application.group ? `<p class="grp">${esc(t("group_label"))}: ${esc(tr.application.group)}</p>` : ""}
-            ${!adv && tr.application && tr.application.phi_days != null ? `<p class="grp">${esc(t("phi_label", { n: tr.application.phi_days }))}</p>` : ""}
+            ${!adv && tr.application && tr.application.phi_days != null ? `<p class="grp">${esc(t("phi_label", { n: tr.application.phi_days, dn: daysText(tr.application.phi_days) }))}</p>` : ""}
             <p class="src">${esc(t("source"))}: ${esc(tr.source === "jagtap2025" ? "Jagtap et al. 2025 (Mendeley Data)" : tr.source === "general" ? (L === "ta" ? "பொது வேளாண் வழிகாட்டுதல்" : "General extension guidance") : tr.source)}</p>
           </div>`).join("") || `<p class="muted">${esc(t("no_treatment_type"))}</p>`}
       </div>`).join("")}`;
@@ -626,19 +657,21 @@
     const checkNext = r.check_next && r.check_next.length ? `<div class="card"><p class="eyebrow">${esc(t("check_next"))}</p>
       <ul class="check-list">${r.check_next.map((c) => `<li>${esc(loc(c, "label"))}</li>`).join("")}</ul></div>` : "";
 
-    $("#resultBody").innerHTML = `${hero}
-      ${uncertain ? "" : advisoryCards(r, d)}
-      ${uncertain ? "" : `<div class="card treat"><p class="eyebrow">${esc(t("treat_title"))}</p>${treatmentsBlock(d, r.advisory)}</div>`}
-      ${uncertain ? "" : soilCard(r, d)}
-      ${uncertain ? "" : calculatorCard(d)}
-      ${uncertain ? "" : `<div class="card"><p class="eyebrow">${esc(t("prevent_title"))}</p><ul class="prevent">${(d["prevention_" + L] || d.prevention_en || []).map((p) => `<li>${icon("shield")}<span>${esc(p)}</span></li>`).join("")}</ul></div>`}
-      ${checkNext}
-      ${whyBlock(r)}
-      <div class="actions no-print">
+    const actions = `<div class="actions no-print">
         ${canSpeak() ? `<button class="btn btn-ghost" data-act="speak">${icon("speaker")}<span>${esc(t("action_listen"))}</span></button>` : ""}
         <button class="btn btn-ghost" data-act="share">${icon("share")}<span>${esc(t("action_share"))}</span></button>
         <button class="btn btn-ghost" data-act="print">${icon("print")}<span>${esc(t("action_print"))}</span></button>
       </div>`;
+    const main = `${hero}
+      ${uncertain ? "" : `<div class="card treat"><p class="eyebrow">${esc(t("treat_title"))}</p>${treatmentsBlock(d, r.advisory)}</div>`}
+      ${uncertain ? "" : `<div class="card"><p class="eyebrow">${esc(t("prevent_title"))}</p><ul class="prevent">${(d["prevention_" + L] || d.prevention_en || []).map((p) => `<li>${icon("shield")}<span>${esc(p)}</span></li>`).join("")}</ul></div>`}
+      ${whyBlock(r)}`;
+    const side = `${actions}
+      ${uncertain ? "" : advisoryCards(r, d)}
+      ${uncertain ? "" : soilCard(r, d)}
+      ${uncertain ? "" : calculatorCard(d)}
+      ${checkNext}`;
+    $("#resultBody").innerHTML = `<div class="split-grid result-grid"><div class="split-main">${main}</div><aside class="split-side">${side}</aside></div>`;
     if (S.feedbackSent) markFeedbackDone();
     updateCalc();
   }
@@ -670,13 +703,14 @@
       if (n.code === "wrong_product") return t("note_wrong_product", { p: n.product });
       if (n.code === "weather_favours") return `${t("note_weather_favours")}${loc(n, "explain") ? " — " + loc(n, "explain") : ""}`;
       if (n.code === "picking") return t("note_picking", { every: n.every, d: fmtDay(n.next_pick) });
-      if (n.code === "phi_avoid") { const x = treatmentById(d, n.treatment_id); return t("note_phi_avoid", { p: x ? loc(x, "name") : n.treatment_id, n: n.phi, every: n.every }); }
+      if (n.code === "phi_no_safe_option") return t("note_phi_no_safe", { n: n.phi, dn: daysText(n.phi), every: n.every });
+      if (n.code === "phi_avoid") { const x = treatmentById(d, n.treatment_id); return t("note_phi_avoid", { p: x ? loc(x, "name") : n.treatment_id, n: n.phi, dn: daysText(n.phi), every: n.every }); }
       return t("note_" + n.code);
     });
     const sched = p.schedule.map((x) => {
       const tr = treatmentById(d, x.treatment_id);
       return `<li><span class="date">${esc(fmtWhen(x.date, true))}</span><span><b>${esc(tr ? loc(tr, "name") : x.treatment_id)}</b>
-        <small>${esc(tr ? loc(tr, "dosage") : "")}${x.group ? " · " + esc(x.group) : ""} · ${esc(t(x.forecast_checked ? "schedule_checked" : "schedule_recheck"))}${x.phi ? " · " + esc(t("sched_safe", { d: fmtDay(x.safe_from) })) : ""}</small></span></li>`;
+        <small>${esc(tr ? loc(tr, "dosage") : "")}${x.group ? " · " + esc(x.group) : ""} · ${esc(t(x.forecast_checked ? "schedule_checked" : "schedule_recheck"))}${x.after_pick ? " · " + esc(t("sched_after_pick")) : ""}${x.phi ? " · " + esc(t("sched_safe", { d: fmtDay(x.safe_from) })) : ""}</small></span></li>`;
     }).join("");
     const plan = `<div class="card plan"><p class="eyebrow">${esc(t("plan_title"))}</p>
       ${S.last.crop && S.last.crop.stage && S.last.crop.dat != null ? `<p class="crop-line">${icon("sprout")}<span>${esc(t("my_crop_line", { s: stageText(S.last.crop) }))}</span></p>` : ""}
@@ -868,7 +902,7 @@
     const txt = ph.phi === 0 ? t("phi_zero")
       : ph.status === "blocks_pick" ? t("phi_blocks", { n: ph.phi, d: fmtDay(ph.safe_from) })
       : ph.status === "after_pick" ? t("phi_after_pick", { n: ph.phi, d: fmtDay(ph.safe_from) })
-      : t("phi_after", { n: ph.phi, d: fmtDay(ph.safe_from) });
+      : t("phi_after", { n: ph.phi, dn: daysText(ph.phi), d: fmtDay(ph.safe_from) });
     return `<p class="phi phi-${esc(ph.status)}">${icon("clock")}<span>${esc(txt)}</span></p>`;
   }
   function alertsHtml(alerts) {
@@ -1058,7 +1092,7 @@
   async function openDisease(id) {
     let d;
     try { d = await api(`/api/disease/${encodeURIComponent(id)}`); } catch { return navigate("library"); }
-    const detailHtml = `
+    const detailHtml = `<div class="split-grid"><div class="split-main">
       <div class="card result-hero urg-${esc(d.urgency)}">
         <h2 class="disease-name ${L === "ta" ? "ta-display" : "en-display"}">${esc(loc(d, "name"))}</h2>
         <p class="disease-alt">${esc(other(d, "name"))}</p>
@@ -1068,11 +1102,13 @@
         <p class="contagion">${esc(t(d.contagious ? "contagious" : "not_contagious"))}</p>
       </div>
       <div class="card">${gallery(d)}</div>
+      <div class="card treat"><p class="eyebrow">${esc(t("treat_title"))}</p>${treatmentsBlock(d)}</div>
+      </div><aside class="split-side">
       <div class="card"><p class="eyebrow">${esc(t("symptoms_title"))}</p>
         <ul class="sym-list">${d.symptoms.map((s) => `<li><span>${esc(loc(s, "label"))}</span><span class="sym-bar"><i style="width:${pct(s.theta)}%"></i></span></li>`).join("")}</ul></div>
-      <div class="card treat"><p class="eyebrow">${esc(t("treat_title"))}</p>${treatmentsBlock(d)}</div>
       <div class="card"><p class="eyebrow">${esc(t("prevent_title"))}</p><ul class="prevent">${(d["prevention_" + L] || []).map((p) => `<li>${icon("shield")}<span>${esc(p)}</span></li>`).join("")}</ul></div>
-      <p class="muted small cite">${esc(t("source"))}: ${esc(d.source_citation || "")}</p>`;
+      <p class="muted small cite">${esc(t("source"))}: ${esc(d.source_citation || "")}</p>
+      </aside></div>`;
     $("#diseaseBody").innerHTML = detailHtml;
     show("disease");
   }
@@ -1093,12 +1129,12 @@
     const h = store.get("history", []);
     if (!h.length) { $("#historyList").innerHTML = `<p class="muted">${esc(t("history_empty"))}</p>`; return; }
     const fmt = new Intl.DateTimeFormat(L === "ta" ? "ta-IN" : "en-IN", { dateStyle: "medium", timeStyle: "short" });
-    $("#historyList").innerHTML = h.map((x) => {
+    $("#historyList").innerHTML = `<div class="card history-list">` + h.map((x) => {
       const shown = x.corrected ? META.diseases.find((d) => d.id === x.corrected) || x : x;
-      return `<a class="card history-item" href="#disease/${esc(x.corrected || x.disease)}">
+      return `<a class="history-item" href="#disease/${esc(x.corrected || x.disease)}">
         <span><b>${esc(loc(shown, "name"))}</b><small>${esc(fmt.format(x.at))}${x.text ? " · " + esc(x.text.slice(0, 60)) : ""}</small></span>
         <span class="hist-meta">${pct(x.p)}%${x.outcome ? `<em class="out-${esc(x.outcome)}">${esc(t("outcome_" + x.outcome) || "")}</em>` : ""}</span></a>`;
-    }).join("") + `<button class="btn btn-ghost btn-block" id="clearHistory">${esc(t("history_clear"))}</button>`;
+    }).join("") + `</div><button class="btn btn-ghost" id="clearHistory">${esc(t("history_clear"))}</button>`;
   }
 
   // ---------------------------------------------------------------- events
@@ -1181,7 +1217,12 @@
     document.addEventListener("change", (e) => { if (e.target.closest("#calcCard")) updateCalc(); });
     $("#finishBtn").addEventListener("click", () => runDiagnose({ finish: true }));
     $("#speakQ").addEventListener("click", () => S.last && S.last.question && speak(loc(S.last.question, "question")));
-    $("#langToggle").addEventListener("click", () => { L = L === "ta" ? "en" : "ta"; store.set("lang", L); applyI18n(); route(); });
+    $("#langToggle").addEventListener("click", () => { L = L === "ta" ? "en" : "ta"; store.set("lang", L); applyI18n(); applyTheme(); route(); });
+    $("#themeBtn").addEventListener("click", () => {
+      const cur = store.get("theme", "auto");
+      store.set("theme", THEMES[(THEMES.indexOf(cur) + 1) % THEMES.length]);
+      applyTheme();
+    });
     document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeSheets(); });
     window.addEventListener("hashchange", route);
     const net = () => $("#offlineBanner").classList.toggle("hidden", navigator.onLine);
@@ -1192,6 +1233,7 @@
   // ---------------------------------------------------------------- boot
   async function boot() {
     applyI18n();
+    applyTheme();
     bind();
     try { META = await api("/api/meta", null, { quiet: true }); } catch { toast(t("offline")); return; }
     setupMic();

@@ -14,7 +14,7 @@ from flask import Flask, abort, jsonify, render_template, request, send_from_dir
 from .config import load_config
 from .services import Services
 
-__version__ = "2.3.0"
+__version__ = "2.4.0"
 
 
 def create_app(overrides=None):
