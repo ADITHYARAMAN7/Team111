@@ -37,7 +37,7 @@
 
 \begin{document}
 
-\title{Tomato Doctor: A Tamil-First Conversational Crop-Disease Diagnosis System on a Probabilistic Knowledge Graph with Information-Gain Questioning and Weather-Aware Advisory}
+\title{Tomato Doctor: Tamil-First Conversational Diagnosis and Field-Aware Treatment Planning for Tomato on a Probabilistic Knowledge Graph}
 
 \author{%
 \IEEEauthorblockN{Author Name\IEEEauthorrefmark{1}, Author Name\IEEEauthorrefmark{1}, Author Name\IEEEauthorrefmark{1}, and Guide Name\IEEEauthorrefmark{2}}
@@ -50,59 +50,60 @@ Email: \{author1, author2\}@institution.edu}
 
 % =====================================================================
 \begin{abstract}
-Smallholder tomato growers describe crop problems in colloquial, mixed-script language, often without a usable photograph, while most digital diagnosis tools are image classifiers trained on laboratory photographs. We present \emph{Tomato Doctor}, a Tamil-first diagnosis system that reasons over a probabilistic knowledge graph (KG) of 17 diseases and pests, 45 observable symptoms, 247 Tamil, English and Tanglish lay-terms and 30 cited treatments. A concept-level language layer with Tamil stem matching, negation scope and IDF-weighted phrase coverage turns free text into reliability-weighted symptom evidence; a Bayesian engine with an explicit \unk{} hypothesis fuses that evidence with a calibrated leaf-photo classifier and a weather-driven prior, and asks the follow-up question with the highest expected information gain. Confirmed outcomes update Beta-distributed KG edge weights, and an advisory layer turns local hourly weather into spray windows, resistance-aware rotation and a dated schedule. On 85 held-out farmer descriptions with simulated noisy dialogues, top-1 accuracy rises from 63.5\% (95\% CI 52.9--74.1) for the fuzzy-matching prototype to 96.8\% (94.5--98.5), while confidently wrong answers fall from 10.6\% to 1.2\%; information-gain questioning needs 2.1 questions on average, 37\% fewer than a weight-variance heuristic at equal accuracy. Under field-like photo degradation the classifier alone drops to 36.4\%, whereas fusing the same photo with the dialogue recovers 67.8\%. Starting from a deliberately corrupted graph, confirmation-driven learning raises accuracy from 81.2\% to 93.6\% over 1,500 simulated consultations and nearly halves the mean edge-weight error, whereas the prototype's update rule increases it. A request costs 3.7\,ms on a laptop CPU.
+Tomato growers in Tamil Nadu usually describe a crop problem in their own words, often in colloquial Tamil mixed with English, and often without a usable photograph. Most digital tools, however, are image classifiers trained on laboratory photographs. We present \emph{Tomato Doctor}, a diagnosis and advisory system built on a probabilistic knowledge graph (KG) of 17 diseases and pests, 45 symptoms, 247 Tamil, English and Tanglish lay-terms and 30 cited treatments. A concept-level language layer turns free text into reliability-weighted evidence. A Bayesian engine combines this evidence with a calibrated leaf-photo classifier and a prior built from local weather, an optional soil-test report and the crop stage, and it asks the follow-up question with the highest expected information gain. Treatment plans account for rain, wind and heat, rotate resistance groups and respect pre-harvest intervals while fruit is being picked. On 85 held-out farmer descriptions with simulated dialogues, top-1 accuracy rises from 63.5\% for our earlier fuzzy-matching prototype to 96.5\%, and confidently wrong answers fall from 10.6\% to 1.1\%. The system needs 2.05 questions on average, 40\% fewer than a weight-variance heuristic at the same accuracy. When the leaf photo is degraded, the classifier alone reaches 36.4\%, while the photo combined with dialogue reaches 67.8\%. A consistent field profile halves confidently wrong answers, and a misleading one costs no accuracy after dialogue. Harvest-aware planning cuts spray schedules that clash with the next picking from 49.3\% to 4.9\%. A diagnosis request takes 4.2\,ms on a laptop CPU.
 \end{abstract}
 
 \begin{IEEEkeywords}
-Knowledge graphs, plant disease diagnosis, Bayesian inference, expected information gain, low-resource languages, Tamil, decision support systems, precision agriculture.
+Knowledge graphs, plant disease diagnosis, Bayesian inference, expected information gain, Tamil, low-resource languages, soil testing, pre-harvest interval, decision support systems.
 \end{IEEEkeywords}
 
 % =====================================================================
 \section{Introduction}
 
-Early, correct identification of a crop disease decides whether a farmer sprays the right product at the right time or loses part of a harvest. Deep convolutional networks recognise diseases in curated leaf photographs with high accuracy~\cite{mohanty2016,ferentinos2018}, yet their accuracy falls sharply on images taken in the field, with cluttered backgrounds, multiple symptoms and variable lighting~\cite{ferentinos2018,barbedo2018}. Moreover, an image-only tool assumes that the farmer can and will produce a clear photograph, and it cannot use the most informative signal the farmer already has: what they saw, said in their own words.
+A tomato grower who notices spots on the lower leaves has to decide quickly what the problem is and what to spray. A wrong guess costs money and, with fungicides and insecticides, can leave residues on fruit that is about to be sold. Convolutional networks recognise plant diseases from curated leaf photographs with high accuracy~\cite{mohanty2016,ferentinos2018}, but their accuracy drops sharply on photographs taken in the field, where backgrounds are cluttered, lighting varies and several symptoms occur together~\cite{ferentinos2018,barbedo2018}. An image-only tool also assumes that the farmer can take a clear photograph, and it ignores the most informative evidence the farmer already holds: what they have seen, in their own words.
 
-For Tamil-speaking growers that description is colloquial, agglutinative and frequently code-mixed with English or written in Latin script (``Tanglish''), e.g.\ \ta{இலையில் வெள்ளை தூள் போல இருக்கு} (``white dust-like stuff on the leaf''). Such descriptions are also genuinely ambiguous: ``white dust'' fits both powdery mildew and a whitefly infestation, two problems with entirely different treatments. A useful system must therefore (i) understand informal multilingual text robustly, (ii) recognise when the evidence is insufficient and ask the \emph{one} question that best separates the remaining candidates, (iii) remain usable when the photograph is poor, (iv) adapt treatment advice to the local weather that determines both disease pressure and whether a spray will wash off, and (v) improve as farmers confirm or correct its answers.
+For Tamil-speaking growers that description is colloquial and agglutinative, and it is often mixed with English or typed in Latin script (``Tanglish''), for example \ta{இலையில் வெள்ளை தூள் போல இருக்கு} (``something like white powder on the leaf''). Such a sentence is also ambiguous. ``White powder'' fits powdery mildew and a whitefly infestation equally well, and the two need entirely different treatments. A useful assistant must therefore understand informal multilingual text, notice when the evidence is not enough, and ask the one question that best separates the remaining candidates. It should still work when the photograph is poor. Its advice should reflect the conditions of the particular field: the weather that drives disease pressure and decides whether a spray will wash off, the soil, the stage of the crop, and whether fruit is being picked this week. Finally, it should improve as farmers confirm or correct its answers.
 
-A first prototype of this project stored diseases, symptoms, Tamil lay-terms and treatments in a Neo4j graph, matched farmer text to lay-terms with whole-phrase fuzzy matching and summed edge weights to rank diseases. Analysing it revealed failure modes that motivate this work: shared filler words caused spurious matches, negation was ignored, answers to follow-up questions did not influence the ranking, and a single rejection decayed edge weights for all future users.
+Our first prototype stored diseases, symptoms, Tamil lay-terms and treatments in a Neo4j graph, matched farmer text to lay-terms by whole-phrase fuzzy matching and ranked diseases by summed edge weights. Working with it exposed four problems. Common filler words produced spurious matches. Negation was ignored. Answers to follow-up questions did not change the ranking. A single rejection lowered edge weights for every later user. This paper describes the system we built to address these problems and the field-level advice we added on top of it.
 
-This paper makes the following contributions:
+Our contributions are:
 \begin{enumerate}
-  \item A \textbf{probabilistic agricultural KG} whose symptom and lay-term edges are Beta posteriors, with cited treatments annotated by mode of action, FRAC/IRAC resistance group, rain-fastness, heat limit and dose (Section~\ref{sec:kg}).
-  \item A \textbf{concept-level multilingual symptom matcher} for Tamil, English and Tanglish with stem matching, negation scope and IDF-weighted coverage, plus an LLM front end that is \emph{constrained to the KG's vocabulary} for speech (Section~\ref{sec:nlu}).
-  \item A \textbf{Bayesian diagnosis engine} with reliability-weighted asymmetric evidence, an explicit \unk{} hypothesis, tempered photo-likelihood fusion and cost-aware expected-information-gain questioning (Section~\ref{sec:inference}).
-  \item A \textbf{weather- and location-aware advisory layer}: published disease-forecast models (Hutton criteria, TOM-CAST) as a data-driven prior, spray-window planning, severity-adaptive and resistance-aware treatment plans, and community outbreak alerts (Section~\ref{sec:advisory}).
-  \item \textbf{Confirmation-driven online learning} that only learns from verified outcomes (Section~\ref{sec:learning}), and an evaluation with ablations, a photo-robustness study, a learning simulation and a live weather case study (Section~\ref{sec:eval}).
+  \item A \textbf{probabilistic agricultural KG} whose symptom and lay-term edges are Beta posteriors, with cited treatments annotated by mode of action, FRAC/IRAC resistance group, rain-fastness, heat limit, dose and pre-harvest interval (Section~\ref{sec:kg}).
+  \item A \textbf{concept-level symptom matcher} for Tamil, English and Tanglish with stem matching, negation scope and IDF-weighted coverage, and a speech front end in which a large language model may only choose identifiers that exist in the KG (Section~\ref{sec:nlu}).
+  \item A \textbf{Bayesian diagnosis engine} with reliability-weighted asymmetric evidence, an explicit \unk{} hypothesis, tempered fusion of photo likelihoods and cost-aware expected-information-gain questioning (Section~\ref{sec:inference}).
+  \item \textbf{Weather-aware advisory}: published disease forecasters as a prior and an early warning, spray-window planning, severity-adaptive and resistance-aware plans, and community outbreak alerts (Section~\ref{sec:advisory}).
+  \item A \textbf{field profile} that adds an optional soil-test report and the crop stage to the prior, gives soil-specific root-cause advice and a fertiliser plan, and schedules sprays so that pre-harvest intervals fit the farmer's picking rhythm (Section~\ref{sec:field}).
+  \item \textbf{Confirmation-driven online learning} (Section~\ref{sec:learning}) and an evaluation with ablations, a photo-robustness study, a learning simulation, a field-context study, a harvest-safety audit and a live weather case study (Section~\ref{sec:eval}).
 \end{enumerate}
 
 % =====================================================================
 \section{Related Work}
 
 \subsection{Image-based plant disease recognition}
-The PlantVillage collection~\cite{hughes2015} enabled convolutional models that reach high accuracy on held-out laboratory images~\cite{mohanty2016,ferentinos2018}. The same studies, and a dedicated analysis of influencing factors~\cite{barbedo2018}, report substantial degradation under field conditions caused by background, illumination, symptom variability and co-occurring disorders. We use such a classifier as one source of evidence and quantify how fusion with dialogue changes its behaviour under degradation.
+The PlantVillage collection~\cite{hughes2015} made it possible to train convolutional models that reach high accuracy on held-out laboratory images~\cite{mohanty2016,ferentinos2018}. The same studies, and an analysis of the factors that limit such models~\cite{barbedo2018}, report large losses under field conditions caused by background, illumination, symptom variability and co-occurring disorders. We use a classifier of this kind as one source of evidence and measure how fusing it with dialogue changes its behaviour when the photograph is poor.
 
 \subsection{Probabilistic diagnosis and question selection}
-Normative expert systems such as Pathfinder~\cite{heckerman1992} and the probabilistic reformulation of INTERNIST-1/QMR~\cite{shwe1991} represent diagnosis as Bayesian inference over findings; Pathfinder additionally chooses the next finding to observe by its expected value of information, and the expected information gain of an experiment goes back to Lindley~\cite{lindley1956}. We adapt this line of work to an agricultural KG whose findings arrive through noisy language understanding rather than structured entry, and model that noise explicitly.
+Normative expert systems such as Pathfinder~\cite{heckerman1992} and the probabilistic reformulation of INTERNIST-1/QMR~\cite{shwe1991} treat diagnosis as Bayesian inference over findings. Pathfinder also chooses the next finding to observe by its expected value of information, an idea that goes back to Lindley's measure of the information provided by an experiment~\cite{lindley1956}. We carry this approach over to an agricultural KG in which findings arrive through imperfect language understanding rather than structured entry, and we model that imperfection explicitly.
 
 \subsection{Agricultural knowledge graphs and conversational agents}
-Knowledge graphs organise entities and typed relations for retrieval and reasoning~\cite{hogan2021}. AgriKG~\cite{chen2019agrikg} extracts agricultural entities from web text into a graph for entity retrieval and question answering. FarmChat~\cite{jain2018farmchat} showed that a speech-based conversational agent built from Kisan Call Centre logs can meet the information needs of low-literate farmers in India. Our system differs in that the KG is \emph{probabilistic} and drives an adaptive diagnostic dialogue, and in that weights change with verified field outcomes.
+Knowledge graphs organise entities and typed relations for retrieval and reasoning~\cite{hogan2021}. AgriKG~\cite{chen2019agrikg} extracts agricultural entities from web text into a graph that supports entity retrieval and question answering. FarmChat~\cite{jain2018farmchat} showed that a speech-based agent built from Kisan Call Centre logs can serve the information needs of low-literate farmers in India. In our system the KG is probabilistic, it drives an adaptive diagnostic dialogue, and its weights change with verified field outcomes.
 
 \subsection{Language technology for Indian languages}
-IndicNLPSuite~\cite{kakwani2020} provides corpora and multilingual models for Indian languages, and large-scale weakly supervised speech recognition~\cite{radford2023whisper} and multimodal large language models~\cite{gemini2023} now transcribe Tamil speech. Colloquial agricultural symptom descriptions remain a low-resource domain, which motivates our lightweight, inspectable concept lexicon and the use of an LLM only as a constrained entity linker.
+IndicNLPSuite~\cite{kakwani2020} provides corpora and multilingual models for Indian languages, and recent speech recognisers~\cite{radford2023whisper} and multimodal language models~\cite{gemini2023} can transcribe Tamil speech. Colloquial descriptions of crop symptoms remain a low-resource domain, which is why we keep the core matcher as a small, inspectable concept lexicon and use a language model only as a constrained entity linker.
 
-\subsection{Weather-driven disease forecasting}
-Disease forecasters convert weather into infection risk: FAST~\cite{madden1978} and its TOM-CAST derivative accumulate daily disease-severity values (DSVs) from leaf wetness and temperature for early blight~\cite{frost2015}; the Smith Period and the more sensitive Hutton Criteria flag late-blight risk from consecutive warm, humid days~\cite{ahdb_hutton}. We use these models, together with rules derived from a tomato disease dataset~\cite{jagtap2025}, as a prior for diagnosis and as an early warning.
+\subsection{Weather, soil and crop context in disease management}
+Disease forecasters convert weather into infection risk. FAST~\cite{madden1978} and its TOM-CAST derivative accumulate daily disease-severity values from leaf wetness and temperature for early blight~\cite{frost2015}, and the Hutton criteria flag late-blight risk from runs of warm, humid days~\cite{ahdb_hutton}. Soil conditions also shift the odds of particular problems. Blossom-end rot is a calcium-related disorder that low soil calcium and salinity make more likely~\cite{howhite2005,saure2001}. Raising soil pH and supplying nitrate rather than ammonium nitrogen suppresses Fusarium wilt~\cite{jones1981}. Nitrogen and potassium supply change the susceptibility of crops to many pathogens~\cite{dordas2008}. In India, soil tests are reported against the rating classes of the national Soil Health Card scheme~\cite{shc,muhr1965,lindsay1978}. Finally, every registered pesticide carries a pre-harvest interval, the minimum time between the last application and harvest~\cite{cibrc}. We are not aware of a farmer-facing diagnosis system that combines these signals with conversational diagnosis, and we use them both in the prior and in the treatment plan.
 
 % =====================================================================
 \section{System Overview}
 \label{sec:overview}
 
-Fig.~\ref{fig:arch} shows the architecture. A Tamil-first progressive web application collects free text, voice, a leaf photograph, location, and optional tapped symptoms, severity, extent and previously sprayed products. Four extractors turn these inputs into evidence: the concept matcher (Section~\ref{sec:nlu}), an LLM entity linker for speech, a leaf-photo classifier, and a field-context service that fetches hourly weather and nearby outbreak reports. The reasoning core maintains a posterior over diseases (Section~\ref{sec:inference}); while no hypothesis is confident it asks the most informative question, otherwise it returns a diagnosis with an evidence-level explanation and a weather-aware treatment plan (Section~\ref{sec:advisory}). Farmer confirmations and expert curation close the loop (Section~\ref{sec:learning}).
+Fig.~\ref{fig:arch} shows the architecture. A Tamil-first web application collects free text, voice, a leaf photograph and, if the farmer chooses, tapped symptoms, severity, the share of affected plants and products already sprayed. On first use the application asks the browser for the farmer's location. An optional \emph{field profile} records the transplanting date, the picking rhythm and a soil-test report. Four extractors turn these inputs into evidence: the concept matcher (Section~\ref{sec:nlu}), a language-model entity linker for speech, the leaf-photo classifier, and a field-context service that fetches hourly weather and nearby outbreak reports and converts the field profile into prior factors. The reasoning core maintains a posterior over diseases (Section~\ref{sec:inference}). While no hypothesis is confident it asks the most informative question. Otherwise it returns a diagnosis with an evidence-level explanation and a treatment plan that reflects the weather, the soil and the harvest (Sections~\ref{sec:advisory} and~\ref{sec:field}). Farmer confirmations and expert curation close the loop (Section~\ref{sec:learning}).
 
 \begin{figure*}[t]
   \centering
   \resizebox{\textwidth}{!}{\input{figures/arch.tex}}
-  \caption{Architecture of Tomato Doctor. Black arrows carry evidence and decisions; red arrows form the dialogue and learning loops; dashed arrows carry weather and community outbreak reports. The knowledge graph is stored in Neo4j or in an embedded store and is mirrored in memory for inference.}
+  \caption{Architecture of Tomato Doctor. Black arrows carry evidence and decisions, red arrows form the dialogue and learning loops, and dashed arrows carry weather and community outbreak reports. The knowledge graph is stored in Neo4j or in an embedded store and is mirrored in memory for inference.}
   \label{fig:arch}
 \end{figure*}
 
@@ -111,12 +112,12 @@ Fig.~\ref{fig:arch} shows the architecture. A Tamil-first progressive web applic
 \label{sec:kg}
 
 \subsection{Schema}
-The KG schema is shown in Fig.~\ref{fig:schema} and its contents in Table~\ref{tab:kg}. A \emph{Disease} node (fungal, bacterial, viral, pest or physiological) links to observable \emph{Symptom} nodes through \textsf{HAS\_SYMPTOM} edges whose weight $\theta_{ds}$ approximates $P(\text{symptom } s \text{ observed}\mid d)$. Each symptom carries a farmer-facing question in Tamil and English, the plant part, and an \emph{observation cost} for destructive checks (cutting a stem: 0.10; the stem-ooze test: 0.15; uprooting a plant: 0.25). \emph{LayTerm} nodes hold colloquial phrases in Tamil script, English and Tanglish linked to symptoms by \textsf{LAYTERM\_MAPS\_TO} edges with a confidence $w_l$. Diseases link to \emph{Treatment} nodes (\textsf{TREATED\_BY}, efficacy), reference photographs (\textsf{CONFIRMED\_BY}) and \emph{SeasonCondition} nodes (\textsf{FAVORED\_BY}, boost).
+Fig.~\ref{fig:schema} shows the schema and Table~\ref{tab:kg} the contents. A \emph{Disease} node (fungal, bacterial, viral, pest or physiological) links to observable \emph{Symptom} nodes through \textsf{HAS\_SYMPTOM} edges whose weight $\theta_{ds}$ approximates $P(\text{symptom } s \text{ observed}\mid d)$. Each symptom carries a question for the farmer in Tamil and English, the plant part, and an \emph{observation cost} for checks that damage the plant (cutting a stem: 0.10; the stem-ooze test: 0.15; uprooting a plant: 0.25). \emph{LayTerm} nodes hold colloquial phrases in Tamil script, English and Tanglish and link to symptoms through \textsf{LAYTERM\_MAPS\_TO} edges with a confidence $w_l$. Diseases also link to \emph{Treatment} nodes (\textsf{TREATED\_BY}, with an efficacy), to reference photographs (\textsf{CONFIRMED\_BY}) and to \emph{SeasonCondition} nodes (\textsf{FAVORED\_BY}, with a boost).
 
 \begin{figure}[t]
   \centering
   \resizebox{0.97\columnwidth}{!}{\input{figures/kg_schema.tex}}
-  \caption{Knowledge-graph schema with node counts. \textsf{HAS\_SYMPTOM} and \textsf{LAYTERM\_MAPS\_TO} weights are Beta posteriors that are updated by confirmed field outcomes.}
+  \caption{Knowledge-graph schema with node counts. \textsf{HAS\_SYMPTOM} and \textsf{LAYTERM\_MAPS\_TO} weights are Beta posteriors that confirmed field outcomes update.}
   \label{fig:schema}
 \end{figure}
 
@@ -142,36 +143,36 @@ The KG schema is shown in Fig.~\ref{fig:schema} and its contents in Table~\ref{t
 \end{table}
 
 \subsection{Sources and curation}
-Symptoms, favourable conditions and treatments for nine diseases are drawn from a tomato disease dataset compiled from more than 40 authoritative sources~\cite{jagtap2025}; the remaining entries are standard extension guidance and are labelled as such in the graph and the user interface. Of the 30 treatments, 21 cite the dataset. Tamil lay-terms were written by the authors, including the 28 phrases of the original prototype, and the graph grows at run time through expert curation (Section~\ref{sec:learning}). A referential-integrity validator checks the graph before every load.
+Symptoms, favourable conditions and treatments for nine diseases come from a tomato disease dataset compiled from more than 40 authoritative sources~\cite{jagtap2025}. The remaining entries follow standard extension guidance and are labelled as such in the graph and in the interface. Of the 30 treatments, 21 cite the dataset. We wrote the Tamil lay-terms ourselves, starting from the 28 phrases of the prototype, and the graph grows at run time through expert curation (Section~\ref{sec:learning}). A referential-integrity check validates the graph before every load.
 
 \subsection{Weights as Beta posteriors}
-A seeded weight $w_0$ is stored as $\mathrm{Beta}(\alpha,\beta)$ with $\alpha = K w_0$, $\beta = K(1-w_0)$ and prior strength $K=20$ pseudo-observations, so that
+A seeded weight $w_0$ is stored as $\mathrm{Beta}(\alpha,\beta)$ with $\alpha = K w_0$, $\beta = K(1-w_0)$ and a prior strength of $K=20$ pseudo-observations, so that
 \begin{equation}
   \theta_{ds} = \frac{\alpha_{ds}}{\alpha_{ds}+\beta_{ds}} .
   \label{eq:beta}
 \end{equation}
-Updates add fractional evidence to $\alpha$ or $\beta$, keeping weights in $(0,1)$, reversible and auditable.
+Updates add fractional evidence to $\alpha$ or $\beta$. Weights therefore stay in $(0,1)$, and every change can be traced and reversed.
 
 \subsection{Treatment application attributes}
-Every sprayable treatment carries the attributes required for weather-aware advice (Table~\ref{tab:treat}): mode (contact, systemic, biological, botanical), FRAC/IRAC group~\cite{frac,irac}, dry hours needed before rain, maximum application temperature, preferred time of day, a numeric dose and a repeat interval. Rain-fastness of contact protectants is set conservatively to 4\,h, since reported drying times range from 1.5--2\,h to 6\,h on product labels and mancozeb deposits are partly washed off by moderate rain~\cite{grapepath}; the 32\,$^\circ$C limit for sulfur follows reported phytotoxicity above that temperature~\cite{awri2021}.
+Each sprayable treatment carries the attributes that weather- and harvest-aware advice needs (Table~\ref{tab:treat}): its mode (contact, systemic, biological, botanical), its FRAC or IRAC group~\cite{frac,irac}, the dry hours it needs before rain, its maximum application temperature, a preferred time of day, a numeric dose, a repeat interval and a pre-harvest interval (PHI). We set the rain-fastness of contact protectants to a conservative 4\,h, because reported drying times range from 1.5--2\,h to 6\,h on product labels and moderate rain partly washes off mancozeb deposits~\cite{grapepath}. The 32\,$^\circ$C limit for sulfur follows reported phytotoxicity above that temperature~\cite{awri2021}. PHIs are deliberately conservative defaults, at or above the typical tomato label interval for each product type~\cite{cibrc}, because intervals differ between brands; the interface states that the label on the pack is final.
 
 \begin{table}[t]
   \caption{Application attributes of selected treatments}
   \label{tab:treat}
   \centering
   \footnotesize
-  \setlength{\tabcolsep}{2.5pt}
-  \begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.05cm}lllll@{}}
+  \setlength{\tabcolsep}{2.2pt}
+  \begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.0cm}llllll@{}}
     \toprule
-    Treatment & Mode & Group & Dry & $T_{\max}$ & Dose \\
+    Treatment & Mode & Group & Dry & $T_{\max}$ & Dose & PHI \\
     \midrule
-    Mancozeb 75\% WP & contact & M3 & 4\,h & 35\,$^\circ$C & 3\,g/L \\
-    Azoxystrobin + difenoconazole & systemic & 11+3 & 2\,h & 35\,$^\circ$C & 200\,mL/ac \\
-    Wettable sulfur & contact & M2 & 3\,h & 32\,$^\circ$C & 2\,g/L \\
-    \emph{B.~thuringiensis} & biological & 11A$^\dagger$ & 2\,h & 35\,$^\circ$C & 2\,g/L$^\ddagger$ \\
-    Neem oil & botanical & -- & 3\,h & 32\,$^\circ$C & 5\,mL/L$^\ddagger$ \\
+    Mancozeb 75\% WP & contact & M3 & 4\,h & 35\,$^\circ$C & 3\,g/L & 5\,d \\
+    Azoxystrobin + difenoconazole & systemic & 11+3 & 2\,h & 35\,$^\circ$C & 200\,mL/ac & 5\,d \\
+    Copper hydroxide & contact & M1 & 4\,h & 35\,$^\circ$C & 2\,g/L & 3\,d \\
+    Wettable sulfur & contact & M2 & 3\,h & 32\,$^\circ$C & 2\,g/L & 1\,d \\
+    \emph{B.~thuringiensis} & biological & 11A$^\dagger$ & 2\,h & 35\,$^\circ$C & 2\,g/L$^\ddagger$ & 0\,d \\
     \bottomrule
-    \multicolumn{6}{@{}p{0.98\columnwidth}@{}}{\scriptsize Group: FRAC code, $^\dagger$IRAC code. Dry: rain-free hours needed after spraying. $^\ddagger$Evening application.}
+    \multicolumn{7}{@{}p{0.98\columnwidth}@{}}{\scriptsize Group: FRAC code, $^\dagger$IRAC code. Dry: rain-free hours needed after spraying. PHI: pre-harvest interval. $^\ddagger$Evening application.}
   \end{tabular}
 \end{table}
 
@@ -180,70 +181,75 @@ Every sprayable treatment carries the attributes required for weather-aware advi
 \label{sec:nlu}
 
 \subsection{Concept lexicon}
-Tamil, English and Tanglish surface forms map to 95 language-independent concepts through a lexicon of 944 forms (e.g.\ \ta{தூள்}, \ta{பொடி}, \emph{powder}, \emph{podi} $\rightarrow$ \textsc{powder}). Because Tamil is agglutinative (\ta{இலை}, \ta{இலையில்}, \ta{இலைகளில்}), a Tamil token matches the longest lexicon stem it begins with when the remaining suffix has at most eight code points; Latin tokens match exactly or by a stem with at most four trailing characters, with a typo-tolerant fallback (normalised edit similarity $\geq 0.88$) for tokens of five or more characters. Multi-word forms are matched first, which also lets fixed negative idioms such as \ta{காய் பிடிக்கலை} (``fruits are not setting'') be read as symptoms rather than as negations.
+Tamil, English and Tanglish surface forms map to 95 language-independent concepts through a lexicon of 944 forms (for example \ta{தூள்}, \ta{பொடி}, \emph{powder} and \emph{podi} all map to \textsc{powder}). Tamil is agglutinative (\ta{இலை}, \ta{இலையில்}, \ta{இலைகளில்}), so a Tamil token matches the longest lexicon stem it begins with, provided the remaining suffix has at most eight code points. Latin tokens match exactly or through a stem followed by at most four characters, with a typo-tolerant fallback (normalised edit similarity $\geq 0.88$) for tokens of five or more characters. Multi-word forms are matched first. This lets fixed negative idioms such as \ta{காய் பிடிக்கலை} (``fruits are not setting'') be read as symptoms rather than as negations.
 
 \subsection{Negation and clauses}
-Text is split into clauses at punctuation and contrastive conjunctions (\ta{ஆனா}, \emph{but}). Tamil negators follow what they negate, so \ta{இல்லை} and negative verb endings such as \mbox{\ta{-க்கலை}} negate the preceding content words; English negators (\emph{no}, \emph{not}, \emph{without}) negate up to three following words. Negated concepts form a separate bag that yields \emph{absent} evidence.
+Text is split into clauses at punctuation and at contrastive conjunctions (\ta{ஆனா}, \emph{but}). Tamil negators follow the words they negate, so \ta{இல்லை} and negative verb endings such as \mbox{\ta{-க்கலை}} negate the preceding content words. English negators (\emph{no}, \emph{not}, \emph{without}) negate up to three following words. Negated concepts are collected separately and produce \emph{absent} evidence.
 
 \subsection{IDF-weighted coverage}
-Every lay-term phrase $p$ is processed into a concept set $C_p$. Concepts are weighted by inverse document frequency over all phrases~\cite{sparckjones1972}, $w_c = \ln\frac{N+1}{\mathrm{df}_c+1}+1$, so that informative concepts (\textsc{powder}, \textsc{web}) dominate frequent ones (\textsc{leaf}, \textsc{spot}). With $B$ the concepts found in the input and $\sigma(c,B)\in[0,1]$ the best exact or related-concept similarity, the coverage of $p$ is
+Each lay-term phrase $p$ is reduced to a concept set $C_p$. Concepts are weighted by their inverse document frequency over all phrases~\cite{sparckjones1972}, $w_c = \ln\frac{N+1}{\mathrm{df}_c+1}+1$, so that informative concepts (\textsc{powder}, \textsc{web}) outweigh frequent ones (\textsc{leaf}, \textsc{spot}). With $B$ the set of concepts found in the input and $\sigma(c,B)\in[0,1]$ the best exact or related-concept similarity, the coverage of $p$ is
 \begin{equation}
   \mathrm{cov}(p) = \frac{\sum_{c\in C_p} w_c\, \sigma(c,B)}{\sum_{c\in C_p} w_c}.
   \label{eq:cov}
 \end{equation}
-A phrase matches when $\mathrm{cov}(p)\geq 0.6$ \emph{and} the most informative half of its concepts reaches the same coverage. The second condition prevents generic words from matching a specific phrase (``green leaves on the plant'' must not match ``green caterpillar on the plant''). When the input's negated concepts account for at least a quarter of the phrase weight, the match yields \emph{absent} evidence. The match strength is $s=\mathrm{cov}(p)\,w_l$, and each symptom keeps its strongest match. Fig.~\ref{fig:nlu} traces an example.
+A phrase matches when $\mathrm{cov}(p)\geq 0.6$ \emph{and} the most informative half of its concepts reaches the same coverage. The second condition stops generic words from matching a specific phrase: ``green leaves on the plant'' must not match ``green caterpillar on the plant''. When negated concepts account for at least a quarter of the phrase weight, the match produces \emph{absent} evidence. The match strength is $s=\mathrm{cov}(p)\,w_l$, and each symptom keeps its strongest match. Fig.~\ref{fig:nlu} traces an example.
 
 \begin{figure}[t]
   \centering
   \resizebox{\columnwidth}{!}{\input{figures/nlu_example.tex}}
-  \caption{Worked example. The Tamil input contains a synonym of the lay-term (\ta{தூள்} vs.\ \ta{பொடி}, both \textsc{powder}) and a negated clause. The concept matcher produces one present and one absent symptom, and the posterior favours powdery mildew. All values are produced by the implementation.}
+  \caption{Worked example. The Tamil input uses a synonym of the lay-term (\ta{தூள்} instead of \ta{பொடி}, both \textsc{powder}) and contains a negated clause. The matcher returns one present and one absent symptom, and the posterior favours powdery mildew. All values come from the implementation.}
   \label{fig:nlu}
 \end{figure}
 
-\subsection{Speech and LLM entity linking}
-For voice input, the recording is converted to 16\,kHz mono WAV in the browser and sent to a multimodal LLM (Gemini~\cite{gemini2023}) with a JSON schema whose symptom and treatment fields are \emph{enumerations of KG identifiers}. The model returns a verbatim transcript, linked symptoms with a confidence and the quoted words, severity, the estimated share of affected plants, duration, crop stage and products already sprayed; it is explicitly instructed not to diagnose. The output is validated (unknown identifiers dropped, numbers clamped), the transcript is also passed through the concept matcher, and LLM-linked symptoms are used only where the matcher found nothing. The LLM thus widens recall without being able to introduce a disease or a dosage that is not in the curated graph. Without an API key the system falls back to browser speech recognition, and severity and extent are still extracted from plain words (e.g.\ \ta{கொஞ்சம்}, ``a little'' $\rightarrow$ mild). This component is implemented and unit-tested with recorded responses but was \emph{not} part of the quantitative evaluation.
+\subsection{Speech and constrained entity linking}
+For voice input, the browser converts the recording to 16\,kHz mono WAV and sends it to a multimodal language model (Gemini~\cite{gemini2023}) together with a JSON schema in which the symptom and treatment fields are \emph{enumerations of KG identifiers}. The model returns a verbatim transcript, the linked symptoms with a confidence and the quoted words, severity, the estimated share of affected plants, duration, crop stage and products already sprayed. It is told explicitly not to diagnose. We validate the output (unknown identifiers are dropped and numbers are clamped), pass the transcript through the concept matcher as well, and use the model's links only for symptoms the matcher did not find. The model can therefore widen recall, but it cannot introduce a disease or a dose that is not in the curated graph. Without an API key the system falls back to the browser's speech recognition, and severity and extent are still read from plain words (\ta{கொஞ்சம்}, ``a little'', becomes \emph{mild}). This component is implemented and unit-tested against recorded responses but is not part of the quantitative evaluation.
 
 % =====================================================================
 \section{Bayesian Diagnosis and Information-Gain Dialogue}
 \label{sec:inference}
 
 \subsection{Hypotheses and evidence}
-The hypothesis space $\mathcal{H}$ contains the 17 diseases and an explicit \unk{} hypothesis (``a problem not in the graph'') with $\theta_{\unk,s}=0.12$ for every symptom. Each piece of evidence $e$ is a report that symptom $s_e$ is present or absent, with a reliability $c_e$: for text $c=\mathrm{clip}(0.5+0.45\,s,\,0.55,\,0.95)$; for answers $c=0.92$ (yes) or $0.90$ (no); for tapped symptoms $c=0.90$; for LLM links $c=\mathrm{clip}(0.5+0.4\,\kappa,\,0.55,\,0.90)$ with model confidence $\kappa$. A direct answer overrides inferred evidence for the same symptom. With $\theta=\theta_{hs}$, or a leak value of 0.02 when the KG has no edge, the report likelihood is
+The hypothesis space $\mathcal{H}$ contains the 17 diseases and an explicit \unk{} hypothesis (``a problem that is not in the graph'') with $\theta_{\unk,s}=0.12$ for every symptom. Each piece of evidence $e$ reports that symptom $s_e$ is present or absent, with a reliability $c_e$. For text, $c=\mathrm{clip}(0.5+0.45\,s,\,0.55,\,0.95)$; for answers, $c=0.92$ (yes) or $0.90$ (no); for tapped symptoms, $c=0.90$; for links from the language model, $c=\mathrm{clip}(0.5+0.4\,\kappa,\,0.55,\,0.90)$ with model confidence $\kappa$. A direct answer overrides inferred evidence for the same symptom. With $\theta=\theta_{hs}$, or a leak value of 0.02 when the KG has no edge, the likelihood of a report is
 \begin{align}
   P(e^{+}\mid h) &= c\,\theta + \lambda\,(1-c)(1-\theta), \label{eq:pos}\\
   P(e^{-}\mid h) &= c\,(1-\theta) + (1-c)\,\theta, \label{eq:neg}
 \end{align}
-where $\lambda=0.3$ makes false alarms rarer than misses: farmers overlook symptoms more often than they invent a specific one. A weak language match therefore moves the posterior only slightly, which bounds the damage of matching errors.
+where $\lambda=0.3$ makes false alarms rarer than misses: farmers overlook symptoms more often than they report a specific one that is not there. A weak language match therefore moves the posterior only a little, which limits the damage a matching error can do.
 
 \subsection{Priors and photo fusion}
-The prior is $P(h)\propto f_h$ with $f_\unk=0.6$ and, for a disease, either a calendar-season boost $f_d = 1 + b_d$ from \textsf{FAVORED\_BY} edges or, when the location is known, the weather-driven factor of Section~\ref{sec:advisory}. A leaf photo enters as a tempered likelihood
+The prior combines the season or the local weather with the optional field profile:
+\begin{equation}
+  P(h) \propto f_h\, \sigma_h\, \gamma_h ,
+  \label{eq:prior}
+\end{equation}
+with $f_\unk=0.6$ and $\sigma_\unk=\gamma_\unk=1$. For a disease, $f_d$ is either a calendar-season boost $1 + b_d$ from \textsf{FAVORED\_BY} edges or, once the location is known, the weather-driven factor of Section~\ref{sec:advisory}. The soil factor $\sigma_d$ and the crop-stage factor $\gamma_d$ are described in Section~\ref{sec:field}; both equal 1 when the farmer has not filled in a field profile. A leaf photo enters as a tempered likelihood
 \begin{equation}
   L_{\mathrm{img}}(d) = \begin{cases} \max(p_d,\,0.02)^{\tau} & d \text{ in the classifier's classes},\\ 0.05^{\tau} & \text{otherwise,} \end{cases}
   \label{eq:photo}
 \end{equation}
-where $p_d$ is the calibrated class probability and $\tau=0.6$, reduced to 0.25 when a quality check fails or $\max_d p_d<0.5$, and to 0 when no leaf is detected. The posterior is
+where $p_d$ is the calibrated class probability and $\tau=0.6$. The exponent drops to 0.25 when a quality check fails or $\max_d p_d<0.5$, and to 0 when no leaf is detected. The posterior is
 \begin{equation}
   P(h\mid E) \propto P(h)\, L_{\mathrm{img}}(h) \prod_{e\in E} P(e\mid h).
   \label{eq:post}
 \end{equation}
 
 \subsection{Cost-aware expected information gain}
-For an unobserved symptom $s$, let $\pi=P(\cdot\mid E)$ and $\pi^{a}$ the posterior after answer $a\in\{\text{yes},\text{no}\}$ with reliability 0.92. The expected information gain is
+For an unobserved symptom $s$, let $\pi=P(\cdot\mid E)$ and let $\pi^{a}$ be the posterior after the answer $a\in\{\text{yes},\text{no}\}$ given with reliability 0.92. The expected information gain is
 \begin{equation}
   \EIG(s) = H(\pi) - \sum_{a} P(a\mid E)\, H(\pi^{a}),
   \label{eq:eig}
 \end{equation}
-with $H$ the Shannon entropy in bits~\cite{lindley1956}, and the next question maximises $\EIG(s)\,(1-\mathrm{cost}_s)$. Dialogue stops when the best disease reaches 0.85, after six questions, or when no question offers more than 0.03\,bits (Algorithm~\ref{alg:dialogue}). The farmer may also answer ``not sure'' or ask for the result at any time.
+where $H$ is the Shannon entropy in bits~\cite{lindley1956}. The next question maximises $\EIG(s)\,(1-\mathrm{cost}_s)$. The dialogue stops when the best disease reaches 0.85, after six questions, or when no question offers more than 0.03\,bits (Algorithm~\ref{alg:dialogue}). The farmer can also answer ``not sure'' or ask for the result at any point.
 
 \begin{algorithm}[t]
 \caption{Interactive diagnosis}
 \label{alg:dialogue}
 \footnotesize
 \begin{algorithmic}[1]
-\Require text $x$, optional photo, location, tapped symptoms
+\Require text $x$, optional photo, location, field profile, tapped symptoms
 \Ensure diagnosis with explanation, or an abstention
 \State $E \gets$ \textsc{Match}$(x)$ $\cup$ tapped symptoms $\cup$ LLM links \Comment{Sec.~\ref{sec:nlu}}
-\State $P(h) \gets$ \textsc{Prior}(location, weather, outbreaks) \Comment{Sec.~\ref{sec:advisory}}
+\State $P(h) \gets$ \textsc{Prior}(weather, outbreaks, soil, crop stage) \Comment{Eq.~\eqref{eq:prior}}
 \If{$E=\emptyset$ \textbf{and} no photo} \State \Return ask the farmer to tap symptoms; log $x$ for experts \EndIf
 \For{$k = 1,\dots,6$}
   \State compute $\pi = P(h\mid E)$ by \eqref{eq:post}
@@ -259,40 +265,99 @@ with $H$ the Shannon entropy in bits~\cite{lindley1956}, and the next question m
 \end{algorithm}
 
 \subsection{Explanations}
-For the top disease $d_1$ and the runner-up $d_2$, each evidence item is shown with its log-likelihood ratio $\log P(e\mid d_1)-\log P(e\mid d_2)$, labelled as supporting or contradicting, together with the farmer's own words, the lay-term it matched and the KG weight $\theta_{d_1 s}$. The strongest unobserved symptoms of $d_1$ are listed as things to check next.
+For the leading disease $d_1$ and the runner-up $d_2$, each piece of evidence is shown with its log-likelihood ratio $\log P(e\mid d_1)-\log P(e\mid d_2)$ and labelled as supporting or contradicting, together with the farmer's own words, the lay-term it matched and the KG weight $\theta_{d_1 s}$. The strongest unobserved symptoms of $d_1$ are listed as things to check next. When the soil report raised the prior of $d_1$, the result names the soil findings responsible.
 
 % =====================================================================
 \section{Weather- and Location-Aware Advisory}
 \label{sec:advisory}
 
 \subsection{Disease-risk models}
-Given a location (GPS or a district, always rounded to a 0.05$^\circ$ grid of about 5\,km), the system retrieves seven days of hourly history and three days of forecast~\cite{openmeteo}. Relative humidity $\geq$90\% serves as the leaf-wetness proxy, as in operational TOM-CAST implementations~\cite{frost2015}.
-\emph{Late blight} uses the Hutton criteria~\cite{ahdb_hutton}: a day qualifies when the minimum temperature is $\geq$10\,$^\circ$C and at least six hours have RH$\geq$90\%; with $P$ the number of consecutive qualifying day pairs in the last week, $H$ the qualifying days and $F$ an indicator of a forecast pair,
+The application requests the farmer's location when it opens; a farmer who declines can pick a district instead. Locations are always rounded to a 0.05$^\circ$ grid (about 5\,km). For that grid cell the system retrieves seven days of hourly history and three days of forecast~\cite{openmeteo}. Relative humidity of at least 90\% serves as the leaf-wetness proxy, as in operational TOM-CAST implementations~\cite{frost2015}.
+\emph{Late blight} uses the Hutton criteria~\cite{ahdb_hutton}: a day qualifies when the minimum temperature is at least 10\,$^\circ$C and at least six hours have RH$\geq$90\%. With $P$ the number of consecutive qualifying day pairs in the last week, $H$ the number of qualifying days and $F$ an indicator for a forecast pair,
 \begin{equation}
   r_{\mathrm{LB}} = \min\bigl(1,\,0.45P + 0.15H + 0.3F\bigr)\, g(\bar T),
 \end{equation}
-where $g$ is 1 for a mean temperature of 12--23\,$^\circ$C (the dataset gives 18--23\,$^\circ$C as the fastest-spread range~\cite{jagtap2025}) and decreases linearly to 0.1 at 30\,$^\circ$C, because the criteria were calibrated in a temperate climate. \emph{Early blight} sums TOM-CAST daily severity values~\cite{madden1978,frost2015} over the last seven days and uses $r_{\mathrm{EB}}=\min(1,\mathrm{DSV}_7/15)$. Eleven further diseases use transparent rules that count hours meeting favourable temperature and humidity conditions (e.g.\ $T\geq30$\,$^\circ$C and RH$<$50\% for spider mites), taken from~\cite{jagtap2025} where the dataset covers the disease (septoria, leaf mold, target spot, spider mite, leaf miner, leaf curl virus) and from general guidance otherwise; they are capped at 0.8 so that heuristics never claim the certainty of the published models. Four diseases without a weather signal (fruit borer, root-knot nematode, Fusarium wilt, mosaic virus) receive no model. Risks are shown as a weekly early warning, and replace the calendar season in the prior as $f_d = 1 + 1.5\,r_d$, with unmodelled diseases receiving the mean factor.
+where $g$ equals 1 for a mean temperature of 12--23\,$^\circ$C (the dataset gives 18--23\,$^\circ$C as the range of fastest spread~\cite{jagtap2025}) and falls linearly to 0.1 at 30\,$^\circ$C, because the criteria were calibrated in a temperate climate. \emph{Early blight} sums TOM-CAST daily severity values~\cite{madden1978,frost2015} over the last seven days and uses $r_{\mathrm{EB}}=\min(1,\mathrm{DSV}_7/15)$. Eleven further diseases use simple rules that count the hours meeting favourable temperature and humidity conditions (for example $T\geq30$\,$^\circ$C and RH$<$50\% for spider mites). The rules come from~\cite{jagtap2025} where the dataset covers the disease (septoria, leaf mold, target spot, spider mite, leaf miner, leaf curl virus) and from general guidance otherwise, and they are capped at 0.8 so that a heuristic never claims the certainty of a published model. Four diseases without a weather signal (fruit borer, root-knot nematode, Fusarium wilt, mosaic virus) have no model. The risks appear as a weekly early warning and replace the calendar season in the prior as $f_d = 1 + 1.5\,r_d$; diseases without a model receive the mean factor.
 
 \subsection{Community outbreak signal}
-Confirmed diagnoses with a location become reports. For a farmer, the count $n_d$ of reports of disease $d$ within 30\,km in the last 21 days multiplies the prior by $1+0.2\min(n_d,5)$ and triggers an alert; an expert map shows all reports.
+Confirmed diagnoses that have a location become outbreak reports. For a given farmer, the number $n_d$ of reports of disease $d$ within 30\,km in the last 21 days multiplies the prior by $1+0.2\min(n_d,5)$ and triggers an alert. An expert map shows all reports.
 
 \subsection{Spray windows}
-An hour is suitable for a product when it falls in the product's application hours (daylight, or 16:00--19:00 for UV-sensitive biologicals and oils), it is not raining, no hour within the product's rain-fast period has $\geq$0.3\,mm of rain or $\geq$60\% rain probability, the wind is below 20\,km/h~\cite{agvic_wind}, the temperature is below the product limit, and RH is below 97\%. The earliest run of at least two suitable hours in the next 72\,h is reported, with a caution for wind of 15--20\,km/h. Every treatment is labelled \emph{OK now}, \emph{wait} (with the reason and the next window) or \emph{not in the next three days}.
+An hour suits a product when it falls inside the product's application hours (daylight, or 16:00--19:00 for UV-sensitive biologicals and oils), when it is not raining, when no hour within the product's rain-fast period has $\geq$0.3\,mm of rain or a rain probability of $\geq$60\%, when the wind is below 20\,km/h~\cite{agvic_wind}, when the temperature is below the product's limit, and when RH is below 97\%. The earliest run of at least two suitable hours in the next 72\,h is reported, with a caution when the wind is between 15 and 20\,km/h. Each treatment is labelled \emph{OK now}, \emph{wait} (with the reason and the next window) or \emph{not in the next three days}.
 
 \subsection{Severity-adaptive, resistance-aware plan}
-Treatments are ranked by efficacy adjusted for severity (mild: cultural $+0.3$, organic $+0.2$, chemical $-0.3$; severe: chemical $+0.25$, cultural $+0.1$, organic $-0.1$), for rain expected within 24\,h (systemic $+0.1$, contact $-0.05$) and for resistance (a product sharing a FRAC/IRAC group with a recently sprayed one: $-0.4$). Previously sprayed products named by the farmer are fuzzy-matched to KG treatments; the plan states when to switch groups and when a product does not target the diagnosed problem, and that viral diseases have no cure. The share of affected plants sets the scope (below 10\%: treat or remove those plants; below 40\%: the patch; otherwise the field). A dated schedule alternates resistance groups at the products' repeat intervals and is exported as an iCalendar file; a calculator converts doses to a 16\,L knapsack tank and to the farmer's area in cents or acres.
+Treatments are ranked by efficacy, adjusted for severity (mild: cultural $+0.3$, organic $+0.2$, chemical $-0.3$; severe: chemical $+0.25$, cultural $+0.1$, organic $-0.1$), for rain expected within 24\,h (systemic $+0.1$, contact $-0.05$) and for resistance management (a product that shares a FRAC or IRAC group with one sprayed recently loses 0.4). Products the farmer has already sprayed are fuzzy-matched to KG treatments. The plan says when to switch resistance group, when a product does not target the diagnosed problem, and that viral diseases have no cure. The share of affected plants sets the scope: below 10\%, treat or remove those plants; below 40\%, treat the patch; otherwise treat the field. A dated schedule alternates resistance groups at each product's repeat interval and can be exported as a calendar file, and a calculator converts doses to a 16\,L knapsack tank and to the farmer's area in cents or acres.
+
+% =====================================================================
+\section{Field Profile: Soil, Crop Stage and Harvest}
+\label{sec:field}
+
+The field profile is optional. It is stored on the farmer's device and sent to the server only with the requests that use it. It holds the transplanting date, the variety type, the area, whether fruit is being picked and how often, and a soil-test report (Fig.~\ref{fig:field}).
+
+\subsection{Reading a soil-test report}
+A farmer can type the values of a report or upload it. Reports that are PDFs with a text layer, such as a downloaded Soil Health Card, are parsed locally: each line is searched for a known parameter label in English, an abbreviation or Tamil, followed by a number within the plausible range for that parameter, and values reported as P$_2$O$_5$ or K$_2$O are converted to elemental P and K. Photographs and scanned reports are read by the multimodal model under a JSON schema with one numeric field per parameter. The model is told to copy values, never to estimate them, and every value it returns passes the same range checks as typed input. Fourteen parameters are supported: pH, electrical conductivity (EC), organic carbon, available N, P, K and S, the micronutrients Zn, Fe, Mn, Cu and B, and exchangeable Ca and Mg. Each is rated with the classes printed on the Soil Health Card~\cite{shc,muhr1965,lindsay1978}, for example available N below 280\,kg/ha as low and above 560\,kg/ha as high.
+
+\subsection{Soil and crop-stage factors in the prior}
+Table~\ref{tab:fieldrules} lists the rules that turn the field profile into the factors $\sigma_d$ and $\gamma_d$ of~\eqref{eq:prior}. We kept to links that are documented in the literature or in standard extension guidance, and we kept the factors small: the product of soil factors for a disease is capped at 2, so a soil report can at most double a prior and the symptoms still decide the diagnosis. The crop stage follows from the days after transplanting: establishment from day 0, vegetative growth from day 20, flowering from day 35, fruit set from day 55 and harvest from day 70. These boundaries are our approximation for a transplanted crop of 135--150 days, and the farmer can override the stage. Its main effect is to make fruit problems unlikely before there is fruit.
+
+\begin{table}[t]
+  \caption{Field-profile rules used in the prior}
+  \label{tab:fieldrules}
+  \centering
+  \footnotesize
+  \setlength{\tabcolsep}{2.4pt}
+  \begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.45cm}>{\raggedright\arraybackslash}p{2.75cm}>{\raggedright\arraybackslash}p{2.05cm}@{}}
+    \toprule
+    Field condition & Problems affected & Factor \\
+    \midrule
+    Exch. Ca $<$ 1.5 cmol/kg & blossom-end rot~\cite{howhite2005} & $\times$1.5 \\
+    EC 1--2 / $>$2 dS/m & blossom-end rot~\cite{saure2001} & $\times$1.2 / 1.4 \\
+    pH $<$ 5.5 & blossom-end rot & $\times$1.2 \\
+    pH $<$ 6.0 & Fusarium wilt~\cite{jones1981} & $\times$1.3 \\
+    Sandy texture & Fusarium wilt; root-knot nematode & $\times$1.15; 1.4 \\
+    Organic carbon $<$ 0.5\% & root-knot nematode & $\times$1.15 \\
+    Available N low / K low & early blight~\cite{dordas2008} & $\times$1.2 / 1.1 \\
+    Available N high & 6 foliar diseases, 3 sucking pests~\cite{dordas2008} & $\times$1.15 \\
+    Establishment, vegetative & blossom-end rot; fruit borer; leaf curl & $\times$0.2--0.3; 0.4--0.5; 1.2--1.25 \\
+    Flowering & blossom-end rot; fruit borer & $\times$0.8; 1.15 \\
+    Fruit set, harvest & blossom-end rot; fruit borer; early blight & $\times$1.2--1.3; 1.2--1.3; 1.1--1.25 \\
+    \bottomrule
+    \multicolumn{3}{@{}p{0.98\columnwidth}@{}}{\scriptsize Rules without a citation follow general extension guidance. The product of soil factors is capped at 2.}
+  \end{tabular}
+\end{table}
+
+\subsection{Root-cause advice and fertiliser plan}
+Once a diagnosis is made, the soil report is checked against it. For blossom-end rot with low calcium the plan recommends gypsum in the root zone and a calcium spray on young fruit, and adds liming when the soil is acidic and irrigation advice when it is saline. For Fusarium wilt on acidic soil it recommends liming to pH 6.5--7.0 and nitrate rather than ammonium nitrogen~\cite{jones1981}. When available nitrogen is already high and the diagnosis is a foliar disease or a sucking pest, it advises against further urea. On strongly acidic soil it warns that repeated copper sprays accumulate. The profile also yields a fertiliser plan for the whole crop. Starting from the regional recommendation for tomato (150:100:50\,kg/ha N:P$_2$O$_5$:K$_2$O for varieties and 200:250:250 for hybrids~\cite{tnau_tomato}), each nutrient is raised by 25\% when the soil test rates it low and lowered by 25\% when it rates it high. The result is converted to kilograms of urea, single super phosphate and potash per acre, split into a basal dose and a top dressing on day 30, with sulphate of potash in place of muriate of potash on saline soil and soil or foliar doses for deficient micronutrients.
+
+\subsection{Harvest-safe spray planning}
+Tomato is picked every few days for several weeks, so a spray whose pre-harvest interval reaches past the next picking forces the farmer either to harvest fruit that is not yet safe or to skip a picking. Let a product with interval $\phi$ be sprayed on day $t_s$, let the next picking fall on day $t_p$, and let $\Delta$ be the farmer's picking interval. We classify the spray as
+\begin{equation}
+  \mathrm{status} = \begin{cases} \text{safe} & \phi \le t_p - t_s,\\ \text{pick first} & t_p - t_s < \phi \le \Delta,\\ \text{blocks picking} & \phi > \Delta. \end{cases}
+  \label{eq:phi}
+\end{equation}
+\emph{Pick first} means the farmer harvests the ripe fruit before spraying, which keeps the usual interval. While fruit is being picked, products that would block picking lose 0.5 in the ranking and \emph{pick first} products lose 0.05. When the best product overall blocks picking and a safer one exists, the plan names the product it moved down and explains why. Repeat sprays in the schedule are placed on the first picking day after the product's repeat interval, after that day's harvest, so each interval runs between two pickings. Every scheduled spray shows the date from which picking is safe again. If every sprayable option for a disease blocks picking, the plan says so and points to the non-chemical measures.
+
+\subsection{Prevention alerts}
+When the weather risk of a disease is high, the home screen proposes a preventive spray from the graph before any symptom appears. Protectants and biological products are preferred, products that would block picking are excluded, and the alert gives the dose, the next spray window and the date from which picking is safe again.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/screens/d5_field.png}
+  \caption{The field profile: crop stage from the transplanting date, picking rhythm and a soil-test report rated against Soil Health Card classes. All entries are optional.}
+  \label{fig:field}
+\end{figure}
 
 % =====================================================================
 \section{Learning from Farmer Feedback}
 \label{sec:learning}
 
-After a diagnosis the farmer confirms it, picks the correct disease from reference photos, rejects it, or is unsure. Only confirmed or corrected outcomes update weights: a bare rejection tells us that the answer was wrong, not which answer is right, and decaying the predicted disease's edges on rejection, as the prototype did, penalises edges that may be correct. For the true disease $d^\star$ and each evidence item with reliability $c$, let $\omega = 2(c-0.5)$. If $(d^\star,s)$ exists, a present report adds $\omega$ to $\alpha$ and an absent report adds $\omega$ to $\beta$. A present symptom with $\omega\geq0.6$ and no edge creates a \emph{suggested edge} for expert review. For a text match through lay-term $l$, $\alpha_l$ grows by $\omega/2$ if $s$ is a symptom of $d^\star$ and $\beta_l$ otherwise. Descriptions that matched nothing are queued in an expert console, where mapping one to a symptom creates a new LayTerm node immediately; Fig.~\ref{fig:expert} shows the console.
+After a diagnosis the farmer can confirm it, pick the correct disease from reference photographs, reject it, or say they are unsure. Only confirmed or corrected outcomes update weights. A bare rejection tells us that the answer was wrong but not which answer is right, and lowering the edges of the predicted disease on rejection, as the prototype did, penalises edges that may well be correct. For the true disease $d^\star$ and each evidence item with reliability $c$, let $\omega = 2(c-0.5)$. If the edge $(d^\star,s)$ exists, a present report adds $\omega$ to $\alpha$ and an absent report adds $\omega$ to $\beta$. A present symptom with $\omega\geq0.6$ and no edge creates a \emph{suggested edge} for an expert to review. For a text match through lay-term $l$, $\alpha_l$ grows by $\omega/2$ if $s$ is a symptom of $d^\star$, and $\beta_l$ grows otherwise. Descriptions that matched nothing are queued in an expert console, where mapping one to a symptom immediately creates a new LayTerm node. Fig.~\ref{fig:expert} shows the console.
 
 \begin{figure}[t]
   \centering
   \subfloat[Knowledge-graph explorer focused on late blight; the tooltip gives the Tamil name (diseases red, symptoms green, treatments gold, edge width = weight)]{\includegraphics[width=\columnwidth]{figures/screens/g_graph.png}}\\
   \subfloat[Community outbreak map (simulated demonstration reports)]{\includegraphics[width=\columnwidth]{figures/screens/g_map.png}}
-  \caption{Expert console. Edge thickness encodes the KG weight; the console also lists unmatched farmer phrases for curation and the drift of every learned edge weight.}
+  \caption{Expert console. Edge thickness encodes the KG weight. The console also lists unmatched farmer phrases for curation and the drift of every learned edge weight.}
   \label{fig:expert}
 \end{figure}
 
@@ -300,20 +365,28 @@ After a diagnosis the farmer confirms it, picks the correct disease from referen
 \section{Implementation}
 \label{sec:impl}
 
-The back end is a Python/Flask service. The KG is stored in Neo4j~\cite{neo4j} (tested with Neo4j 5.26; AuraDB is supported) or in an embedded store that combines the curated JSON seed with learned state in SQLite; both produce the same in-memory graph, and the service falls back to the embedded store when Neo4j is unreachable. Learned $\alpha,\beta$ are written back onto the Neo4j relationships. The front end is a framework-free progressive web application with Tamil and English interfaces, read-aloud, tap-to-pick symptoms, a disease library, history, sharing and a service worker for weak connectivity (Fig.~\ref{fig:screens}).
+The back end is a Python/Flask service. The KG is stored either in Neo4j~\cite{neo4j} (tested with Neo4j 5.26; AuraDB is supported) or in an embedded store that combines the curated JSON seed with learned state in SQLite. Both produce the same in-memory graph, and the service falls back to the embedded store when Neo4j cannot be reached. Learned values of $\alpha$ and $\beta$ are written back to the Neo4j relationships.
 
-The leaf classifier uses a frozen ImageNet MobileNetV3-Large backbone~\cite{howard2019} on a 10-class PlantVillage tomato subset~\cite{hughes2015} (9 diseases and healthy; 1,000 training and 100 validation images per class). Pooled 960-d features of the training images and their mirror images (20,000 vectors) train a 960--256--10 MLP head with dropout 0.3, AdamW~\cite{loshchilov2019} (learning rate $2\times10^{-3}$, weight decay $10^{-3}$, cosine schedule, 40 epochs), label smoothing 0.05~\cite{szegedy2016} and Gaussian feature noise. A softmax temperature ($T=0.523$) is fitted on the validation set~\cite{guo2017}, and the network is exported to ONNX (12.9\,MB) for CPU inference. Validation accuracy is 97.6\% (Fig.~\ref{fig:vision}a); because the epoch and the temperature were selected on the same 1,000 images, this figure is optimistic. Lightweight checks flag dark, over-exposed, blurred and leafless photographs.
+The front end is a framework-free web application designed for desktop use, with sidebar navigation, a two-column diagnosis workspace that keeps the field conditions in view, and a result page that places the diagnosis and treatments beside the spray plan, soil advice and dose calculator (Fig.~\ref{fig:screens1} and Fig.~\ref{fig:screens2}). The same pages collapse to a single column on a phone. The interface is available in Tamil and English, in light and dark themes, with read-aloud, tap-to-pick symptoms, a disease library, a consultation history and sharing; a service worker keeps the interface usable on weak connections.
 
-The implementation comprises about 3,000 lines of Python, a test suite of 71 tests (including Neo4j integration tests), and reproducible scripts for training, evaluation, figures and screenshots.
+The leaf classifier uses a frozen ImageNet MobileNetV3-Large backbone~\cite{howard2019} on a 10-class PlantVillage tomato subset~\cite{hughes2015} (nine diseases and healthy leaves; 1,000 training and 100 validation images per class). Pooled 960-dimensional features of the training images and their mirror images (20,000 vectors) train a 960--256--10 MLP head with dropout 0.3, AdamW~\cite{loshchilov2019} (learning rate $2\times10^{-3}$, weight decay $10^{-3}$, cosine schedule, 40 epochs), label smoothing of 0.05~\cite{szegedy2016} and Gaussian feature noise. A softmax temperature ($T=0.523$) is fitted on the validation set~\cite{guo2017}, and the network is exported to ONNX (12.9\,MB) for CPU inference. Validation accuracy is 97.6\% (Fig.~\ref{fig:vision}a). Because the epoch and the temperature were chosen on the same 1,000 images, this figure is optimistic. Simple checks flag dark, over-exposed, blurred and leafless photographs.
+
+The implementation has about 5,000 lines of Python and 2,300 lines of JavaScript, 111 automated tests (three of which need a Neo4j instance), and scripts that reproduce the model, every experiment, every chart and every screenshot in this paper.
 
 \begin{figure*}[t]
   \centering
-  \subfloat[Field conditions]{\includegraphics[height=6.1cm]{figures/screens/a_field_top.png}}\hfil
-  \subfloat[Information-gain question]{\includegraphics[height=6.1cm]{figures/screens/b_question.png}}\hfil
-  \subfloat[Diagnosis]{\includegraphics[height=6.1cm]{figures/screens/c_hero.png}}\hfil
-  \subfloat[Weather-aware plan]{\includegraphics[height=6.1cm]{figures/screens/d_plan.png}}
-  \caption{The farmer application on a phone (location: the Nilgiris). (a) Live weather, a weekly risk list led by late blight (Hutton criteria) and outbreak alerts, which are marked as simulated in this demonstration. (b) A question that separates leaf mold from early blight, asked in Tamil with an English subtitle. (c) A confident late-blight diagnosis. (d) Severity-adaptive plan citing the local weather evidence, and a schedule that alternates FRAC groups.}
-  \label{fig:screens}
+  \subfloat[Diagnosis workspace in Tamil, with live field conditions and a prevention alert]{\includegraphics[width=0.495\textwidth]{figures/screens/d1_home.png}}\hfil
+  \subfloat[An information-gain question beside the ranked candidate diseases]{\includegraphics[width=0.495\textwidth]{figures/screens/d2_consult.png}}
+  \caption{The desktop application (location: the Nilgiris). (a) The farmer's description, local weather, outbreak reports (marked as simulated in this demonstration) and a preventive late-blight spray whose pre-harvest interval is checked against the picking rhythm. (b) A follow-up question that separates leaf mold from early blight, with the reason it was chosen.}
+  \label{fig:screens1}
+\end{figure*}
+
+\begin{figure*}[t]
+  \centering
+  \subfloat[Diagnosis with reference photographs and spray timing]{\includegraphics[width=0.495\textwidth]{figures/screens/d3_result.png}}\hfil
+  \subfloat[Treatments and a harvest-aware spray schedule]{\includegraphics[width=0.495\textwidth]{figures/screens/d4_plan.png}}
+  \caption{Result page for a late-blight case at harvest stage. (a) The diagnosis, urgency, reference photographs and the weather evidence. (b) The plan moves a product with a 5-day interval below safer options for a farmer who picks every four days, and places each repeat spray right after a picking.}
+  \label{fig:screens2}
 \end{figure*}
 
 % =====================================================================
@@ -321,7 +394,7 @@ The implementation comprises about 3,000 lines of Python, a test suite of 71 tes
 \label{sec:eval}
 
 \subsection{Setup}
-\emph{Test set.} 85 farmer descriptions, five per disease (two Tamil, two English, one Tanglish: 34/34/17), were written independently of the KG lay-terms, using different wording, partial descriptions and multiple symptoms. \emph{Simulated farmer.} Questions are answered ``yes'' with probability $\theta_{d^\star s}$ for the true disease $d^\star$, or 0.02 when no edge exists, so answers are noisy; each case is run 20 times. We report top-1 and top-3 accuracy, the rate of \emph{confidently wrong} answers (a wrong disease with posterior $\geq0.85$; for the prototype, a non-ambiguous wrong answer), the mean number of questions, and 95\% bootstrap confidence intervals over cases (2,000 resamples)~\cite{efron1993}. \emph{Baselines and ablations} (Table~\ref{tab:main}) all use the same KG: the prototype (whole-phrase fuzzy matching with a 0.55 threshold and additive scoring; its follow-up answers did not affect the ranking, so its final answer equals its text-only answer); the prototype's matcher with our engine; our matcher without questions; random questions; the prototype's question rule (prefer a symptom absent for one of the top-3 candidates, else the largest weight variance) with answers fed back; and the full system with symmetric noise ($\lambda=1$) or without the \unk{} hypothesis.
+\emph{Test set.} We wrote 85 farmer descriptions, five per disease (two in Tamil, two in English and one in Tanglish, giving 34/34/17), independently of the KG lay-terms. They use different wording, partial descriptions and several symptoms. \emph{Simulated farmer.} A question is answered ``yes'' with probability $\theta_{d^\star s}$ for the true disease $d^\star$, or 0.02 when there is no edge, so answers are noisy. Each case is run 20 times with fixed random seeds, so the accuracy figures below can be reproduced exactly. We report top-1 and top-3 accuracy, the rate of \emph{confidently wrong} answers (a wrong disease with posterior $\geq0.85$; for the prototype, a wrong answer that was not marked as ambiguous), the mean number of questions, and 95\% bootstrap confidence intervals over cases (2,000 resamples)~\cite{efron1993}. \emph{Baselines and ablations} (Table~\ref{tab:main}) all use the same KG: the prototype (whole-phrase fuzzy matching with a threshold of 0.55 and additive scoring; its follow-up answers did not affect the ranking, so its final answer equals its text-only answer); the prototype's matcher with our engine; our matcher without questions; random questions; the prototype's question rule (prefer a symptom absent for one of the top three candidates, otherwise the one with the largest weight variance) with answers fed back; and the full system with symmetric noise ($\lambda=1$) or without the \unk{} hypothesis.
 
 \begin{table}[t]
   \caption{Diagnostic accuracy on 85 held-out descriptions (20 simulated dialogues each)}
@@ -334,21 +407,21 @@ The implementation comprises about 3,000 lines of Python, a test suite of 71 tes
     Method & Top-1 [95\% CI] & Top-3 & Wrong$^{*}$ & Qs. \\
     \midrule
     v1 prototype & 63.5 [52.9, 74.1] & 85.9 & 10.6 & -- \\
-    v1 matching + our engine & 86.4 [82.0, 90.4] & 95.8 & 1.9 & 4.19 \\
+    v1 matching + our engine & 85.4 [81.2, 89.1] & 94.6 & 1.4 & 4.15 \\
     Our matching, no questions & 92.9 [87.1, 97.6] & 100.0 & 0.0 & 0 \\
-    \quad + random questions & 95.1 [92.5, 97.3] & 99.9 & 0.5 & 3.58 \\
-    \quad + v1 variance rule & 96.3 [93.9, 98.2] & 99.9 & 0.9 & 3.36 \\
-    \quad + EIG (\textbf{proposed}) & \textbf{96.8} [94.5, 98.5] & 99.7 & 1.2 & \textbf{2.12} \\
+    \quad + random questions & 94.6 [91.6, 97.1] & 99.8 & 0.8 & 3.49 \\
+    \quad + v1 variance rule & 96.4 [94.1, 98.2] & 99.9 & 1.1 & 3.40 \\
+    \quad + EIG (\textbf{proposed}) & \textbf{96.5} [94.3, 98.4] & 99.8 & 1.1 & \textbf{2.05} \\
     \midrule
-    Proposed, symmetric noise & 96.5 [94.5, 98.2] & 99.7 & 0.1 & 3.79 \\
-    Proposed, no \unk{} & 96.6 [94.3, 98.5] & 99.9 & 1.2 & 2.01 \\
+    Proposed, symmetric noise & 95.9 [93.4, 97.9] & 99.7 & 0.0 & 3.82 \\
+    Proposed, no \unk{} & 96.5 [94.7, 98.0] & 99.8 & 0.8 & 2.04 \\
     \bottomrule
     \multicolumn{5}{@{}p{0.98\columnwidth}@{}}{\scriptsize All values in \% except Qs.\ (mean number of questions). $^{*}$Confidently wrong: wrong disease reported with posterior $\geq0.85$.}
   \end{tabular}
 \end{table}
 
 \subsection{Diagnostic accuracy and ablations}
-Table~\ref{tab:main} shows that the language layer is the largest single improvement: replacing whole-phrase fuzzy matching with concept-level matching raises description-only accuracy from 63.5\% to 92.9\%, and the prototype's matcher remains the bottleneck even when paired with our engine (86.4\%). The prototype understood 91.8\% of inputs and was confidently wrong on 10.6\%; the motivating ``white dust'' sentence illustrates why: shared filler words gave weight to unrelated ring-spot lay-terms, and a negated clause was ignored entirely (Fig.~\ref{fig:nlu}). Dialogue adds 3.9 points, and every configuration built on our matcher is confidently wrong on at most 1.2\% of runs. Accuracy is balanced across languages: 96.3\% for Tamil, 96.9\% for English and 97.4\% for Tanglish inputs (prototype: 67.6\%, 52.9\% and 76.5\%). Per disease (Fig.~\ref{fig:perdisease}), the remaining errors concentrate on bacterial spot (75\%) and target spot (89\%); the most frequent confusions are bacterial spot $\to$ target spot and target spot $\to$ early blight, three diseases that genuinely share small dark, ring-forming lesions with yellow halos in the dataset~\cite{jagtap2025}.
+The language layer accounts for the largest single gain in Table~\ref{tab:main}. Replacing whole-phrase fuzzy matching with concept-level matching raises description-only accuracy from 63.5\% to 92.9\%, and the prototype's matcher stays the bottleneck even when it feeds our engine (85.4\%). The prototype understood 91.8\% of the inputs and was confidently wrong on 10.6\% of them. The motivating ``white powder'' sentence shows why: shared filler words gave weight to unrelated ring-spot lay-terms, and the negated clause was ignored altogether (Fig.~\ref{fig:nlu}). Dialogue adds 3.6 points, and every configuration built on our matcher is confidently wrong on at most 1.1\% of runs. Accuracy is similar across languages: 96.9\% for Tamil, 95.4\% for English and 97.9\% for Tanglish inputs, against 67.6\%, 52.9\% and 76.5\% for the prototype. Per disease (Fig.~\ref{fig:perdisease}), the remaining errors are concentrated on bacterial spot (79\%) and target spot (84\%). The most frequent confusions are bacterial spot taken for target spot and target spot taken for early blight; in the dataset~\cite{jagtap2025} all three produce small dark lesions with rings and yellow halos.
 
 \begin{figure}[t]
   \centering
@@ -358,7 +431,7 @@ Table~\ref{tab:main} shows that the language layer is the largest single improve
 \end{figure}
 
 \subsection{Question efficiency}
-The accuracy differences between EIG, the variance rule and random questions lie within each other's confidence intervals, so we do not claim that EIG is more accurate. Its benefit is efficiency: it reaches 96.8\% with 2.12 questions, 37\% fewer than the variance rule (3.36) and 41\% fewer than random selection (3.58). Fig.~\ref{fig:budget} fixes the question budget: with three questions, EIG reaches 96.1\% versus 95.9\% for the variance rule and 93.9\% for random questions. Modelling false alarms as rarer than misses ($\lambda=0.3$) saves 44\% of questions relative to symmetric noise (2.12 vs.\ 3.79) at the same accuracy, at the cost of more confidently wrong answers (1.2\% vs.\ 0.1\%), a trade-off that can be tuned with $\lambda$ and the stopping threshold. Fig.~\ref{fig:trace} shows the motivating case: after ``white dust on the leaf'', the first question asks whether insects are present; for whitefly two ``yes'' answers reach 0.93, whereas for powdery mildew the posterior rises steadily as alternatives are excluded and reaches 0.77 (``likely'') after six questions, because powdery mildew has few distinctive symptoms in the KG.
+The accuracies of EIG, the variance rule and random questions lie within each other's confidence intervals, so we do not claim that EIG is more accurate. Its advantage is efficiency: it reaches 96.5\% with 2.05 questions, 40\% fewer than the variance rule (3.40) and 41\% fewer than random selection (3.49). Fig.~\ref{fig:budget} fixes the question budget instead. With three questions, EIG reaches 96.1\%, the variance rule 95.9\% and random questions 93.9\%. Treating false alarms as rarer than misses ($\lambda=0.3$) saves 46\% of the questions relative to symmetric noise (2.05 against 3.82) at similar accuracy, at the price of more confidently wrong answers (1.1\% against 0.0\%); $\lambda$ and the stopping threshold control this trade-off. Fig.~\ref{fig:trace} shows the motivating case. After ``white powder on the leaf'' the first question asks whether insects are present. When the truth is whitefly, two ``yes'' answers take its posterior to 0.93. When the truth is powdery mildew, the posterior rises steadily as alternatives are excluded and reaches 0.77 (reported as ``likely'') after six questions, because powdery mildew has few distinctive symptoms in the KG.
 
 \begin{figure}[t]
   \centering
@@ -370,15 +443,15 @@ The accuracy differences between EIG, the variance rule and random questions lie
 \begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{figures/dialogue_trace.pdf}
-  \caption{Posterior during the dialogue for ``\ta{இலையில் வெள்ளை தூள் போல இருக்கு}'' when the truth is (a) powdery mildew and (b) whitefly; answers are given above the axes. The dashed line is the stopping threshold.}
+  \caption{Posterior during the dialogue for ``\ta{இலையில் வெள்ளை தூள் போல இருக்கு}'' when the truth is (a) powdery mildew and (b) whitefly; the answers are shown above the axes. The dashed line is the stopping threshold.}
   \label{fig:trace}
 \end{figure}
 
 \subsection{Out-of-scope problems}
-Twelve descriptions of problems absent from the KG (frost, hail, herbicide drift, nutrient deficiency, fruit cracking, sun-scald, damping-off, animal damage) were run 20 times each, with the simulated farmer answering ``yes'' with probability 0.15. The system abstained in 82.1\% of runs and was confidently wrong in 6.3\%; 66.7\% of runs abstained because no symptom matched; in deployment such descriptions are queued for expert curation. Removing the \unk{} hypothesis changed these rates only slightly (80.8\% and 6.7\%), so in this setting abstention is driven mainly by the matching threshold and the low-confidence rule rather than by \unk{}.
+We ran twelve descriptions of problems that are not in the KG (frost, hail, herbicide drift, nutrient deficiency, fruit cracking, sun-scald, damping-off and animal damage) 20 times each, with the simulated farmer answering ``yes'' with probability 0.15. The system abstained in 82.1\% of the runs and was confidently wrong in 7.1\%. In 66.7\% of the runs it abstained because no symptom matched; in deployment such descriptions go to the curation queue. Without the \unk{} hypothesis the rates were 82.9\% and 7.9\%, so in this setting abstention comes mainly from the matching threshold and the low-confidence rule rather than from \unk{}.
 
 \subsection{Photo robustness and fusion}
-Fig.~\ref{fig:vision}b evaluates the 900 disease images of the validation set, clean and with a field-like degradation (random 60--80\% crop, Gaussian blur of radius 1.5--2.5, exposure $\times$0.45--0.70, colour cast, sensor noise, JPEG quality 20). On clean images the classifier reaches 97.6\%, the photo-only posterior 97.2\% and the photo combined with simulated dialogue 96.6\% with 2.3 questions: when the photo is reliable, noisy answers occasionally overturn it. Under degradation the classifier collapses to 36.4\%, the quality checks flag 46.2\% of images (2.2\% when clean) and lower the photo's weight, and dialogue raises accuracy to 67.8\% (+31.3 points) with 4.7 questions, even though no text description is used. The photo is therefore valuable when good, and the dialogue protects the farmer when it is not.
+Fig.~\ref{fig:vision}b uses the 900 disease images of the validation set, both clean and with a field-like degradation (a random 60--80\% crop, Gaussian blur of radius 1.5--2.5, exposure scaled by 0.45--0.70, a colour cast, sensor noise and JPEG quality 20). On clean images the classifier reaches 97.6\%, the posterior given only the photo 97.2\%, and the photo combined with simulated dialogue 96.6\% with 2.3 questions: when the photo is reliable, noisy answers occasionally overturn it. Under degradation the classifier falls to 36.4\%. The quality checks flag 46.2\% of the degraded images (2.2\% of the clean ones) and reduce the photo's weight, and dialogue raises accuracy to 67.8\% (+31.3 points) with 4.7 questions, without any text description. A good photo is therefore valuable, and when the photo is poor the dialogue protects the farmer from a confident mistake.
 
 \begin{figure*}[t]
   \centering
@@ -388,17 +461,59 @@ Fig.~\ref{fig:vision}b evaluates the 900 disease images of the validation set, c
 \end{figure*}
 
 \subsection{Online learning}
-To test whether feedback repairs an imperfect graph, the true KG generates 1,500 simulated consultations while the system starts from a corrupted copy: 15\% of symptom edges are set to 0.05 (knowledge gaps) and the rest are perturbed with Gaussian noise ($\sigma=0.25$). A simulated farmer describes two present symptoms, answers questions truthfully, confirms correct diagnoses and picks the correct disease for 70\% of wrong ones. Fig.~\ref{fig:learning} (five seeds) shows that the proposed rule raises accuracy from 81.2\% in the first 100 consultations to 93.6\% in the last 100 and reduces the mean absolute error of the 131 edge weights from 0.222 to 0.128. The prototype's rule ($\pm0.03$ on the predicted disease's edges after confirmation or rejection) reaches only 83.6\% and \emph{increases} the weight error to 0.239, because rejections punish edges of the wrong disease without teaching the right one; without learning accuracy stays near 79\%.
+To test whether feedback can repair an imperfect graph, we let the true KG generate 1,500 simulated consultations while the system starts from a corrupted copy: 15\% of the symptom edges are set to 0.05 (gaps in knowledge) and the others are perturbed with Gaussian noise ($\sigma=0.25$). The simulated farmer describes two present symptoms, answers questions truthfully, confirms correct diagnoses and picks the right disease for 70\% of the wrong ones. Over five seeds (Fig.~\ref{fig:learning}), the proposed rule raises accuracy from 81.2\% in the first 100 consultations to 93.6\% in the last 100 and lowers the mean absolute error of the 131 edge weights from 0.222 to 0.128. The prototype's rule ($\pm0.03$ on the predicted disease's edges after a confirmation or a rejection) reaches only 83.6\% and \emph{raises} the weight error to 0.239, because rejections punish the edges of the wrong disease without teaching the right one. Without learning, accuracy stays near 79\%.
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{figures/learning.pdf}
-  \caption{Learning from feedback, starting from a corrupted KG (mean of five seeds; band: $\pm1$ s.d.). (a) Accuracy in windows of 100 consultations. (b) Mean absolute error of edge weights against the true graph.}
+  \caption{Learning from feedback, starting from a corrupted KG (mean of five seeds; band: $\pm1$ s.d.). (a) Accuracy in windows of 100 consultations. (b) Mean absolute error of the edge weights against the true graph.}
   \label{fig:learning}
 \end{figure}
 
+\subsection{Field context}
+The field-profile rules can help only when the soil and the crop stage agree with the true problem, and they could hurt when they do not. We therefore ran the 85 cases under three conditions with the same dialogues as in Table~\ref{tab:main}. \emph{No context} is the setting of Table~\ref{tab:main}. In the \emph{consistent} condition, each case receives a plausible profile for its true disease: a typical loam (pH 6.8, EC 0.4\,dS/m, organic carbon 0.62\%, medium N, P and K, adequate calcium) in which only the values that Table~\ref{tab:fieldrules} links to that disease are changed, and the crop stage at which the problem usually appears. In the \emph{misleading} condition, each case receives the consistent profile of a different, randomly chosen soil- or stage-linked disorder. Table~\ref{tab:field} shows that a consistent profile raises description-only accuracy by 1.2 points, saves 4\% of the questions and halves the confidently wrong answers. A misleading profile lowers description-only accuracy by 1.1 points, but the dialogue recovers it completely, at a cost of 0.18 extra questions per case. The gains are modest because the descriptions already carry most of the information, and the differences in accuracy after dialogue lie within the confidence intervals. The bounded factors do what they were designed to do: they shift the questioning without overriding the symptoms.
+
+\begin{table}[t]
+  \caption{Effect of the field profile (soil report and crop stage)}
+  \label{tab:field}
+  \centering
+  \footnotesize
+  \setlength{\tabcolsep}{2.6pt}
+  \begin{tabular}{@{}lcccc@{}}
+    \toprule
+    Profile & Desc. only & Dialogue [95\% CI] & Wrong$^{*}$ & Qs. \\
+    \midrule
+    No context & 92.9 & 96.5 [94.3, 98.4] & 1.1 & 2.05 \\
+    Consistent & 94.1 & 97.0 [95.1, 98.7] & 0.6 & 1.97 \\
+    Misleading & 91.8 & 96.7 [94.4, 98.5] & 0.9 & 2.24 \\
+    \bottomrule
+    \multicolumn{5}{@{}p{0.98\columnwidth}@{}}{\scriptsize Top-1 accuracy in \%. Desc.\ only: description without questions. $^{*}$Confidently wrong, as in Table~\ref{tab:main}.}
+  \end{tabular}
+\end{table}
+
+\subsection{Harvest safety}
+We audited the spray plans for every disease that has at least one sprayable treatment (13 of 17), every severity, picking intervals of 3, 4, 5 and 7 days and every possible number of days until the next picking, which gives 741 scenarios. For each scenario we compared the plan produced without harvest information with the harvest-aware plan of Section~\ref{sec:field}. The farmer is assumed to pick on schedule and to follow a \emph{pick first} instruction when the plan gives one. A spray \emph{clashes} with the harvest when its pre-harvest interval reaches past the next picking after it. Table~\ref{tab:phi} shows that the harvest-unaware plan would make the first spray clash in 40.5\% of the scenarios and at least one spray in the schedule clash in 49.3\%. The harvest-aware plan reduces both to 4.9\%. Every remaining clash is leaf curl virus at picking intervals of three to five days: its only sprayable option in the graph, an insecticide against the whitefly vector, has a 7-day interval, and in those cases the plan states the conflict explicitly. The mean efficacy of the first product sprayed falls by less than one point (0.78 to 0.77), so harvest safety costs very little treatment strength.
+
+\begin{table}[t]
+  \caption{Pre-harvest-interval conflicts in 741 picking scenarios}
+  \label{tab:phi}
+  \centering
+  \footnotesize
+  \setlength{\tabcolsep}{3pt}
+  \begin{tabular}{@{}>{\raggedright\arraybackslash}p{4.3cm}cc@{}}
+    \toprule
+    Measure & Harvest-unaware & Harvest-aware \\
+    \midrule
+    First spray clashes with the next picking (\%) & 40.5 & 4.9 \\
+    Any scheduled spray clashes (\%) & 49.3 & 4.9 \\
+    Schedule needs PHI $>$ picking interval (\%) & 19.7 & 4.9 \\
+    Mean efficacy of the first product & 0.78 & 0.77 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
 \subsection{Weather case study}
-Fig.~\ref{fig:weather} shows the risk models on live weather for four districts on 13 October 2026. The Nilgiris (Ooty), at a three-day mean of 15.3\,$^\circ$C and 79\% RH, has five Hutton late-blight periods in the past week with another forecast (risk 1.0) and 96 hours above 85\% RH (leaf mold, 0.8). Krishnagiri, warm and dry, has 34 hot-dry hours (spider mite, 0.8), and Madurai five days above 33\,$^\circ$C (blossom-end rot, 0.8). Coimbatore shows only medium risks: its two Hutton periods are damped by a 26.3\,$^\circ$C mean temperature. These patterns are agronomically plausible but are not validated against observed outbreaks.
+Fig.~\ref{fig:weather} shows the risk models on live weather for four districts on 13 October 2026. The Nilgiris (Ooty), with a three-day mean of 15.3\,$^\circ$C and 79\% RH, had five Hutton late-blight periods in the past week and another in the forecast (risk 1.0), and 96 hours above 85\% RH (leaf mold, 0.8). Krishnagiri, warm and dry, had 34 hot, dry hours (spider mite, 0.8), and Madurai five days above 33\,$^\circ$C (blossom-end rot, 0.8). Coimbatore showed only medium risks, because a mean temperature of 26.3\,$^\circ$C damped its two Hutton periods. These patterns are agronomically plausible, but we have not yet compared them with observed outbreaks.
 
 \begin{figure}[t]
   \centering
@@ -408,7 +523,7 @@ Fig.~\ref{fig:weather} shows the risk models on live weather for four districts 
 \end{figure}
 
 \subsection{Latency}
-On a 12-thread laptop CPU without a GPU (Table~\ref{tab:latency}), concept matching takes 2.0\,ms, one inference step including the information-gain search 0.84\,ms, and a complete diagnosis request through the web API 3.7\,ms (median). Photo classification takes 7.1\,ms. The system therefore runs on commodity hardware, and the graph can be served from a small server.
+On a 12-thread laptop CPU without a GPU (Table~\ref{tab:latency}), concept matching takes 2.1\,ms, one inference step including the information-gain search 0.9\,ms, and a complete diagnosis request through the web API 4.2\,ms (median). Classifying a photo takes 9.0\,ms. The system therefore runs comfortably on commodity hardware, and a small server can host the graph for many users.
 
 \begin{table}[t]
   \caption{Latency on a laptop CPU (milliseconds)}
@@ -419,10 +534,10 @@ On a 12-thread laptop CPU without a GPU (Table~\ref{tab:latency}), concept match
     \toprule
     Operation & Median & 95th percentile \\
     \midrule
-    Concept matching of one description & 2.01 & 2.58 \\
-    Inference step (posterior + EIG search) & 0.84 & 0.87 \\
-    Diagnosis API request (end to end) & 3.65 & 4.18 \\
-    Leaf-photo classification (ONNX) & 7.12 & 8.09 \\
+    Concept matching of one description & 2.07 & 2.84 \\
+    Inference step (posterior + EIG search) & 0.89 & 1.03 \\
+    Diagnosis API request (end to end) & 4.23 & 5.05 \\
+    Leaf-photo classification (ONNX) & 9.04 & 10.42 \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -431,19 +546,20 @@ On a 12-thread laptop CPU without a GPU (Table~\ref{tab:latency}), concept match
 \section{Discussion and Limitations}
 \label{sec:limits}
 
-The results support the central design choice: a curated, probabilistic KG that reasons over noisy evidence and asks targeted questions is robust where an image classifier alone is brittle, and it explains its answers in the farmer's language. Several limitations qualify these findings.
+The results support the central design decision. A curated, probabilistic KG that reasons over imperfect evidence and asks targeted questions holds up where an image classifier alone fails, it explains its answers in the farmer's language, and the same graph carries the information needed to make advice specific to a field. Several limitations qualify these findings.
 \begin{itemize}
-  \item \emph{Evaluation data.} The test descriptions were written by the authors, and the simulated farmer answers according to the KG's own probabilities; the results therefore measure the reasoning pipeline, not field accuracy. A field study with real farmer descriptions and agronomist-confirmed diagnoses is the necessary next step.
-  \item \emph{Knowledge.} Edge weights are expert estimates seeded from a dataset and extension guidance; Tamil lay-terms cover common usage but not all regional dialects. The learning loop and the curation queue are designed to correct both, but their effect in the field remains to be measured.
-  \item \emph{Photo model.} The classifier was trained on laboratory images of nine diseases; its validation accuracy is optimistic, and the degradation study approximates, but does not replace, real field photographs.
-  \item \emph{Weather models.} The Hutton criteria and TOM-CAST were developed for temperate climates and the remaining risk models are heuristics; none has yet been validated against outbreaks in Tamil Nadu. Community outbreak data shown in this paper are simulated.
-  \item \emph{LLM front end and advice.} The Gemini speech front end was not evaluated quantitatively. Dosages are taken from the cited dataset or general guidance and must be checked against product labels and local recommendations.
+  \item \emph{Evaluation data.} We wrote the test descriptions ourselves, and the simulated farmer answers according to the KG's own probabilities. The results therefore measure the reasoning pipeline rather than accuracy in the field. A field study with real farmer descriptions and diagnoses confirmed by agronomists is the necessary next step.
+  \item \emph{Knowledge.} Edge weights are expert estimates seeded from a dataset and from extension guidance, and the Tamil lay-terms cover common usage but not every regional dialect. The learning loop and the curation queue are meant to correct both, but their effect in the field has not yet been measured.
+  \item \emph{Field profile.} The soil and stage rules come from the cited literature and from general guidance, and the field-context study uses constructed profiles. The fertiliser plan follows a regional blanket recommendation and should give way to the recommendation printed on a farmer's own Soil Health Card. Pre-harvest intervals are conservative defaults that an agronomist should review, and the label on the product remains the authority. Reading reports from photographs depends on the language model and was not evaluated.
+  \item \emph{Photo model.} The classifier was trained on laboratory images of nine diseases; its validation accuracy is optimistic, and the degradation study approximates real field photographs without replacing them.
+  \item \emph{Weather models.} The Hutton criteria and TOM-CAST were developed for temperate climates, the other risk models are heuristics, and none has yet been checked against outbreaks in Tamil Nadu. The community outbreak data shown in this paper are simulated.
+  \item \emph{Speech front end and doses.} The speech front end was not evaluated quantitatively. Doses come from the cited dataset or from general guidance and must be checked against product labels and local recommendations.
 \end{itemize}
 
 % =====================================================================
 \section{Conclusion}
 
-Tomato Doctor combines a probabilistic knowledge graph, concept-level understanding of Tamil, English and Tanglish, Bayesian evidence fusion, cost-aware information-gain questioning, weather-driven priors and spray planning, and confirmation-driven learning. In our evaluation it raises top-1 accuracy from 63.5\% to 96.8\% over the fuzzy-matching prototype with about two questions, keeps confidently wrong answers near 1\%, recovers from degraded photographs through dialogue, and repairs a corrupted graph from farmer feedback. Future work will validate the system with farmers and agronomists in Tamil Nadu, calibrate the risk models against local outbreak records, extend the graph to further crops, and evaluate the speech front end on recorded farmer queries.
+Tomato Doctor combines a probabilistic knowledge graph, concept-level understanding of Tamil, English and Tanglish, Bayesian fusion of text, answers and photographs, cost-aware information-gain questioning, and confirmation-driven learning, and it turns a diagnosis into a plan that fits the weather, the soil, the crop stage and the harvest. In our evaluation it raises top-1 accuracy from 63.5\% to 96.5\% over the fuzzy-matching prototype with about two questions, keeps confidently wrong answers near 1\%, recovers from degraded photographs through dialogue, repairs a corrupted graph from farmer feedback, and cuts harvest clashes in spray schedules from about one in two to one in twenty. The next steps are to test the system with farmers and agronomists in Tamil Nadu, to calibrate the risk models and the soil rules against local records, to evaluate the speech front end on recorded farmer queries, and to extend the graph to other crops.
 
 \section*{Acknowledgment}
 The authors thank the farmers and agricultural extension staff who shared their vocabulary and experience. % edit as appropriate
@@ -500,6 +616,30 @@ K.~Frost, A.~Gevens, S.~Jordan, and R.~Groves, ``Web-based pest and disease fore
 \bibitem{ahdb_hutton}
 Agriculture and Horticulture Development Board (AHDB), ``Development and implementation of a new national warning system for potato late blight in Great Britain (Hutton Criteria).'' [Online]. Available: \url{https://potatoes.ahdb.org.uk/development-and-implementation-of-a-new-national-warning-system-for-potato-late-blight-in-great-britain-hutton-criteria}
 
+\bibitem{howhite2005}
+L.~C. Ho and P.~J. White, ``A cellular hypothesis for the induction of blossom-end rot in tomato fruit,'' \emph{Ann. Bot.}, vol.~95, no.~4, pp.~571--581, 2005.
+
+\bibitem{saure2001}
+M.~C. Saure, ``Blossom-end rot of tomato (\emph{Lycopersicon esculentum} Mill.)---a calcium- or a stress-related disorder?'' \emph{Sci. Hortic.}, vol.~90, no.~3--4, pp.~193--208, 2001.
+
+\bibitem{jones1981}
+J.~P. Jones and S.~S. Woltz, ``Fusarium-incited diseases of tomato and potato and their control,'' in \emph{Fusarium: Diseases, Biology, and Taxonomy}, P.~E. Nelson, T.~A. Toussoun, and R.~J. Cook, Eds. University Park, PA, USA: Pennsylvania State Univ. Press, 1981, pp.~157--168.
+
+\bibitem{dordas2008}
+C.~Dordas, ``Role of nutrients in controlling plant diseases in sustainable agriculture. A review,'' \emph{Agron. Sustain. Dev.}, vol.~28, no.~1, pp.~33--46, 2008.
+
+\bibitem{shc}
+Department of Agriculture and Farmers Welfare, Government of India, ``Soil Health Card.'' [Online]. Available: \url{https://soilhealth.dac.gov.in}
+
+\bibitem{muhr1965}
+G.~R. Muhr, N.~P. Datta, H.~Sankarasubramoney, V.~K. Leley, and R.~L. Donahue, \emph{Soil Testing in India}, 2nd~ed. New Delhi, India: USAID Mission to India, 1965.
+
+\bibitem{lindsay1978}
+W.~L. Lindsay and W.~A. Norvell, ``Development of a DTPA soil test for zinc, iron, manganese, and copper,'' \emph{Soil Sci. Soc. Am. J.}, vol.~42, no.~3, pp.~421--428, 1978.
+
+\bibitem{cibrc}
+Central Insecticides Board and Registration Committee, Government of India, ``Major uses of pesticides (registered under the Insecticides Act, 1968).'' [Online]. Available: \url{https://ppqs.gov.in/divisions/cib-rc/major-uses-of-pesticides}
+
 \bibitem{jagtap2025}
 S.~Jagtap, O.~Shinde, M.~Marade, R.~Sawant, N.~Sable, and P.~Mahalle, ``A comprehensive dataset of tomato plant diseases for national predictive analytics and crop health management,'' Mendeley Data, V1, 2025, doi: 10.17632/ztncd79yhk.1.
 
@@ -523,6 +663,9 @@ P.~Zippenfenig, ``Open-Meteo.com weather API,'' Zenodo, 2023, doi: 10.5281/zenod
 
 \bibitem{agvic_wind}
 Agriculture Victoria, ``A guide to estimating wind speed.'' [Online]. Available: \url{https://agriculture.vic.gov.au/farm-management/chemicals/spraying-agricultural-chemicals/managing-spray-drift/a-guide-to-estimating-wind-speed}
+
+\bibitem{tnau_tomato}
+Tamil Nadu Agricultural University, ``Tomato: crop production,'' TNAU Agritech Portal, Horticulture. [Online]. Available: \url{https://agritech.tnau.ac.in/horticulture/horti_vegetables_tomato.html}
 
 \bibitem{neo4j}
 Neo4j, Inc., ``Neo4j graph database.'' [Online]. Available: \url{https://neo4j.com}
