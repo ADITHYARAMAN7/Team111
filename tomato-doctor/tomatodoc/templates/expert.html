@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Expert Console · Tomato Doctor</title>
-<meta name="theme-color" content="#1f3a22">
+<meta name="theme-color" content="#000000">
 <link rel="icon" href="/static/img/icon.svg" type="image/svg+xml">
 <script>try { var th = JSON.parse(localStorage.getItem("theme") || "null"); if (th === "light" || th === "dark") document.documentElement.dataset.theme = th; } catch (e) {}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,6 +15,15 @@
 <link rel="stylesheet" href="/static/vendor/leaflet/leaflet.css">
 </head>
 <body class="lang-en expert">
+<!-- ============ NORTHERN AURA BACKGROUND ============ -->
+<div class="aura-container" aria-hidden="true">
+  <div class="aura-orb aura-orb-1"></div>
+  <div class="aura-orb aura-orb-2"></div>
+  <div class="aura-orb aura-orb-3"></div>
+  <div class="aura-orb aura-orb-4"></div>
+  <div class="aura-grain"></div>
+</div>
+
 <header class="topbar">
   <a class="brand" href="/"><span class="brand-mark"><svg viewBox="0 0 24 24"><path d="M5 19c8 0 14-6 14-14-8 0-14 6-14 14z"/><path d="M5 19L14 10"/></svg></span>
     <span class="brand-text"><b>Expert Console</b><small>Tomato Doctor knowledge graph</small></span></a>
@@ -25,6 +34,7 @@
   <button data-tab="graph">Knowledge graph</button>
   <button data-tab="outbreaks">Outbreak map</button>
   <button data-tab="teach">Teach language <b id="unmatchedCount"></b></button>
+  <button data-tab="add_disease">Add disease ✦</button>
   <button data-tab="learning">Learning</button>
   <button data-tab="evaluation">Evaluation</button>
   <button data-tab="vision">Photo model</button>
@@ -60,6 +70,7 @@
     <div class="card scroll" id="obTable"></div>
   </section>
   <section data-panel="teach" class="hidden" id="p-teach"></section>
+  <section data-panel="add_disease" class="hidden" id="p-add-disease"></section>
   <section data-panel="learning" class="hidden" id="p-learning"></section>
   <section data-panel="evaluation" class="hidden" id="p-evaluation"></section>
   <section data-panel="vision" class="hidden" id="p-vision"></section>
@@ -67,5 +78,6 @@
 <script src="/static/vendor/vis-network.min.js"></script>
 <script src="/static/vendor/leaflet/leaflet.js"></script>
 <script src="/static/js/expert.js?v={{ version }}"></script>
+<script src="/static/js/liquid-glass.js?v={{ version }}"></script>
 </body>
 </html>
