@@ -48,6 +48,13 @@ class EmbeddedStore:
                 lt = kg.layterms[row["src"]]
                 lt["alpha"], lt["beta"] = row["alpha"], row["beta"]
                 lt["weight"] = row["alpha"] / (row["alpha"] + row["beta"])
+        # load expert-added diseases
+        dis_rows, sym_rows, trt_rows = self.db.get_disease_extras()
+        for row in dis_rows:
+            dd = json.loads(row["data_json"])
+            syms = [(r["s"], r["weight"]) for r in sym_rows if r["d"] == row["id"]]
+            trts = [(r["t"], r["efficacy"]) for r in trt_rows if r["d"] == row["id"]]
+            kg.add_disease(dd, syms, trts)
         kg._index()
         return kg
 
@@ -81,6 +88,15 @@ class EmbeddedStore:
             c.execute("INSERT OR REPLACE INTO edge_extra (d, s, weight, created_at) VALUES (?, ?, ?, ?)",
                       (d, s, weight, time.time()))
         kg.add_edge(d, s, weight)
+
+    def add_disease(self, kg, disease_dict, symptoms, treatments, created_by="expert"):
+        """Persist a new disease (and its edges) to SQLite, then mirror into the live KG."""
+        self.db.add_disease_extra(
+            disease_dict["id"],
+            json.dumps(disease_dict, ensure_ascii=False),
+            symptoms, treatments, created_by
+        )
+        kg.add_disease(disease_dict, symptoms, treatments)
 
 
 class Neo4jStore:

@@ -131,6 +131,27 @@ class KnowledgeGraph:
             self.edges[(d, s)] = {"alpha": weight * PRIOR_STRENGTH, "beta": (1 - weight) * PRIOR_STRENGTH, "seed": weight}
             self._index()
 
+    def add_disease(self, disease_dict, symptoms, treatments):
+        """Add a new disease node with its HAS_SYMPTOM and TREATED_BY edges.
+        symptoms: list of (symptom_id, weight)
+        treatments: list of (treatment_id, efficacy)
+        """
+        with self.lock:
+            d = disease_dict["id"]
+            self.diseases[d] = disease_dict
+            self.symptoms_of[d] = {}
+            for s, w in symptoms:
+                if s in self.symptoms:
+                    self.edges[(d, s)] = {"alpha": w * PRIOR_STRENGTH, "beta": (1 - w) * PRIOR_STRENGTH, "seed": w}
+                    self.symptoms_of[d][s] = w
+                    if s not in self.diseases_of:
+                        self.diseases_of[s] = {}
+                    self.diseases_of[s][d] = w
+            self.treated_by[d] = sorted(
+                [(t, eff) for t, eff in treatments if t in self.treatments],
+                key=lambda x: -x[1]
+            )
+
 
 def seed_to_data(seed):
     """Convert the seed JSON into the KnowledgeGraph constructor format."""

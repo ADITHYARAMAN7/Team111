@@ -53,6 +53,20 @@ CREATE TABLE IF NOT EXISTS edge_suggestions (
     d TEXT, s TEXT, count REAL DEFAULT 0, last_seen REAL, status TEXT DEFAULT 'open',
     PRIMARY KEY (d, s)
 );
+CREATE TABLE IF NOT EXISTS disease_extra (
+    id TEXT PRIMARY KEY,
+    data_json TEXT,
+    created_at REAL,
+    created_by TEXT DEFAULT 'expert'
+);
+CREATE TABLE IF NOT EXISTS disease_symptom_extra (
+    d TEXT, s TEXT, weight REAL, created_at REAL,
+    PRIMARY KEY (d, s)
+);
+CREATE TABLE IF NOT EXISTS disease_treatment_extra (
+    d TEXT, t TEXT, efficacy REAL, created_at REAL,
+    PRIMARY KEY (d, t)
+);
 """
 
 
@@ -148,3 +162,22 @@ class Database:
 
     def reports_since(self, since):
         return self.query("SELECT * FROM reports WHERE created_at >= ? ORDER BY created_at DESC", (since,))
+
+    # ---- expert-added diseases ---------------------------------------------
+    def add_disease_extra(self, disease_id, data_json, symptoms, treatments, created_by="expert"):
+        now = time.time()
+        with self.tx() as c:
+            c.execute("INSERT OR REPLACE INTO disease_extra (id, data_json, created_at, created_by) VALUES (?,?,?,?)",
+                      (disease_id, data_json, now, created_by))
+            for s, w in symptoms:
+                c.execute("INSERT OR REPLACE INTO disease_symptom_extra (d, s, weight, created_at) VALUES (?,?,?,?)",
+                          (disease_id, s, w, now))
+            for t, eff in treatments:
+                c.execute("INSERT OR REPLACE INTO disease_treatment_extra (d, t, efficacy, created_at) VALUES (?,?,?,?)",
+                          (disease_id, t, eff, now))
+
+    def get_disease_extras(self):
+        diseases = self.query("SELECT id, data_json FROM disease_extra")
+        syms = self.query("SELECT d, s, weight FROM disease_symptom_extra")
+        treats = self.query("SELECT d, t, efficacy FROM disease_treatment_extra")
+        return diseases, syms, treats
