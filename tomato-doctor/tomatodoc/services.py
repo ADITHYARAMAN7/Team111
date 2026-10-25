@@ -515,6 +515,71 @@ class Services:
             self.store.add_edge(self.kg, d, s, max(0.05, min(0.95, float(weight))))
         self.db.set_suggestion_status(d, s, "accepted")
 
+    def add_disease(self, data):
+        """Expert creates a new disease and wires it into the live knowledge graph.
+
+        Required keys: id, name_en, name_ta, type, severity, contagious,
+                       summary_en, summary_ta, symptoms (list of {symptom_id, weight}),
+                       treatments (list of {treatment_id, efficacy})
+        Optional keys: prevention_en[], prevention_ta[], favored_by{}, images[]
+        """
+        import re as _re
+        did = (data.get("id") or "").strip().lower()
+        if not _re.match(r"^[a-z][a-z0-9_]{1,59}$", did):
+            raise ValueError("id must be 2-60 lowercase letters/digits/underscores, starting with a letter")
+        if did in self.kg.diseases:
+            raise ValueError(f"disease '{did}' already exists")
+        name_en = (data.get("name_en") or "").strip()
+        name_ta = (data.get("name_ta") or "").strip()
+        if not name_en or not name_ta:
+            raise ValueError("name_en and name_ta are required")
+        d_type = data.get("type")
+        if d_type not in ("fungal", "bacterial", "viral", "pest", "physiological", "other"):
+            raise ValueError("type must be one of: fungal, bacterial, viral, pest, physiological, other")
+        severity = int(data.get("severity", 3))
+        if not 1 <= severity <= 5:
+            raise ValueError("severity must be 1-5")
+        # validate symptom links
+        raw_syms = data.get("symptoms") or []
+        symptoms = []
+        for item in raw_syms:
+            sid = item.get("symptom_id") or ""
+            if sid not in self.kg.symptoms:
+                raise ValueError(f"unknown symptom: {sid}")
+            w = max(0.05, min(0.95, float(item.get("weight", 0.5))))
+            symptoms.append((sid, w))
+        if not symptoms:
+            raise ValueError("at least one symptom link is required")
+        # validate treatment links
+        raw_trts = data.get("treatments") or []
+        treatments = []
+        for item in raw_trts:
+            tid = item.get("treatment_id") or ""
+            if tid not in self.kg.treatments:
+                raise ValueError(f"unknown treatment: {tid}")
+            eff = max(0.01, min(1.0, float(item.get("efficacy", 0.5))))
+            treatments.append((tid, eff))
+        if not treatments:
+            raise ValueError("at least one treatment link is required")
+        # build favored_by from seasons
+        favored_by = {}
+        for s, b in (data.get("favored_by") or {}).items():
+            if s in self.kg.seasons:
+                favored_by[s] = max(0.0, min(2.0, float(b)))
+        disease_dict = {
+            "id": did, "name_en": name_en, "name_ta": name_ta, "type": d_type,
+            "severity": severity, "contagious": bool(data.get("contagious")),
+            "source": "expert", "summary_en": (data.get("summary_en") or "").strip(),
+            "summary_ta": (data.get("summary_ta") or "").strip(),
+            "prevention_en": [p for p in (data.get("prevention_en") or []) if isinstance(p, str) and p.strip()],
+            "prevention_ta": [p for p in (data.get("prevention_ta") or []) if isinstance(p, str) and p.strip()],
+            "images": [], "favored_by": favored_by,
+        }
+        self.store.add_disease(self.kg, disease_dict, symptoms, treatments)
+        self.rebuild_matcher()
+        log.info("Expert added new disease: %s (%s)", did, name_en)
+        return did
+
     def expert_outbreaks(self, days=60):
         rows = self.db.reports_since(time.time() - days * 86400)
         for r in rows:

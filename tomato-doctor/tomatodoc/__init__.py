@@ -279,4 +279,19 @@ def create_app(overrides=None):
     def ex_symptoms():
         return jsonify([{"id": s, "label_en": v["label_en"], "label_ta": v["label_ta"]} for s, v in svc.kg.symptoms.items()])
 
+    @app.get("/api/expert/treatments")
+    @expert_only
+    def ex_treatments():
+        return jsonify([{"id": t, "name_en": v["name_en"], "name_ta": v["name_ta"], "type": v["type"]}
+                        for t, v in svc.kg.treatments.items()])
+
+    @app.post("/api/expert/disease")
+    @expert_only
+    def ex_add_disease():
+        try:
+            did = svc.add_disease(body())
+        except ValueError as e:
+            abort(400, str(e))
+        return jsonify({"status": "ok", "disease_id": did})
+
     return app
