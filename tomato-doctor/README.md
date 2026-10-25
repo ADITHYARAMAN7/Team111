@@ -15,8 +15,7 @@ pip install -r requirements.txt
 python run.py
 ```
 
-Open http://127.0.0.1:5000 (farmer app) and http://127.0.0.1:5000/expert
-(expert console). No database setup is needed: by default the graph is
+Open https://main.d32xq9g8szdlvo.amplifyapp.com/. No database setup is needed: by default the graph is
 loaded from `tomatodoc/kg/seed/tomato_kg.json` and learning is stored in
 `instance/tomatodoc.db`.
 
