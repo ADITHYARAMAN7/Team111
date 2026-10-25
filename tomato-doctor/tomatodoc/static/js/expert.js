@@ -243,8 +243,155 @@
       <p class="callout">${esc(v.note)}</p>`;
   }
 
+  // ------------------------------------------------------------ add disease
+  let TREATMENTS = [];
+  async function addDisease() {
+    const [syms, trts] = await Promise.all([
+      SYMPTOMS.length ? SYMPTOMS : api("/api/expert/symptoms"),
+      TREATMENTS.length ? TREATMENTS : api("/api/expert/treatments"),
+    ]);
+    SYMPTOMS = syms; TREATMENTS = trts;
+
+    const symOpts = syms.map(s => `<option value="${esc(s.id)}">${esc(s.label_en)} — ${esc(s.label_ta)}</option>`).join("");
+    const trtOpts = trts.map(t => `<option value="${esc(t.id)}">[${esc(t.type)}] ${esc(t.name_en)}</option>`).join("");
+    const seasons = ["humid_monsoon", "cool_moist", "hot_dry"];
+    const seasonLabels = { humid_monsoon: "Humid / Monsoon", cool_moist: "Cool & Misty", hot_dry: "Hot & Dry" };
+
+    $("#p-add-disease").innerHTML = `
+      <h2>Add a new disease to the knowledge graph</h2>
+      <p class="muted">This creates a live disease entry with symptom links, treatment links, and seasonal preferences.
+        The new disease is immediately available for diagnosis — no restart required.</p>
+
+      <div class="card add-disease-form">
+        <p class="eyebrow">① Identity</p>
+        <div class="add-disease-grid">
+          <label>Disease ID (slug)<small>lowercase, underscores, e.g. powdery_mildew</small>
+            <input type="text" id="did" placeholder="powdery_mildew"></label>
+          <label>Name (English)<input type="text" id="dname_en" placeholder="Powdery Mildew"></label>
+          <label>Name (Tamil)<input type="text" id="dname_ta" placeholder="வெண்தூள் நோய்"></label>
+          <label>Type
+            <select id="dtype">
+              <option value="fungal">Fungal</option><option value="bacterial">Bacterial</option>
+              <option value="viral">Viral</option><option value="pest">Pest</option>
+              <option value="physiological">Physiological</option><option value="other">Other</option>
+            </select></label>
+          <label>Severity (1=mild, 5=critical)
+            <input type="range" id="dseverity" min="1" max="5" value="3" oninput="this.nextElementSibling.textContent=this.value">
+            <output>3</output></label>
+          <label class="checkbox-row"><input type="checkbox" id="dcontagious"> Contagious (spreads plant-to-plant)</label>
+        </div>
+
+        <p class="eyebrow" style="margin-top:18px">② Description</p>
+        <div class="add-disease-grid">
+          <label>Summary (English)<textarea id="dsummary_en" rows="3" placeholder="Describe the disease in English…"></textarea></label>
+          <label>Summary (Tamil)<textarea id="dsummary_ta" rows="3" placeholder="தமிழில் விவரிக்கவும்…"></textarea></label>
+        </div>
+
+        <p class="eyebrow" style="margin-top:18px">③ Symptom links <small class="muted">(at least one required)</small></p>
+        <p class="muted small">These become HAS_SYMPTOM edges. Weight ≈ P(symptom visible | disease). 0.8 = strongly associated.</p>
+        <div id="symLinks"></div>
+        <div class="add-form" style="margin-top:8px">
+          <select id="addSymSel"><option value="">Add a symptom…</option>${symOpts}</select>
+          <input type="number" id="addSymW" min="0.05" max="0.95" step="0.05" value="0.6" style="max-width:90px" title="Weight">
+          <button class="btn btn-ghost btn-sm" id="addSymBtn">+ Add</button>
+        </div>
+
+        <p class="eyebrow" style="margin-top:18px">④ Treatment links <small class="muted">(at least one required)</small></p>
+        <p class="muted small">These become TREATED_BY edges. Efficacy ≈ how effective this treatment is (0-1).</p>
+        <div id="trtLinks"></div>
+        <div class="add-form" style="margin-top:8px">
+          <select id="addTrtSel"><option value="">Add a treatment…</option>${trtOpts}</select>
+          <input type="number" id="addTrtEff" min="0.01" max="1.0" step="0.05" value="0.6" style="max-width:90px" title="Efficacy">
+          <button class="btn btn-ghost btn-sm" id="addTrtBtn">+ Add</button>
+        </div>
+
+        <p class="eyebrow" style="margin-top:18px">⑤ Seasonal preference <small class="muted">(optional)</small></p>
+        <div class="add-disease-grid">
+          ${seasons.map(s => `<label>${seasonLabels[s]} boost
+            <input type="range" class="season-boost" data-season="${s}" min="0" max="2" step="0.1" value="0"
+              oninput="this.nextElementSibling.textContent=parseFloat(this.value).toFixed(1)">
+            <output>0.0</output></label>`).join("")}
+        </div>
+
+        <div style="margin-top:22px;display:flex;gap:12px;align-items:center">
+          <button class="btn btn-primary" id="submitDiseaseBtn">Add disease to graph</button>
+          <span id="diseaseFormMsg" style="font-size:14px"></span>
+        </div>
+      </div>`;
+
+    // track added symptom/treatment links
+    const symLinks = [], trtLinks = [];
+
+    function renderSymLinks() {
+      $("#symLinks").innerHTML = symLinks.map((l, i) => {
+        const s = syms.find(x => x.id === l.sid);
+        return `<div class="teach-row" style="grid-template-columns:2fr 120px auto">
+          <span>${esc(s ? s.label_en : l.sid)}</span>
+          <span class="muted small">weight ${l.w.toFixed(2)}</span>
+          <button class="btn btn-ghost btn-sm" data-rmsym="${i}">✕</button></div>`;
+      }).join("") || '<p class="muted small">No symptoms added yet.</p>';
+    }
+    function renderTrtLinks() {
+      $("#trtLinks").innerHTML = trtLinks.map((l, i) => {
+        const t = trts.find(x => x.id === l.tid);
+        return `<div class="teach-row" style="grid-template-columns:2fr 120px auto">
+          <span>${esc(t ? t.name_en : l.tid)}</span>
+          <span class="muted small">efficacy ${l.eff.toFixed(2)}</span>
+          <button class="btn btn-ghost btn-sm" data-rmtrt="${i}">✕</button></div>`;
+      }).join("") || '<p class="muted small">No treatments added yet.</p>';
+    }
+    renderSymLinks(); renderTrtLinks();
+
+    // dynamic button wiring inside the panel (delegated to section)
+    const panel = $("#p-add-disease");
+    panel.addEventListener("click", async e => {
+      const b = e.target.closest("button");
+      if (!b) return;
+      if (b.id === "addSymBtn") {
+        const sid = $("#addSymSel").value;
+        if (!sid) return;
+        const w = parseFloat($("#addSymW").value) || 0.6;
+        if (!symLinks.find(l => l.sid === sid)) symLinks.push({ sid, w });
+        renderSymLinks(); return;
+      }
+      if (b.id === "addTrtBtn") {
+        const tid = $("#addTrtSel").value;
+        if (!tid) return;
+        const eff = parseFloat($("#addTrtEff").value) || 0.6;
+        if (!trtLinks.find(l => l.tid === tid)) trtLinks.push({ tid, eff });
+        renderTrtLinks(); return;
+      }
+      if (b.dataset.rmsym !== undefined) { symLinks.splice(+b.dataset.rmsym, 1); renderSymLinks(); return; }
+      if (b.dataset.rmtrt !== undefined) { trtLinks.splice(+b.dataset.rmtrt, 1); renderTrtLinks(); return; }
+      if (b.id === "submitDiseaseBtn") {
+        const msg = $("#diseaseFormMsg");
+        const favored_by = {};
+        $$(".season-boost").forEach(el => { if (+el.value > 0) favored_by[el.dataset.season] = +el.value; });
+        const payload = {
+          id: $("#did").value.trim(),
+          name_en: $("#dname_en").value.trim(), name_ta: $("#dname_ta").value.trim(),
+          type: $("#dtype").value, severity: +$("#dseverity").value,
+          contagious: $("#dcontagious").checked,
+          summary_en: $("#dsummary_en").value.trim(), summary_ta: $("#dsummary_ta").value.trim(),
+          symptoms: symLinks.map(l => ({ symptom_id: l.sid, weight: l.w })),
+          treatments: trtLinks.map(l => ({ treatment_id: l.tid, efficacy: l.eff })),
+          favored_by,
+        };
+        msg.textContent = "Saving…"; msg.style.color = "var(--muted)";
+        try {
+          const r = await api("/api/expert/disease", payload);
+          msg.textContent = `✓ Disease '${r.disease_id}' added to the graph!`;
+          msg.style.color = "var(--ok)";
+        } catch (err) {
+          msg.textContent = `✗ ${err.message}`;
+          msg.style.color = "var(--no)";
+        }
+      }
+    });
+  }
+
   // ------------------------------------------------------------ wiring
-  const PANELS = { overview, graph, outbreaks, teach, learning, evaluation, vision: visionPanel };
+  const PANELS = { overview, graph, outbreaks, teach, add_disease: addDisease, learning, evaluation, vision: visionPanel };
   async function open(tab) {
     $$("#tabs button").forEach((b) => b.classList.toggle("on", b.dataset.tab === tab));
     $$("[data-panel]").forEach((p) => p.classList.toggle("hidden", p.dataset.panel !== tab));

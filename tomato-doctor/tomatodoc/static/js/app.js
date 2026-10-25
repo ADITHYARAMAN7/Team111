@@ -74,6 +74,11 @@
     $("#themeIcon").setAttribute("href", th === "light" ? "#i-sun" : th === "dark" ? "#i-moon" : "#i-contrast");
     $("#themeBtn").title = t("theme_" + th);
     $("#themeBtn").setAttribute("aria-label", t("theme_" + th));
+    const metaTheme = $('meta[name="theme-color"]');
+    if (metaTheme) {
+      const isDark = th === "dark" || (th === "auto" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      metaTheme.setAttribute("content", isDark ? "#000000" : "#f5f7fa");
+    }
   }
   function applyI18n() {
     document.documentElement.lang = L;
