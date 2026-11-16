@@ -31,6 +31,21 @@ def test_meta(client):
     assert sum(len(g["items"]) for g in m["symptom_groups"]) == m["kg"]["symptoms"]
 
 
+def test_evaluation_uses_packaged_report_when_generated_report_is_missing(tmp_path):
+    from tomatodoc import create_app
+
+    app = create_app({
+        "DATABASE_PATH": str(tmp_path / "evaluation.db"),
+        "KG_BACKEND": "embedded",
+        "NEO4J_URI": None,
+        "EXPERT_TOKEN": None,
+        "EVALUATION_PATH": str(tmp_path / "missing-evaluation.json"),
+    })
+    response = app.test_client().get("/api/expert/evaluation")
+    assert response.status_code == 200
+    assert response.get_json()["methods"]
+
+
 def test_full_dialogue_whitefly(client):
     st = run_dialogue(client, "session-whitefly-1", "இலையில் வெள்ளை தூள் போல இருக்கு",
                       lambda q: "yes" if q in ("pests_seen", "insects_fly_up", "sticky_sooty") else "no")

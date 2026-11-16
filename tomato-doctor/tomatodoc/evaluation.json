@@ -1,0 +1,62 @@
+{
+  "generated_at": "2026-10-16 11:00",
+  "n_cases": 85,
+  "n_runs": 20,
+  "description": "Free-text farmer descriptions (Tamil, English, Tanglish) of all 17 diseases, written independently of the lay-term phrases, followed by a simulated noisy dialogue.",
+  "caveat": "The test descriptions were written by the system's authors, and the simulated farmer answers according to the knowledge graph's own probabilities - so these numbers measure the reasoning pipeline, not field accuracy. A field study with real farmer descriptions is the next validation step.",
+  "methods": [
+    {
+      "id": "v1",
+      "name": "v1 prototype",
+      "text_understood": 0.9176470588235294,
+      "top1_text_only": 0.6352941176470588,
+      "top1_final": 0.6352941176470588,
+      "top3_final": 0.8588235294117647,
+      "wrong_confident": 0.10588235294117647,
+      "avg_questions": null,
+      "by_lang": {"ta": 0.6764705882352942, "en": 0.5294117647058824, "tl": 0.7647058823529411}
+    },
+    {
+      "id": "random",
+      "name": "v2 + random questions",
+      "text_understood": 1.0,
+      "top1_text_only": 0.9294117647058824,
+      "top1_final": 0.951764705882353,
+      "top3_final": 0.9947058823529412,
+      "wrong_confident": 0.0058823529411764705,
+      "avg_questions": 3.5123529411764705,
+      "by_lang": {"ta": 0.9529411764705882, "en": 0.9544117647058824, "tl": 0.9441176470588235}
+    },
+    {
+      "id": "v2",
+      "name": "v2 (this system)",
+      "text_understood": 1.0,
+      "top1_text_only": 0.9294117647058824,
+      "top1_final": 0.9647058823529412,
+      "top3_final": 0.9988235294117647,
+      "wrong_confident": 0.01,
+      "avg_questions": 2.046470588235294,
+      "by_lang": {"ta": 0.9632352941176471, "en": 0.9705882352941176, "tl": 0.9558823529411765}
+    }
+  ],
+  "per_disease": [
+    {"disease": "early_blight", "name": "Early Blight", "n": 5, "v1": 0.8, "random": 1.0, "v2": 0.95},
+    {"disease": "late_blight", "name": "Late Blight", "n": 5, "v1": 0.6, "random": 0.94, "v2": 1.0},
+    {"disease": "powdery_mildew", "name": "Powdery Mildew", "n": 5, "v1": 0.4, "random": 0.99, "v2": 1.0},
+    {"disease": "whitefly", "name": "Whitefly Infestation", "n": 5, "v1": 0.8, "random": 0.96, "v2": 1.0},
+    {"disease": "leaf_curl_virus", "name": "Tomato Leaf Curl Virus", "n": 5, "v1": 0.6, "random": 0.98, "v2": 0.99},
+    {"disease": "septoria_leaf_spot", "name": "Septoria Leaf Spot", "n": 5, "v1": 0.8, "random": 0.94, "v2": 0.99},
+    {"disease": "bacterial_spot", "name": "Bacterial Spot", "n": 5, "v1": 0.8, "random": 0.74, "v2": 0.75},
+    {"disease": "fusarium_wilt", "name": "Fusarium Wilt", "n": 5, "v1": 0.8, "random": 0.99, "v2": 1.0},
+    {"disease": "bacterial_wilt", "name": "Bacterial Wilt", "n": 5, "v1": 0.8, "random": 0.99, "v2": 1.0},
+    {"disease": "blossom_end_rot", "name": "Blossom End Rot", "n": 5, "v1": 0.4, "random": 0.92, "v2": 0.98},
+    {"disease": "mosaic_virus", "name": "Tomato Mosaic Virus", "n": 5, "v1": 0.8, "random": 0.99, "v2": 0.99},
+    {"disease": "spider_mite", "name": "Two-Spotted Spider Mite", "n": 5, "v1": 0.4, "random": 0.97, "v2": 0.98},
+    {"disease": "fruit_borer", "name": "Fruit Borer", "n": 5, "v1": 0.6, "random": 0.98, "v2": 1.0},
+    {"disease": "root_knot_nematode", "name": "Root-Knot Nematode", "n": 5, "v1": 0.6, "random": 1.0, "v2": 1.0},
+    {"disease": "leaf_miner", "name": "Leaf Miner", "n": 5, "v1": 0.6, "random": 0.95, "v2": 0.97},
+    {"disease": "leaf_mold", "name": "Leaf Mold", "n": 5, "v1": 1.0, "random": 0.98, "v2": 0.99},
+    {"disease": "target_spot", "name": "Target Spot", "n": 5, "v1": 0.0, "random": 0.86, "v2": 0.81}
+  ],
+  "runtime_s": 4.6
+}

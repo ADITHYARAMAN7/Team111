@@ -260,6 +260,8 @@ def create_app(overrides=None):
     def ex_evaluation():
         path = config["EVALUATION_PATH"]
         if not os.path.exists(path):
+            path = os.path.join(os.path.dirname(__file__), "evaluation.json")
+        if not os.path.exists(path):
             return jsonify(None)
         with open(path, encoding="utf-8") as f:
             return jsonify(json.load(f))
