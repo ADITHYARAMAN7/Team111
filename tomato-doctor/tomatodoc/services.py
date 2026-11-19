@@ -504,20 +504,11 @@ class Services:
     def expert_graph(self, include_layterms=False):
         nodes, edges = [], []
         for d, dd in self.kg.diseases.items():
-            confirmed = self.db.query("SELECT COUNT(*) n FROM feedback_events WHERE outcome='confirmed' AND disease_id=?",
-                                      (d,))[0]["n"]
-            corrected = self.db.query("SELECT COUNT(*) n FROM feedback_events WHERE outcome='corrected' AND corrected_to=?",
-                                      (d,))[0]["n"]
-            nodes.append({"id": f"d:{d}", "label": dd["name_en"], "label_ta": dd["name_ta"], "kind": "disease",
-                          "type": dd["type"], "confirmed": confirmed, "corrected": corrected})
+            nodes.append({"id": f"d:{d}", "label": dd["name_en"], "label_ta": dd["name_ta"], "kind": "disease", "type": dd["type"]})
         for s, ss in self.kg.symptoms.items():
             nodes.append({"id": f"s:{s}", "label": ss["label_en"], "label_ta": ss["label_ta"], "kind": "symptom", "part": ss.get("part")})
         for (d, s), e in self.kg.edges.items():
-            w = e["alpha"] / (e["alpha"] + e["beta"])
-            edges.append({"from": f"d:{d}", "to": f"s:{s}", "rel": "HAS_SYMPTOM", "weight": round(w, 3),
-                          "alpha": round(e["alpha"], 3), "beta": round(e["beta"], 3),
-                          "seed": round(e["seed"], 3), "drift": round(w - e["seed"], 4),
-                          "observations": round(e["alpha"] + e["beta"] - 20.0, 2)})
+            edges.append({"from": f"d:{d}", "to": f"s:{s}", "rel": "HAS_SYMPTOM", "weight": round(e["alpha"] / (e["alpha"] + e["beta"]), 3)})
         for t, tt in self.kg.treatments.items():
             nodes.append({"id": f"t:{t}", "label": tt["name_en"], "label_ta": tt["name_ta"], "kind": "treatment", "type": tt["type"]})
         for d, lst in self.kg.treated_by.items():
