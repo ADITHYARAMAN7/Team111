@@ -430,7 +430,39 @@ class Services:
         applied, suggestions = [], []
         if truth:
             updates, suggestions = plan_updates(self.kg, evidence, truth, photo=photo)
+            before_edges = {}
+            for u in updates:
+                if u["rel"] != "HAS_SYMPTOM":
+                    continue
+                key = (u["src"], u["dst"])
+                if key not in before_edges:
+                    e = self.kg.edges.get(key)
+                    if e:
+                        before_edges[key] = {
+                            "before_alpha": e["alpha"],
+                            "before_beta": e["beta"],
+                            "before": e["alpha"] / (e["alpha"] + e["beta"]),
+                        }
             applied = self.store.apply_updates(self.kg, updates)
+            audit_updates = []
+            for u in applied:
+                if u["rel"] != "HAS_SYMPTOM":
+                    continue
+                key = (u["src"], u["dst"])
+                e = self.kg.edges.get(key)
+                before = before_edges.get(key)
+                if not e or not before:
+                    continue
+                after = e["alpha"] / (e["alpha"] + e["beta"])
+                audit_updates.append({
+                    **u,
+                    "before": round(before["before"], 6),
+                    "after": round(after, 6),
+                    "delta": round(after - before["before"], 6),
+                    "alpha": round(e["alpha"], 6),
+                    "beta": round(e["beta"], 6),
+                })
+            applied = audit_updates
             for s in suggestions:
                 self.db.suggest_edge(s["d"], s["s"], s["amount"])
             if isinstance(self.store, Neo4jStore):
@@ -552,6 +584,21 @@ class Services:
             changed_edges = []
             for (d, s), delta in weight_updates.items():
                 if d not in self.kg.diseases or s not in self.kg.symptoms:
+                    continue
+                audit_row = next((u for u in updates
+                                  if u.get("rel") == "HAS_SYMPTOM" and u.get("src") == d and u.get("dst") == s), None)
+                if audit_row and "before" in audit_row and "after" in audit_row:
+                    changed_edges.append({
+                        "disease_id": d,
+                        "disease": self.kg.diseases[d]["name_en"],
+                        "symptom_id": s,
+                        "symptom": self.kg.symptoms[s]["label_en"],
+                        "before": audit_row["before"],
+                        "after": audit_row["after"],
+                        "delta": audit_row["delta"],
+                        "alpha": audit_row["alpha"],
+                        "beta": audit_row["beta"],
+                    })
                     continue
                 e = self.kg.edges.get((d, s))
                 if not e:
