@@ -64,9 +64,21 @@
     const showT = $("#showTreatments").checked;
     const th = document.documentElement.dataset.theme;
     const dark = th ? th === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    const edgeByNode = {};
+    graphData.edges.forEach((e) => {
+      edgeByNode[e.from] = edgeByNode[e.from] || [];
+      edgeByNode[e.to] = edgeByNode[e.to] || [];
+      edgeByNode[e.from].push(e);
+      edgeByNode[e.to].push(e);
+    });
+    const nodeName = (id) => (graphData.nodes.find((n) => n.id === id) || {}).label || id;
     const nodes = graphData.nodes.filter((n) => showT || n.kind !== "treatment").map((n) => ({
       id: n.id, label: n.kind === "layterm" ? n.label : n.label.length > 34 ? n.label.slice(0, 32) + "…" : n.label,
-      title: `${n.kind}: ${n.label}${n.label_ta ? "\n" + n.label_ta : ""}`, group: n.kind,
+      title: `${n.kind}: ${n.label}${n.label_ta ? "\n" + n.label_ta : ""}` +
+        (n.kind === "disease" ? `\nConfirmed: ${n.confirmed || 0} · Corrected: ${n.corrected || 0}` : "") +
+        ((edgeByNode[n.id] || []).length ? "\n\nConnected weights:" + (edgeByNode[n.id] || []).slice(0, 12).map((e) =>
+          `\n${e.rel}: ${nodeName(e.from === n.id ? e.to : e.from)} = ${e.weight}${e.rel === "HAS_SYMPTOM" ? ` (α=${e.alpha}, β=${e.beta}, drift=${e.drift >= 0 ? "+" : ""}${e.drift})` : ""}`
+        ).join("") : ""),
       color: { background: colors[n.kind], border: colors[n.kind], highlight: { background: "#1f3a22", border: "#1f3a22" } },
       shape: n.kind === "disease" ? "dot" : n.kind === "treatment" ? "diamond" : n.kind === "layterm" ? "box" : "dot",
       size: n.kind === "disease" ? 22 : n.kind === "symptom" ? 11 : 9,
@@ -74,7 +86,10 @@
     }));
     const ids = new Set(nodes.map((n) => n.id));
     const edges = graphData.edges.filter((e) => ids.has(e.from) && ids.has(e.to)).map((e) => ({
-      from: e.from, to: e.to, width: 0.5 + e.weight * 4, title: `${e.rel} · ${e.weight}`,
+      from: e.from, to: e.to, width: 0.5 + e.weight * 4,
+      title: e.rel === "HAS_SYMPTOM"
+        ? `${e.rel}\nCurrent weight: ${e.weight}\nSeed: ${e.seed}\nDrift: ${e.drift >= 0 ? "+" : ""}${e.drift}\nAlpha: ${e.alpha}\nBeta: ${e.beta}\nAdded observations: ${e.observations}`
+        : `${e.rel} · weight ${e.weight}`,
       color: { color: e.rel === "TREATED_BY" ? "#d9c27a" : e.rel === "LAYTERM_MAPS_TO" ? "#aab4d0" : "#9fbf86", opacity: 0.7 },
       arrows: { to: { enabled: true, scaleFactor: 0.4 } },
     }));
@@ -183,6 +198,45 @@
         ${(learned.length ? learned : edges.slice(0, 15)).map((e) => `<tr><td>${esc(e.disease)}</td><td>${esc(e.symptom)}</td><td class="num">${e.seed.toFixed(3)}</td>
           <td class="num">${e.current.toFixed(3)}</td><td class="num ${e.drift > 0 ? "pos" : e.drift < 0 ? "neg" : ""}">${e.drift > 0 ? "+" : ""}${e.drift.toFixed(3)}</td>
           <td class="num">${e.observations.toFixed(2)}</td></tr>`).join("")}</tbody></table></div>`;
+  }
+
+  // ------------------------------------------------------------ live feedback
+  async function feedback() {
+    const data = await api("/api/expert/feedback");
+    const o = data.outcomes || {};
+    const changed = data.recent.flatMap((r) => r.weight_updates.map((u) => ({ ...u, outcome: r.outcome, created_at: r.created_at })));
+    $("#p-feedback").innerHTML = `
+      <div class="feedback-heading">
+        <div><h2>Live diagnosis feedback</h2><p class="muted">Real confirmations, corrections and photo-assisted learning updates.</p></div>
+        <span class="live-pill"><i></i> Live · 5s refresh</span>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><span>Confirmed</span><b>${o.confirmed || 0}</b></div>
+        <div class="kpi"><span>Corrected</span><b>${o.corrected || 0}</b></div>
+        <div class="kpi"><span>Rejected / unsure</span><b>${(o.rejected || 0) + (o.unsure || 0)}</b></div>
+        <div class="kpi"><span>Feedback with photo</span><b>${data.photo_feedback || 0}</b></div>
+      </div>
+      <div class="card scroll"><p class="eyebrow">Recent farmer feedback</p>
+        <table class="ex feedback-table"><thead><tr><th>Time</th><th>Outcome</th><th>Predicted</th><th>Actual / corrected</th><th>Photo</th><th class="num">Evidence</th><th class="num">Edges changed</th></tr></thead><tbody>
+        ${data.recent.map((r) => `<tr>
+          <td>${new Date(r.created_at * 1000).toLocaleString()}</td>
+          <td><span class="pill ${esc(r.outcome)}">${esc(r.outcome)}</span></td>
+          <td>${esc(r.predicted_name || r.predicted_disease || "—")}<small>${r.predicted_probability != null ? Math.round(r.predicted_probability * 100) + "%" : ""}</small></td>
+          <td>${esc(r.actual_name || r.actual_disease || "—")}</td>
+          <td>${r.photo_used ? `<b>${esc(r.photo_top || "used")}</b><small>${r.photo_probability != null ? Math.round(r.photo_probability * 100) + "%" : ""}</small>` : "No"}</td>
+          <td class="num">${r.evidence_count}</td>
+          <td class="num">${r.weight_updates.length}</td>
+        </tr>`).join("") || '<tr><td colspan="7" class="muted">No feedback received yet.</td></tr>'}
+        </tbody></table></div>
+      <div class="card scroll"><p class="eyebrow">Live graph-weight changes</p>
+        ${changed.length ? `<table class="ex"><thead><tr><th>When</th><th>Disease</th><th>Symptom edge</th><th class="num">Before</th><th class="num">After</th><th class="num">Change</th><th class="num">α</th><th class="num">β</th></tr></thead><tbody>
+          ${changed.slice(0, 50).map((u) => `<tr>
+            <td>${new Date(u.created_at * 1000).toLocaleTimeString()}</td><td>${esc(u.disease)}</td><td>${esc(u.symptom)}</td>
+            <td class="num">${u.before.toFixed(3)}</td><td class="num">${u.after.toFixed(3)}</td>
+            <td class="num ${u.delta > 0 ? "pos" : u.delta < 0 ? "neg" : ""}">${u.delta > 0 ? "+" : ""}${u.delta.toFixed(3)}</td>
+            <td class="num">${u.alpha.toFixed(3)}</td><td class="num">${u.beta.toFixed(3)}</td>
+          </tr>`).join("")}</tbody></table>` : '<p class="muted">No HAS_SYMPTOM edge weights have been updated yet.</p>'}
+      </div>`;
   }
 
   // ------------------------------------------------------------ evaluation
@@ -391,12 +445,16 @@
   }
 
   // ------------------------------------------------------------ wiring
-  const PANELS = { overview, graph, outbreaks, teach, add_disease: addDisease, learning, evaluation, vision: visionPanel };
+  const PANELS = { overview, graph, outbreaks, teach, add_disease: addDisease, learning, feedback, evaluation, vision: visionPanel };
+  let liveTimer = null;
   async function open(tab) {
+    if (liveTimer) { clearInterval(liveTimer); liveTimer = null; }
     $$("#tabs button").forEach((b) => b.classList.toggle("on", b.dataset.tab === tab));
     $$("[data-panel]").forEach((p) => p.classList.toggle("hidden", p.dataset.panel !== tab));
     if (location.hash.slice(1) !== tab) history.replaceState(null, "", "#" + tab);
     try { await PANELS[tab](); } catch (e) { if (e.message !== "locked") console.error(e); }
+    if (tab === "feedback") liveTimer = setInterval(feedback, 5000);
+    if (tab === "graph") liveTimer = setInterval(graph, 5000);
   }
   document.addEventListener("click", async (e) => {
     const b = e.target.closest("button");
