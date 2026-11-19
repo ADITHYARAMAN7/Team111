@@ -22,7 +22,7 @@ def evidence_weight(c):
     return max(0.0, min(1.0, 2 * (c - 0.5)))
 
 
-def plan_updates(kg, evidence, true_disease):
+def plan_updates(kg, evidence, true_disease, photo=None):
     updates, suggestions = [], []
     for e in evidence:
         s = e["symptom_id"]
@@ -39,4 +39,23 @@ def plan_updates(kg, evidence, true_disease):
             useful = theta is not None
             updates.append({"rel": "LAYTERM_MAPS_TO", "src": e["layterm_id"], "dst": s,
                             "d_alpha": w / 2 if useful else 0.0, "d_beta": 0.0 if useful else w / 2})
+
+    # A well-matched confirmation photo can reinforce observed symptoms that
+    # were reported for the confirmed disease. It is deliberately capped and
+    # only applied when the photo model agrees with the confirmed/corrected
+    # disease; the photo never creates a symptom link or penalises one.
+    if photo and isinstance(photo, dict):
+        top = photo.get("top")
+        try:
+            top_p = float(photo.get("top_p", 0.0))
+        except (TypeError, ValueError):
+            top_p = 0.0
+        if top == true_disease and top_p >= 0.5:
+            photo_weight = min(0.35, 0.35 * top_p)
+            for e in evidence:
+                s = e["symptom_id"]
+                if not e.get("present") or kg.theta(true_disease, s) is None:
+                    continue
+                updates.append({"rel": "HAS_SYMPTOM", "src": true_disease, "dst": s,
+                                "d_alpha": photo_weight, "d_beta": 0.0})
     return updates, suggestions
