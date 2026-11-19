@@ -195,6 +195,11 @@ def create_app(overrides=None):
     def ex_edges():
         return jsonify(svc.expert_edges())
 
+    @app.get("/api/expert/feedback")
+    @expert_only
+    def ex_feedback():
+        return jsonify(svc.expert_feedback())
+
     @app.get("/api/expert/unmatched")
     @expert_only
     def ex_unmatched():
