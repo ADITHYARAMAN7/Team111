@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS consultations (
     created_at REAL, updated_at REAL,
     input_text TEXT, lang TEXT, season TEXT,
     evidence_json TEXT, posterior_json TEXT,
+    photo_json TEXT,
     top_disease TEXT, top_prob REAL, status TEXT,
     questions_asked INTEGER DEFAULT 0, photo_used INTEGER DEFAULT 0,
     outcome TEXT, final_disease TEXT
@@ -84,7 +85,7 @@ class Database:
         self._conn.executescript(SCHEMA)
         cols = {r[1] for r in self._conn.execute("PRAGMA table_info(consultations)")}
         for col, typ in (("lat", "REAL"), ("lon", "REAL"), ("severity", "TEXT"), ("extent", "INTEGER"), ("voice_ai", "INTEGER"),
-                         ("soil_used", "INTEGER")):
+                         ("soil_used", "INTEGER"), ("photo_json", "TEXT")):
             if col not in cols:                      # migrate databases created by v2.0
                 self._conn.execute(f"ALTER TABLE consultations ADD COLUMN {col} {typ}")
         self._conn.commit()
@@ -106,7 +107,7 @@ class Database:
     # ---- consultations -----------------------------------------------------
     def upsert_consultation(self, cid, **f):
         now = time.time()
-        cols = ["input_text", "lang", "season", "evidence_json", "posterior_json", "top_disease", "top_prob",
+        cols = ["input_text", "lang", "season", "evidence_json", "posterior_json", "photo_json", "top_disease", "top_prob",
                 "status", "questions_asked", "photo_used", "lat", "lon", "severity", "extent", "voice_ai", "soil_used"]
         vals = [f.get(c) for c in cols]
         with self.tx() as c:
