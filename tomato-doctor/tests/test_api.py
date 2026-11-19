@@ -158,6 +158,9 @@ def test_photo_confirmed_feedback_updates_and_is_visible_to_expert(client, app):
     updated_edges = [e for e in graph["edges"]
                      if e["rel"] == "HAS_SYMPTOM" and e["from"] == "d:powdery_mildew"]
     assert any("alpha" in e and "beta" in e and "drift" in e for e in updated_edges)
+    weight_update = activity["recent"][0]["weight_updates"][0]
+    assert weight_update["before"] < weight_update["after"]
+    assert weight_update["delta"] > 0
 
 
 VAL = glob.glob(os.path.join(ROOT, "tomato", "val", "Tomato___Late_blight", "*"))
