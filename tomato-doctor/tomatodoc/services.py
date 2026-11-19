@@ -274,7 +274,10 @@ class Services:
             photo = None
         if photo:
             photo = {"probs": {k: float(v) for k, v in photo["probs"].items()},
-                     "temperature": max(0.0, min(1.0, float(photo.get("temperature", 0.5))))}
+                     "temperature": max(0.0, min(1.0, float(photo.get("temperature", 0.5)))) ,
+                     "top": str(photo.get("top") or max(photo["probs"], key=photo["probs"].get))[:80],
+                     "top_p": max(0.0, min(1.0, float(photo.get("top_p",
+                         photo["probs"].get(str(photo.get("top") or ""), 0.0)))))}
         ai_symptoms = []
         for a in _dicts(req.get("ai_symptoms"), 20):
             if a.get("symptom_id") in self.kg.symptoms:
@@ -330,6 +333,7 @@ class Services:
             sid, input_text=text, lang=req.get("lang"), season=season,
             evidence_json=json.dumps(evidence, ensure_ascii=False),
             posterior_json=json.dumps(state["posterior"][:4], ensure_ascii=False),
+            photo_json=json.dumps(photo, ensure_ascii=False) if photo else None,
             top_disease=top["id"], top_prob=top["p"], status=state["status"],
             questions_asked=len(answers), photo_used=1 if photo else 0,
             lat=loc[0] if loc else None, lon=loc[1] if loc else None, severity=severity, extent=extent,
@@ -422,9 +426,10 @@ class Services:
         if truth is not None and truth not in self.kg.diseases:
             raise ValueError("unknown disease")
         evidence = json.loads(cons["evidence_json"] or "[]")
+        photo = json.loads(cons["photo_json"] or "null") if cons.get("photo_json") else None
         applied, suggestions = [], []
         if truth:
-            updates, suggestions = plan_updates(self.kg, evidence, truth)
+            updates, suggestions = plan_updates(self.kg, evidence, truth, photo=photo)
             applied = self.store.apply_updates(self.kg, updates)
             for s in suggestions:
                 self.db.suggest_edge(s["d"], s["s"], s["amount"])
@@ -467,11 +472,20 @@ class Services:
     def expert_graph(self, include_layterms=False):
         nodes, edges = [], []
         for d, dd in self.kg.diseases.items():
-            nodes.append({"id": f"d:{d}", "label": dd["name_en"], "label_ta": dd["name_ta"], "kind": "disease", "type": dd["type"]})
+            confirmed = self.db.query("SELECT COUNT(*) n FROM feedback_events WHERE outcome='confirmed' AND disease_id=?",
+                                      (d,))[0]["n"]
+            corrected = self.db.query("SELECT COUNT(*) n FROM feedback_events WHERE outcome='corrected' AND corrected_to=?",
+                                      (d,))[0]["n"]
+            nodes.append({"id": f"d:{d}", "label": dd["name_en"], "label_ta": dd["name_ta"], "kind": "disease",
+                          "type": dd["type"], "confirmed": confirmed, "corrected": corrected})
         for s, ss in self.kg.symptoms.items():
             nodes.append({"id": f"s:{s}", "label": ss["label_en"], "label_ta": ss["label_ta"], "kind": "symptom", "part": ss.get("part")})
         for (d, s), e in self.kg.edges.items():
-            edges.append({"from": f"d:{d}", "to": f"s:{s}", "rel": "HAS_SYMPTOM", "weight": round(e["alpha"] / (e["alpha"] + e["beta"]), 3)})
+            w = e["alpha"] / (e["alpha"] + e["beta"])
+            edges.append({"from": f"d:{d}", "to": f"s:{s}", "rel": "HAS_SYMPTOM", "weight": round(w, 3),
+                          "alpha": round(e["alpha"], 3), "beta": round(e["beta"], 3),
+                          "seed": round(e["seed"], 3), "drift": round(w - e["seed"], 4),
+                          "observations": round(e["alpha"] + e["beta"] - 20.0, 2)})
         for t, tt in self.kg.treatments.items():
             nodes.append({"id": f"t:{t}", "label": tt["name_en"], "label_ta": tt["name_ta"], "kind": "treatment", "type": tt["type"]})
         for d, lst in self.kg.treated_by.items():
@@ -493,6 +507,96 @@ class Services:
                          "observations": round(e["alpha"] + e["beta"] - PRIOR_STRENGTH, 2)})
         rows.sort(key=lambda r: (-r["observations"], -abs(r["drift"])))
         return rows
+
+    def expert_feedback(self):
+        q = self.db.query
+        outcomes = {r["outcome"]: r["n"] for r in q(
+            "SELECT outcome, COUNT(*) n FROM consultations WHERE outcome IS NOT NULL GROUP BY outcome")}
+        photo_feedback = q("SELECT COUNT(*) n FROM consultations WHERE outcome IS NOT NULL AND photo_used=1")[0]["n"]
+        feedback_rows = q("""
+            SELECT f.consultation_id, f.created_at, f.outcome, f.disease_id,
+                   f.corrected_to, f.updates_json,
+                   c.input_text, c.top_disease, c.top_prob, c.photo_used, c.photo_json,
+                   c.evidence_json
+            FROM feedback_events f
+            LEFT JOIN consultations c ON c.id=f.consultation_id
+            ORDER BY f.created_at DESC
+            LIMIT 100
+        """)
+        recent = []
+        for r in feedback_rows:
+            try:
+                updates = json.loads(r["updates_json"] or "[]")
+            except json.JSONDecodeError:
+                updates = []
+            photo = None
+            try:
+                photo = json.loads(r["photo_json"] or "null")
+            except json.JSONDecodeError:
+                pass
+            try:
+                evidence = json.loads(r["evidence_json"] or "[]")
+            except json.JSONDecodeError:
+                evidence = []
+
+            weight_updates = {}
+            for u in updates:
+                if u.get("rel") != "HAS_SYMPTOM":
+                    continue
+                key = (u["src"], u["dst"])
+                if key not in weight_updates:
+                    weight_updates[key] = {"d_alpha": 0.0, "d_beta": 0.0}
+                weight_updates[key]["d_alpha"] += float(u.get("d_alpha", 0.0))
+                weight_updates[key]["d_beta"] += float(u.get("d_beta", 0.0))
+
+            changed_edges = []
+            for (d, s), delta in weight_updates.items():
+                if d not in self.kg.diseases or s not in self.kg.symptoms:
+                    continue
+                e = self.kg.edges.get((d, s))
+                if not e:
+                    continue
+                current_alpha = e["alpha"]
+                current_beta = e["beta"]
+                current = current_alpha / (current_alpha + current_beta)
+                before_alpha = max(0.001, current_alpha - delta["d_alpha"])
+                before_beta = max(0.001, current_beta - delta["d_beta"])
+                before = before_alpha / (before_alpha + before_beta)
+                changed_edges.append({
+                    "disease_id": d,
+                    "disease": self.kg.diseases[d]["name_en"],
+                    "symptom_id": s,
+                    "symptom": self.kg.symptoms[s]["label_en"],
+                    "before": round(before, 4),
+                    "after": round(current, 4),
+                    "delta": round(current - before, 4),
+                    "alpha": round(current_alpha, 3),
+                    "beta": round(current_beta, 3),
+                })
+
+            actual = r["corrected_to"] if r["outcome"] == "corrected" else (
+                r["disease_id"] if r["outcome"] == "confirmed" else None)
+            recent.append({
+                "session_id": r["consultation_id"],
+                "created_at": r["created_at"],
+                "outcome": r["outcome"],
+                "predicted_disease": r["top_disease"],
+                "predicted_name": self.kg.diseases[r["top_disease"]]["name_en"] if r["top_disease"] in self.kg.diseases else r["top_disease"],
+                "predicted_probability": r["top_prob"],
+                "actual_disease": actual,
+                "actual_name": self.kg.diseases[actual]["name_en"] if actual in self.kg.diseases else actual,
+                "photo_used": bool(r["photo_used"]),
+                "photo_top": photo.get("top") if photo else None,
+                "photo_probability": photo.get("top_p") if photo else None,
+                "evidence_count": len(evidence),
+                "weight_updates": changed_edges,
+            })
+        return {
+            "outcomes": outcomes,
+            "total": sum(outcomes.values()),
+            "photo_feedback": photo_feedback,
+            "recent": recent,
+        }
 
     def add_layterm(self, symptom_id, text, lang="ta", weight=0.8, created_by="expert"):
         if symptom_id not in self.kg.symptoms:
