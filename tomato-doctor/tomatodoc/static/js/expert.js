@@ -96,14 +96,16 @@
     const data = { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) };
     if (network) {
       network.setData(data);
-      network.fit({ animation: false });
       return;
     }
     network = new vis.Network($("#graph"), data, {
-      physics: { solver: "forceAtlas2Based", forceAtlas2Based: { gravitationalConstant: -60, springLength: 90 }, stabilization: { iterations: 250 } },
-      interaction: { hover: true, tooltipDelay: 80, hideEdgesOnDrag: true, hideEdgesOnZoom: false },
+      physics: { enabled: true, solver: "forceAtlas2Based", forceAtlas2Based: { gravitationalConstant: -60, springLength: 120, springConstant: 0.03, damping: 0.55 }, stabilization: { iterations: 120, fit: true } },
+      interaction: { hover: true, tooltipDelay: 120, dragNodes: true, dragView: true, zoomView: true, hideEdgesOnDrag: false, hideEdgesOnZoom: false },
       nodes: { borderWidth: 1, borderWidthSelected: 2 },
       edges: { smooth: { enabled: true, type: "dynamic" } },
+    });
+    network.once("stabilizationIterationsDone", () => {
+      network.setOptions({ physics: false });
     });
     network.on("click", (p) => { if (p.nodes.length) network.selectNodes([p.nodes[0], ...network.getConnectedNodes(p.nodes[0])]); });
   }
@@ -207,14 +209,23 @@
   }
 
   // ------------------------------------------------------------ live feedback
+  let feedbackFingerprint = "";
+  let feedbackLoading = false;
   async function feedback() {
-    const data = await api("/api/expert/feedback");
+    if (feedbackLoading || document.visibilityState === "hidden") return;
+    feedbackLoading = true;
+    let data;
+    try {
+      data = await api("/api/expert/feedback");
+      const fingerprint = JSON.stringify(data);
+      if (fingerprint === feedbackFingerprint) return;
+      feedbackFingerprint = fingerprint;
     const o = data.outcomes || {};
     const changed = data.recent.flatMap((r) => r.weight_updates.map((u) => ({ ...u, outcome: r.outcome, created_at: r.created_at })));
     $("#p-feedback").innerHTML = `
       <div class="feedback-heading">
         <div><h2>Live diagnosis feedback</h2><p class="muted">Real confirmations, corrections and photo-assisted learning updates.</p></div>
-        <span class="live-pill"><i></i> Live · 5s refresh</span>
+        <span class="live-pill"><i></i> Live · 15s refresh</span>
       </div>
       <div class="kpis">
         <div class="kpi"><span>Confirmed</span><b>${o.confirmed || 0}</b></div>
@@ -245,6 +256,11 @@
             <td class="num">${u.alpha.toFixed(3)}</td><td class="num">${u.beta.toFixed(3)}</td>
           </tr>`).join("")}</tbody></table>` : '<p class="muted">No HAS_SYMPTOM edge weights have been updated yet.</p>'}
       </div>`;
+    } catch (e) {
+      throw e;
+    } finally {
+      feedbackLoading = false;
+    }
   }
 
   // ------------------------------------------------------------ evaluation
@@ -461,8 +477,7 @@
     $$("[data-panel]").forEach((p) => p.classList.toggle("hidden", p.dataset.panel !== tab));
     if (location.hash.slice(1) !== tab) history.replaceState(null, "", "#" + tab);
     try { await PANELS[tab](); } catch (e) { if (e.message !== "locked") console.error(e); }
-    if (tab === "feedback") liveTimer = setInterval(feedback, 5000);
-    if (tab === "graph") liveTimer = setInterval(graph, 5000);
+    if (tab === "feedback") liveTimer = setInterval(feedback, 15000);
   }
   document.addEventListener("click", async (e) => {
     const b = e.target.closest("button");
@@ -487,6 +502,7 @@
     if (b.dataset.reject) { const [d, s] = b.dataset.reject.split("|"); await api("/api/expert/suggestions/reject", { d, s }); return learning(); }
   });
   $("#graphFull").addEventListener("click", toggleFull);
+  $("#graphRefresh").addEventListener("click", () => graph());
   document.addEventListener("fullscreenchange", syncFullUi);
   document.addEventListener("webkitfullscreenchange", syncFullUi);
   document.addEventListener("keydown", (e) => {
@@ -501,7 +517,7 @@
     if (!network || !graphData) return;
     const q = e.target.value.toLowerCase();
     const hit = graphData.nodes.find((n) => n.label.toLowerCase().includes(q) || (n.label_ta || "").includes(q));
-    if (hit) { network.selectNodes([hit.id]); network.focus(hit.id, { scale: 1.3, animation: true }); }
+    if (hit) { network.selectNodes([hit.id]); network.focus(hit.id, { scale: 1.3, animation: false }); }
   });
   fetch("/api/meta").then((r) => r.json()).then((m) => { $("#backendPill").textContent = `Graph: ${m.backend.backend} · v${m.kg_version}`; }).catch(() => {});
   window.addEventListener("hashchange", () => { const t = location.hash.slice(1); if (PANELS[t]) open(t); });
