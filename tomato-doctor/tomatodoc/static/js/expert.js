@@ -66,13 +66,7 @@
     const dark = th ? th === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
     const nodes = graphData.nodes.filter((n) => showT || n.kind !== "treatment").map((n) => ({
       id: n.id, label: n.kind === "layterm" ? n.label : n.label.length > 34 ? n.label.slice(0, 32) + "…" : n.label,
-      title: n.kind === "disease"
-        ? `Disease: ${n.label}\nConfirmed: ${n.confirmed || 0} · Corrected: ${n.corrected || 0}`
-        : n.kind === "symptom"
-          ? `Symptom: ${n.label}${n.label_ta ? "\n" + n.label_ta : ""}`
-          : n.kind === "treatment"
-            ? `Treatment: ${n.label}`
-            : `Lay-term: ${n.label}`,
+      title: `${n.kind}: ${n.label}${n.label_ta ? "\n" + n.label_ta : ""}`,
       color: { background: colors[n.kind], border: colors[n.kind], highlight: { background: "#1f3a22", border: "#1f3a22" } },
       shape: n.kind === "disease" ? "dot" : n.kind === "treatment" ? "diamond" : n.kind === "layterm" ? "box" : "dot",
       size: n.kind === "disease" ? 22 : n.kind === "symptom" ? 11 : 9,
@@ -81,23 +75,15 @@
     const ids = new Set(nodes.map((n) => n.id));
     const edges = graphData.edges.filter((e) => ids.has(e.from) && ids.has(e.to)).map((e) => ({
       from: e.from, to: e.to, width: 0.5 + e.weight * 4,
-      title: e.rel === "HAS_SYMPTOM"
-        ? `HAS_SYMPTOM | weight ${e.weight} | seed ${e.seed} | drift ${e.drift >= 0 ? "+" : ""}${e.drift}`
-        : `${e.rel} · weight ${e.weight}`,
+      title: `${e.rel} · ${e.weight}`,
       color: { color: e.rel === "TREATED_BY" ? "#d9c27a" : e.rel === "LAYTERM_MAPS_TO" ? "#aab4d0" : "#9fbf86", opacity: 0.7 },
       arrows: { to: { enabled: true, scaleFactor: 0.4 } },
     }));
     const data = { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) };
-    if (network) {
-      network.setData(data);
-      return;
-    }
+    if (network) network.destroy();
     network = new vis.Network($("#graph"), data, {
       physics: { solver: "forceAtlas2Based", forceAtlas2Based: { gravitationalConstant: -60, springLength: 90 }, stabilization: { iterations: 250 } },
       interaction: { hover: true, tooltipDelay: 120 },
-    });
-    network.once("stabilizationIterationsDone", () => {
-      network.setOptions({ physics: false });
     });
     network.on("click", (p) => { if (p.nodes.length) network.selectNodes([p.nodes[0], ...network.getConnectedNodes(p.nodes[0])]); });
   }
