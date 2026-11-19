@@ -126,6 +126,40 @@ def test_expert_requires_token_when_configured(tmp_path, monkeypatch):
     assert c.get("/api/expert/stats", headers={"X-Expert-Token": "s3cret"}).status_code == 200
 
 
+def test_photo_confirmed_feedback_updates_and_is_visible_to_expert(client, app):
+    sid = "session-photo-feedback"
+    client.post("/api/diagnose", json={
+        "session_id": sid,
+        "text": "white powder on leaves",
+        "photo": {
+            "probs": {"powdery_mildew": 0.92, "late_blight": 0.08},
+            "temperature": 0.6,
+            "top": "powdery_mildew",
+            "top_p": 0.92,
+        },
+    })
+    response = client.post("/api/feedback", json={
+        "session_id": sid,
+        "outcome": "confirmed",
+        "disease_id": "powdery_mildew",
+    })
+    assert response.status_code == 200
+    assert response.get_json()["learned"] is True
+
+    activity = client.get("/api/expert/feedback").get_json()
+    assert activity["outcomes"]["confirmed"] >= 1
+    assert activity["photo_feedback"] >= 1
+    assert activity["recent"][0]["photo_used"] is True
+    assert activity["recent"][0]["weight_updates"]
+
+    graph = client.get("/api/expert/graph").get_json()
+    disease = next(n for n in graph["nodes"] if n["id"] == "d:powdery_mildew")
+    assert disease["confirmed"] >= 1
+    updated_edges = [e for e in graph["edges"]
+                     if e["rel"] == "HAS_SYMPTOM" and e["from"] == "d:powdery_mildew"]
+    assert any("alpha" in e and "beta" in e and "drift" in e for e in updated_edges)
+
+
 VAL = glob.glob(os.path.join(ROOT, "tomato", "val", "Tomato___Late_blight", "*"))
 
 
