@@ -119,6 +119,51 @@ body.expert {
 
 .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 18px; }
 
+.feedback-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--card);
+  color: var(--muted);
+  padding: 7px 11px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.live-pill i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #35a56f;
+  box-shadow: 0 0 0 4px rgba(53, 165, 111, .12);
+  animation: live-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+  50% { box-shadow: 0 0 0 7px rgba(53, 165, 111, .04); }
+}
+
+.feedback-table td small,
+.feedback-table td b {
+  display: block;
+}
+
+.feedback-table td small {
+  color: var(--muted);
+  margin-top: 2px;
+}
+
 .hbar {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) 2fr 52px;
