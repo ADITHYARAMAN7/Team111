@@ -94,10 +94,16 @@
       arrows: { to: { enabled: true, scaleFactor: 0.4 } },
     }));
     const data = { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) };
-    if (network) network.destroy();
+    if (network) {
+      network.setData(data);
+      network.fit({ animation: false });
+      return;
+    }
     network = new vis.Network($("#graph"), data, {
       physics: { solver: "forceAtlas2Based", forceAtlas2Based: { gravitationalConstant: -60, springLength: 90 }, stabilization: { iterations: 250 } },
-      interaction: { hover: true, tooltipDelay: 120 },
+      interaction: { hover: true, tooltipDelay: 80, hideEdgesOnDrag: true, hideEdgesOnZoom: false },
+      nodes: { borderWidth: 1, borderWidthSelected: 2 },
+      edges: { smooth: { enabled: true, type: "dynamic" } },
     });
     network.on("click", (p) => { if (p.nodes.length) network.selectNodes([p.nodes[0], ...network.getConnectedNodes(p.nodes[0])]); });
   }
@@ -229,11 +235,13 @@
         </tr>`).join("") || '<tr><td colspan="7" class="muted">No feedback received yet.</td></tr>'}
         </tbody></table></div>
       <div class="card scroll"><p class="eyebrow">Live graph-weight changes</p>
-        ${changed.length ? `<table class="ex"><thead><tr><th>When</th><th>Disease</th><th>Symptom edge</th><th class="num">Before</th><th class="num">After</th><th class="num">Change</th><th class="num">α</th><th class="num">β</th></tr></thead><tbody>
+        ${changed.length ? `<table class="ex"><thead><tr><th>When</th><th>Outcome</th><th>Disease</th><th>Symptom edge</th><th class="num">Before</th><th class="num">After</th><th class="num">Weight added / reduced</th><th class="num">α</th><th class="num">β</th></tr></thead><tbody>
           ${changed.slice(0, 50).map((u) => `<tr>
-            <td>${new Date(u.created_at * 1000).toLocaleTimeString()}</td><td>${esc(u.disease)}</td><td>${esc(u.symptom)}</td>
+            <td>${new Date(u.created_at * 1000).toLocaleTimeString()}</td>
+            <td><span class="pill ${esc(u.outcome)}">${esc(u.outcome)}</span></td>
+            <td>${esc(u.disease)}</td><td>${esc(u.symptom)}</td>
             <td class="num">${u.before.toFixed(3)}</td><td class="num">${u.after.toFixed(3)}</td>
-            <td class="num ${u.delta > 0 ? "pos" : u.delta < 0 ? "neg" : ""}">${u.delta > 0 ? "+" : ""}${u.delta.toFixed(3)}</td>
+            <td class="num ${u.delta > 0 ? "pos" : u.delta < 0 ? "neg" : ""}">${u.delta > 0 ? "Added +" : u.delta < 0 ? "Reduced " : "No change "}${u.delta.toFixed(3)}</td>
             <td class="num">${u.alpha.toFixed(3)}</td><td class="num">${u.beta.toFixed(3)}</td>
           </tr>`).join("")}</tbody></table>` : '<p class="muted">No HAS_SYMPTOM edge weights have been updated yet.</p>'}
       </div>`;
