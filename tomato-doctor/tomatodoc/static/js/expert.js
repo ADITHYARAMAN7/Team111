@@ -64,21 +64,15 @@
     const showT = $("#showTreatments").checked;
     const th = document.documentElement.dataset.theme;
     const dark = th ? th === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
-    const edgeByNode = {};
-    graphData.edges.forEach((e) => {
-      edgeByNode[e.from] = edgeByNode[e.from] || [];
-      edgeByNode[e.to] = edgeByNode[e.to] || [];
-      edgeByNode[e.from].push(e);
-      edgeByNode[e.to].push(e);
-    });
-    const nodeName = (id) => (graphData.nodes.find((n) => n.id === id) || {}).label || id;
     const nodes = graphData.nodes.filter((n) => showT || n.kind !== "treatment").map((n) => ({
       id: n.id, label: n.kind === "layterm" ? n.label : n.label.length > 34 ? n.label.slice(0, 32) + "…" : n.label,
-      title: `${n.kind}: ${n.label}${n.label_ta ? "\n" + n.label_ta : ""}` +
-        (n.kind === "disease" ? `\nConfirmed: ${n.confirmed || 0} · Corrected: ${n.corrected || 0}` : "") +
-        ((edgeByNode[n.id] || []).length ? "\n\nConnected weights:" + (edgeByNode[n.id] || []).slice(0, 12).map((e) =>
-          `\n${e.rel}: ${nodeName(e.from === n.id ? e.to : e.from)} = ${e.weight}${e.rel === "HAS_SYMPTOM" ? ` (α=${e.alpha}, β=${e.beta}, drift=${e.drift >= 0 ? "+" : ""}${e.drift})` : ""}`
-        ).join("") : ""),
+      title: n.kind === "disease"
+        ? `Disease: ${n.label}\nConfirmed: ${n.confirmed || 0} · Corrected: ${n.corrected || 0}`
+        : n.kind === "symptom"
+          ? `Symptom: ${n.label}${n.label_ta ? "\n" + n.label_ta : ""}`
+          : n.kind === "treatment"
+            ? `Treatment: ${n.label}`
+            : `Lay-term: ${n.label}`,
       color: { background: colors[n.kind], border: colors[n.kind], highlight: { background: "#1f3a22", border: "#1f3a22" } },
       shape: n.kind === "disease" ? "dot" : n.kind === "treatment" ? "diamond" : n.kind === "layterm" ? "box" : "dot",
       size: n.kind === "disease" ? 22 : n.kind === "symptom" ? 11 : 9,
@@ -88,7 +82,7 @@
     const edges = graphData.edges.filter((e) => ids.has(e.from) && ids.has(e.to)).map((e) => ({
       from: e.from, to: e.to, width: 0.5 + e.weight * 4,
       title: e.rel === "HAS_SYMPTOM"
-        ? `${e.rel}\nCurrent weight: ${e.weight}\nSeed: ${e.seed}\nDrift: ${e.drift >= 0 ? "+" : ""}${e.drift}\nAlpha: ${e.alpha}\nBeta: ${e.beta}\nAdded observations: ${e.observations}`
+        ? `HAS_SYMPTOM | weight ${e.weight} | seed ${e.seed} | drift ${e.drift >= 0 ? "+" : ""}${e.drift}`
         : `${e.rel} · weight ${e.weight}`,
       color: { color: e.rel === "TREATED_BY" ? "#d9c27a" : e.rel === "LAYTERM_MAPS_TO" ? "#aab4d0" : "#9fbf86", opacity: 0.7 },
       arrows: { to: { enabled: true, scaleFactor: 0.4 } },
@@ -99,10 +93,8 @@
       return;
     }
     network = new vis.Network($("#graph"), data, {
-      physics: { enabled: true, solver: "forceAtlas2Based", forceAtlas2Based: { gravitationalConstant: -60, springLength: 120, springConstant: 0.03, damping: 0.55 }, stabilization: { iterations: 120, fit: true } },
-      interaction: { hover: true, tooltipDelay: 120, dragNodes: true, dragView: true, zoomView: true, hideEdgesOnDrag: false, hideEdgesOnZoom: false },
-      nodes: { borderWidth: 1, borderWidthSelected: 2 },
-      edges: { smooth: { enabled: true, type: "dynamic" } },
+      physics: { solver: "forceAtlas2Based", forceAtlas2Based: { gravitationalConstant: -60, springLength: 90 }, stabilization: { iterations: 250 } },
+      interaction: { hover: true, tooltipDelay: 120 },
     });
     network.once("stabilizationIterationsDone", () => {
       network.setOptions({ physics: false });
@@ -502,7 +494,6 @@
     if (b.dataset.reject) { const [d, s] = b.dataset.reject.split("|"); await api("/api/expert/suggestions/reject", { d, s }); return learning(); }
   });
   $("#graphFull").addEventListener("click", toggleFull);
-  $("#graphRefresh").addEventListener("click", () => graph());
   document.addEventListener("fullscreenchange", syncFullUi);
   document.addEventListener("webkitfullscreenchange", syncFullUi);
   document.addEventListener("keydown", (e) => {
