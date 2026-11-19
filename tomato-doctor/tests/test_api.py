@@ -154,10 +154,11 @@ def test_photo_confirmed_feedback_updates_and_is_visible_to_expert(client, app):
 
     graph = client.get("/api/expert/graph").get_json()
     disease = next(n for n in graph["nodes"] if n["id"] == "d:powdery_mildew")
-    assert disease["confirmed"] >= 1
+    assert "confirmed" not in disease
+    assert "corrected" not in disease
     updated_edges = [e for e in graph["edges"]
                      if e["rel"] == "HAS_SYMPTOM" and e["from"] == "d:powdery_mildew"]
-    assert any("alpha" in e and "beta" in e and "drift" in e for e in updated_edges)
+    assert all(set(e) == {"from", "to", "rel", "weight"} for e in updated_edges)
     weight_update = activity["recent"][0]["weight_updates"][0]
     assert weight_update["before"] < weight_update["after"]
     assert weight_update["delta"] > 0
